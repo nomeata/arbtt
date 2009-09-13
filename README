@@ -122,6 +122,14 @@ Some of my plans or ideas include:
    interactive way. Possibly based on the Charts haskell library.
  * A better representation of the data in the log, to keep the size and 
    parsing speed down. 
+ * Looking forward and backwards in time when writing rules. (Information
+   is already passed to the categorizing function, but not exposed to the
+   syntax).
+ * $total_idle time, which is the maximum idle time until it is reset. This
+   would allow the user to catch the idle times more exactly.
+ * Rules based on day of time, to create tags for worktime, weekend, late
+   at night.
+ * Statistics based on time, to visualize trends.
  * Possibly more data sources?
 
 Any help cleaning, documenting or testing the current code is appreciated
