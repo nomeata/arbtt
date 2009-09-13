@@ -14,12 +14,12 @@ description:
     has the focus and how long since your last action (and possbly more sources
     later), and stores this. It is also a program that will, based on
     expressive rules you specify, derive what you were doing, and what for.
---    Aditionally, it is a program that lets you graphically expore the log file.
     .
     WARNING: The log file might contain very sensitive private data. Make sure
     you understand the consequences of a full-time logger and be careful with this
     data.
-homepage:           http://darcs.nomeata.de/arbtt
+homepage:           http://www.joachim-breitner.de/projects#arbtt
+
 
 extra-source-files:
     categorize.cfg, arbtt-capture.desktop, README
@@ -48,3 +48,6 @@ executable arbtt-stats
         TimeLog
         Stats
 
+source-repository head
+    type:     darcs
+    location: http://darcs.nomeata.de/arbtt
