@@ -25,7 +25,7 @@ extra-source-files:
     categorize.cfg, arbtt-capture.desktop, README
 
 executable arbtt-capture
-    main-is:            capture.hs
+    main-is:            capture-main.hs
     hs-source-dirs:     src
     build-depends:
         base == 4.*, filepath, directory, mtl, time, unix,
@@ -38,7 +38,7 @@ executable arbtt-capture
         Graphics.X11.XScreenSaver
 
 executable arbtt-stats
-    main-is:            stats.hs
+    main-is:            stats-main.hs
     hs-source-dirs:     src
     build-depends:
         base == 4.*, parsec == 2.*, containers, pcre-light, tabular
