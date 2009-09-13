@@ -1,0 +1,50 @@
+cabal-version:      >= 1.6
+build-type:         Simple
+name:               arbtt
+version:            0.1
+license:            GPL
+license-file:       LICENSE
+category:           Development
+author:             Joachim Breitner <mail@joachim-breitner.de>
+maintainer:         Joachim Breitner <mail@joachim-breitner.de>
+copyright:          Joachim Breitner 2009
+synopsis:           Automatic Rule-Based Time Tracker
+description:
+    arbtt is a background daemon that stores which windows are open, which one
+    has the focus and how long since your last action (and possbly more sources
+    later), and stores this. It is also a program that will, based on
+    expressive rules you specify, derive what you were doing, and what for.
+--    Aditionally, it is a program that lets you graphically expore the log file.
+    .
+    WARNING: The log file might contain very sensitive private data. Make sure
+    you understand the consequences of a full-time logger and be careful with this
+    data.
+homepage:           http://darcs.nomeata.de/arbtt
+
+extra-source-files:
+    categorize.cfg, arbtt-capture.desktop, README
+
+executable arbtt-capture
+    main-is:            capture.hs
+    hs-source-dirs:     src
+    build-depends:
+        base == 4.*, filepath, directory, mtl, time, unix,
+        X11 > 1.4.4
+    extra-libraries: Xss
+    other-modules:
+        Data
+        Capture
+        TimeLog
+        Graphics.X11.XScreenSaver
+
+executable arbtt-stats
+    main-is:            stats.hs
+    hs-source-dirs:     src
+    build-depends:
+        base == 4.*, parsec == 2.*, containers, pcre-light, tabular
+    other-modules:
+        Data
+        Categorize
+        TimeLog
+        Stats
+
