@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=arbtt Data Capture Program
+#Icon=
+Comment=Records information about the user’s application usage
+Type=Application
+#Categories=
+Exec=arbtt-capture
+Terminal=false
+StartupNotify=false
