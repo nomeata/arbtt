@@ -46,6 +46,7 @@ data Calculations = Calculations
 	, fractionSel :: Double
 	, fractionSelRec :: Double
 	, sums :: M.Map Activity Integer
+	, allTags :: TimeLog ActivityData
 	, tags :: TimeLog ActivityData
 	}
 
@@ -61,6 +62,7 @@ prepareCalculations allTags tags =
 	  , fractionSel = fromIntegral (totalTimeSel c) / (realToFrac (timeDiff c) * 1000)
 	  , fractionSelRec = fromIntegral (totalTimeSel c) / fromIntegral (totalTimeRec c)
 	  , sums = sumUp tags
+	  , allTags
 	  , tags
 	  } in c
 
@@ -80,7 +82,7 @@ renderReport opts (Calculations {..}) r = case r of
 		+.+ row "LastRecord"
 		        [show lastDate]
 		+.+ row "Number of records"
-		        [show (length tags)]
+		        [show (length allTags)]
 		+.+ row "Total time recorded"
 		        [formatSeconds (fromIntegral totalTimeRec / 1000)]
 		+.+ row "Total time selected"
