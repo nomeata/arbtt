@@ -100,7 +100,7 @@ renderReport opts (Calculations {..}) r = case r of
 		      let perc = fromIntegral time/fromIntegral totalTimeSel*100 in
 		      if perc >= minPercentage
 	 	      then (+.+ row (show tag) [
-		      		formatSeconds (fromIntegral time/100),
+		      		formatSeconds (fromIntegral time/1000),
 				printf "%.1f%%" perc])
 		      else id
 		      )
@@ -134,7 +134,7 @@ renderReport opts (Calculations {..}) r = case r of
 		      let perc = fromIntegral time/fromIntegral totalTimeSel*100 in
 		      if perc >= minPercentage
 	 	      then (+.+ row (show tag) [
-		      		formatSeconds (fromIntegral time/100),
+		      		formatSeconds (fromIntegral time/1000),
 				printf "%.1f%%" perc])
 		      else id
 		      )
