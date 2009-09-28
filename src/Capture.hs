@@ -19,7 +19,9 @@ captureData = do
 	p <- getWindowProperty32 dpy a rwin
 	let cwins = maybe [] (map fromIntegral) p
 
-	(fwin,_) <- getInputFocus dpy
+	(fsubwin,_) <- getInputFocus dpy
+	fwin <- followTreeUntil dpy (`elem` cwins) fsubwin
+
 	winData <- mapM (\w -> (,,) (w == fwin) <$> getWindowTitle dpy w <*> getProgramName dpy w) cwins
 
 	it <- fromIntegral `fmap` getXIdleTime dpy
@@ -32,4 +34,13 @@ getWindowTitle dpy w = fmap (fromMaybe "") $ fetchName dpy w
 
 getProgramName :: Display -> Window -> IO String
 getProgramName dpy w = fmap resName $ getClassHint dpy w
+
+-- | Follows the tree of windows up until the condition is met or the window is
+-- a direct child of the root.
+followTreeUntil :: Display -> (Window -> Bool) -> Window -> IO Window 
+followTreeUntil dpy cond = go
+  where go w | cond w    = return w
+             | otherwise = do (r,p,_) <- queryTree dpy w
+	                      if r == p then return w
+			                else go p 
 
