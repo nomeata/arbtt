@@ -12,7 +12,7 @@ import System.IO
 import System.Posix.IO
 import System.IO.Error
 import System.Exit
-
+import System.Locale.SetLocale
 
 -- | sampleRate in seconds
 sampleRate = 60 
@@ -23,6 +23,7 @@ lockFile filename = flip catch (\e -> hPutStrLn stderr ("arbtt [Error]: Could no
     setLock fd (WriteLock, AbsoluteSeek, 0, 0)
 
 main = do
+    setLocale LC_ALL (Just "") 
     unless compiledWithXScreenSaver $
     	hPutStrLn stderr "arbtt [Warning]: X11 was compiled without support for XScreenSaver"
     dir <- getAppUserDataDirectory "arbtt"

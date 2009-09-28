@@ -41,7 +41,7 @@ executable arbtt-stats
     main-is:            stats-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, parsec == 2.*, containers, pcre-light, tabular
+        base == 4.*, parsec == 2.*, containers, pcre-light, tabular, setlocale
     other-modules:
         Data
         Categorize
