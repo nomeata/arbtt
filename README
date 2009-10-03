@@ -53,13 +53,17 @@ Cond := "(" Cond ")" | "!" Cond | Cond "&&" Cond | Cond "||" Cond
       | "$" SVar "==" String | "$" SVar "/=" String
       | "$" SVar "=~" "/" Regex "/" |
       | "$" NVar NOp Number
+      | "$" TVar NOp TSpec
       | "$" BVar
-      | "current window" $cond
-      | "any window" $cond
+      | "current window" Cond
+      | "any window" Cond
+
+NOp := "<=" | "<" | "==" | ">" | ">="
 
 SVar := "title" | "program"
 NVar := "idle"
 BVar := "active"
+TVar := "time" | "sampleage"
 
 The variables $title, $program, $active refer to the "window in scope". At
 first, no window is in scope. Only when evaluating the condition passed to
@@ -90,6 +94,12 @@ Available variables are:
 	    The title or the name of the currently active program. If no
 	    program happens to be active, this tag will be ignored.
 
+The variable $time refers to the time-of-day of the sample (i.e. the time
+since 0:00 that day), while $sampleage refers to the timespan from when the
+sample was created until now, the time of evaluating the statistics. They
+can be compared with expressions of the type "hh:mm", for example:
+ $time >=  8:00 && $time < 12:00 ==> tag time-of-day:morning,
+
 Statistics
 ==========
 
@@ -110,7 +120,7 @@ Some useful examples:
 
   # Tell me what evolution folders I spend my time in when I actually do
   # work with e-Mail
- are arbtt-stats -o Program:evolution -c Evo-Folder
+  arbtt-stats -o Program:evolution -c Evo-Folder
 
 Development
 ===========
