@@ -274,7 +274,7 @@ checkActive ctx = do (a,_,_) <- cWindowInScope ctx
 		     return []
 
 checkNumCmp ::  (Integer -> Integer -> Bool) -> String -> Integer -> Cond
-checkNumCmp op "idle" num ctx = [] `justIf` op (cLastActivity (cNow ctx)) (num*1000)
+checkNumCmp (<?>) "idle" num ctx = [] `justIf` (cLastActivity (cNow ctx) <?> num*1000)
 
 matchNone :: Rule
 matchNone = const []
