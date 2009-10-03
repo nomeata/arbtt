@@ -17,6 +17,7 @@ import Control.Applicative ((<*>),(<$>))
 import Data.List
 import Data.Maybe
 import Data.Char
+import Data.Time.Clock
 import Debug.Trace
 
 type Categorizer = TimeLog CaptureData -> TimeLog ActivityData
@@ -168,6 +169,10 @@ parseCondPrim = choice
 		     op <- parseCmp
 		     num <- natural lang
 		     return $ checkNumCmp op varname num
+		, do guard $ varname == "time"
+		     op <- parseCmp 
+		     time <- parseTime
+		     return $ checkTimeCmp op varname time
 		, do guard $ varname == "active"
 		     return $ checkActive
 		]
@@ -189,6 +194,16 @@ parseRegex = lexeme lang $ choice
 	     return str
 	]
 	     
+-- | Parses a day-of-time specification (hh:mm) to the number of seconds since
+-- 00:00
+parseTime :: Parser Integer
+parseTime = fromIntegral <$> do
+	       h1 <- option 0 (do{ digitToInt <$> digit })
+               h2 <- digitToInt <$> digit
+	       char ':'
+               m1 <- digitToInt <$> digit
+               m2 <- digitToInt <$> digit
+	       return $ ((h1 * 10 + h2) * 60 + m1 * 10 + m2) * 60
 
 parseSetTag :: Parser Rule
 parseSetTag = lexeme lang $ do
@@ -274,7 +289,12 @@ checkActive ctx = do (a,_,_) <- cWindowInScope ctx
 		     return []
 
 checkNumCmp ::  (Integer -> Integer -> Bool) -> String -> Integer -> Cond
-checkNumCmp (<?>) "idle" num ctx = [] `justIf` (cLastActivity (cNow ctx) <?> num*1000)
+checkNumCmp (<?>) "idle" num ctx = [] `justIf` (cLastActivity (cNow ctx) <?> (num*1000))
+
+checkTimeCmp ::  (DiffTime -> DiffTime -> Bool) -> String -> Integer -> Cond
+checkTimeCmp (<?>) "time" num ctx =
+	let time = utctDayTime (tlTime (cNow ctx))
+	in [] `justIf` (time <?> secondsToDiffTime num)
 
 matchNone :: Rule
 matchNone = const []
