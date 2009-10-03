@@ -31,6 +31,7 @@ data Ctx = Ctx
 	, cFuture :: [TimeLogEntry CaptureData]
 	, cWindowInScope :: Maybe (Bool, String, String)
 	, cSubsts :: [String]
+	, cCurrentTime :: UTCTime
 	}
   deriving (Show)
 
@@ -39,19 +40,20 @@ type Cond = Ctx -> Maybe [String]
 readCategorizer :: FilePath -> IO Categorizer
 readCategorizer filename = do
 	content <- readFile filename
+	time <- getCurrentTime
 	case parse (do {r <- parseRules; eof ; return r}) filename content of
 	  Left err -> do
 	  	putStrLn "Parser error:"
 		putStrLn (show err)
 		exitFailure
-	  Right cat -> return ((fmap . fmap) (postpare . cat) . prepare)
+	  Right cat -> return ((fmap . fmap) (postpare . cat) . prepare time)
 
-prepare :: TimeLog CaptureData -> TimeLog Ctx
-prepare tl = go' [] tl tl
+prepare :: UTCTime -> TimeLog CaptureData -> TimeLog Ctx
+prepare time tl = go' [] tl tl
   where go' past [] []
   		= []
         go' past (this:future) (now:rest)
-	        = now {tlData = Ctx now past future Nothing [] } :
+	        = now {tlData = Ctx now past future Nothing [] time } :
 	          go' (this:past) future rest
 
 -- | Here, we filter out tags appearing twice, and make sure that only one of
