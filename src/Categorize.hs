@@ -3,7 +3,6 @@ module Categorize where
 import Data
 
 import Data.Maybe
--- import Text.Regex
 import qualified Text.Regex.PCRE.Light.Char8 as RE
 import qualified Data.Map as M
 import Control.Monad
