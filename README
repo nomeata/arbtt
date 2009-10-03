@@ -25,6 +25,9 @@ session. If you use GNOME or KDE, you can copy the file
 full path to arbtt-capture in the Exec line there, if you did not do a
 system wide installation.
 
+If you want to record samples at a different rate than one per minute, you
+will have to pass the "--sample-rate" parameter to arbtt-capture. 
+
 Configuration
 =============
 
