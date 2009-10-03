@@ -26,9 +26,9 @@ type Rule = Ctx -> ActivityData
 type Parser a = CharParser () a
 
 data Ctx = Ctx
-	{ cNow :: CaptureData
-	, cPast :: [CaptureData]
-	, cFuture :: [CaptureData]
+	{ cNow :: TimeLogEntry CaptureData
+	, cPast :: [TimeLogEntry CaptureData]
+	, cFuture :: [TimeLogEntry CaptureData]
 	, cWindowInScope :: Maybe (Bool, String, String)
 	, cSubsts :: [String]
 	}
@@ -47,11 +47,11 @@ readCategorizer filename = do
 	  Right cat -> return ((fmap . fmap) (postpare . cat) . prepare)
 
 prepare :: TimeLog CaptureData -> TimeLog Ctx
-prepare tl = go' [] (map tlData tl) tl
+prepare tl = go' [] tl tl
   where go' past [] []
   		= []
         go' past (this:future) (now:rest)
-	        = now {tlData = Ctx this past future Nothing [] } :
+	        = now {tlData = Ctx now past future Nothing [] } :
 	          go' (this:past) future rest
 
 -- | Here, we filter out tags appearing twice, and make sure that only one of
@@ -197,13 +197,14 @@ parseRegex = lexeme lang $ choice
 -- | Parses a day-of-time specification (hh:mm) to the number of seconds since
 -- 00:00
 parseTime :: Parser Integer
-parseTime = fromIntegral <$> do
-	       h1 <- option 0 (do{ digitToInt <$> digit })
-               h2 <- digitToInt <$> digit
+parseTime = fmap fromIntegral $ lexeme lang $ do
+               h <- digitToInt <$> digit
+	       mh <- optionMaybe (do{ digitToInt <$> digit })
 	       char ':'
                m1 <- digitToInt <$> digit
                m2 <- digitToInt <$> digit
-	       return $ ((h1 * 10 + h2) * 60 + m1 * 10 + m2) * 60
+	       let hour = maybe h ((10*h)+) mh
+	       return $ (hour * 60 + m1 * 10 + m2) * 60
 
 parseSetTag :: Parser Rule
 parseSetTag = lexeme lang $ do
@@ -255,7 +256,7 @@ getVar v ctx | all isNumber  v =
 		listToMaybe (drop (n-1) (cSubsts ctx))
 getVar v ctx | "current" `isPrefixOf` v = do
 		let var = drop (length "current.") v
-		win <- findActive $ cWindows (cNow ctx)
+		win <- findActive $ cWindows (tlData (cNow ctx))
 		getVar var (ctx { cWindowInScope = Just win })
 getVar "title"   ctx = do
 		(_,t,_) <- cWindowInScope ctx
@@ -277,11 +278,11 @@ findActive :: [(Bool, t, t1)] -> Maybe (Bool, t, t1)
 findActive = find (\(a,_,_) -> a)				  
 
 checkCurrentwindow :: Cond -> Cond
-checkCurrentwindow cond ctx = cond (ctx { cWindowInScope = findActive (cWindows (cNow ctx)) })
+checkCurrentwindow cond ctx = cond (ctx { cWindowInScope = findActive (cWindows (tlData (cNow ctx))) })
 
 checkAnyWindow :: Cond -> Cond
 checkAnyWindow cond ctx = msum $ map (\w -> cond (ctx { cWindowInScope = Just w }))
-                                     (cWindows (cNow ctx))
+                                     (cWindows (tlData (cNow ctx)))
 
 checkActive :: Cond
 checkActive ctx = do (a,_,_) <- cWindowInScope ctx
@@ -289,7 +290,7 @@ checkActive ctx = do (a,_,_) <- cWindowInScope ctx
 		     return []
 
 checkNumCmp ::  (Integer -> Integer -> Bool) -> String -> Integer -> Cond
-checkNumCmp (<?>) "idle" num ctx = [] `justIf` (cLastActivity (cNow ctx) <?> (num*1000))
+checkNumCmp (<?>) "idle" num ctx = [] `justIf` (cLastActivity (tlData (cNow ctx)) <?> (num*1000))
 
 checkTimeCmp ::  (DiffTime -> DiffTime -> Bool) -> String -> Integer -> Cond
 checkTimeCmp (<?>) "time" num ctx =
