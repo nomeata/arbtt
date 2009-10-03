@@ -19,8 +19,9 @@ import Data.Maybe
 import Data.Char
 import Data.Time.Clock
 import Debug.Trace
+import Control.Arrow (second)
 
-type Categorizer = TimeLog CaptureData -> TimeLog ActivityData
+type Categorizer = TimeLog CaptureData -> TimeLog (Ctx, ActivityData)
 type Rule = Ctx -> ActivityData
 
 type Parser a = CharParser () a
@@ -46,7 +47,14 @@ readCategorizer filename = do
 	  	putStrLn "Parser error:"
 		putStrLn (show err)
 		exitFailure
-	  Right cat -> return ((fmap . fmap) (postpare . cat) . prepare time)
+	  Right cat -> return ((fmap . fmap) (mkSecond (postpare . cat)) . prepare time)
+
+applyCond :: String -> TimeLog (Ctx, ActivityData) -> TimeLog (Ctx, ActivityData)
+applyCond s = 
+	case parse (do {c <- parseCond; eof ; return c}) "commad line parameter" s of
+	  Left err -> do
+		error (show err)
+	  Right c -> filter (isJust . c . fst . tlData)
 
 prepare :: UTCTime -> TimeLog CaptureData -> TimeLog Ctx
 prepare time tl = go' [] tl tl
@@ -88,7 +96,7 @@ parseAliasSpec = do s1 <- stringLiteral lang
 		    s2 <- stringLiteral lang
 		    return (s1,s2)
 
-parseRulesBody :: Parser (Ctx -> ActivityData)
+parseRulesBody :: Parser Rule
 parseRulesBody = do 
 	x <- parseRule
 	choice [ do comma lang
@@ -307,3 +315,6 @@ matchNone = const []
 justIf :: a -> Bool -> Maybe a
 justIf x True = Just x
 justIf x False = Nothing
+
+mkSecond :: (a -> b) -> a -> (a, b)
+mkSecond f a = (a, f a)

@@ -10,28 +10,30 @@ import Text.Printf
 import qualified Data.Map as M
 
 import Data
+import Categorize
 
 
 data Report = GeneralInfos | TotalTime | Category String
         deriving Eq
 
-data Filter = Exclude Activity | Only Activity | AlsoInactive
+data Filter = Exclude Activity | Only Activity | AlsoInactive | GeneralCond String
         deriving Eq
 
 data ReportOption = MinPercentage Double
         deriving Eq
 
-applyFilters :: [Filter] -> TimeLog ActivityData -> TimeLog ActivityData
+applyFilters :: [Filter] -> TimeLog (Ctx, ActivityData) -> TimeLog (Ctx, ActivityData)
 applyFilters filters tle = 
         foldr (\flag -> case flag of 
                                 Exclude act  -> excludeTag act
                                 Only act     -> onlyTag act
                                 AlsoInactive -> id
+				GeneralCond s-> applyCond s 
         ) (if AlsoInactive `elem` filters then tle else defaultFilter tle) filters
 
 
-excludeTag act = filter (notElem act . tlData)
-onlyTag act = filter (elem act . tlData)
+excludeTag act = filter (notElem act . snd . tlData)
+onlyTag act = filter (elem act . snd . tlData)
 defaultFilter = excludeTag inactiveActivity
 
 -- | to be used lazily, to re-use computation when generating more than one
@@ -46,11 +48,11 @@ data Calculations = Calculations
 	, fractionSel :: Double
 	, fractionSelRec :: Double
 	, sums :: M.Map Activity Integer
-	, allTags :: TimeLog ActivityData
-	, tags :: TimeLog ActivityData
+	, allTags :: TimeLog (Ctx, ActivityData)
+	, tags :: TimeLog (Ctx, ActivityData)
 	}
 
-prepareCalculations :: TimeLog ActivityData -> TimeLog ActivityData -> Calculations
+prepareCalculations :: TimeLog (Ctx, ActivityData) -> TimeLog (Ctx, ActivityData) -> Calculations
 prepareCalculations allTags tags =
   let c = Calculations
 	  { firstDate = tlTime (head allTags)
@@ -67,9 +69,9 @@ prepareCalculations allTags tags =
 	  } in c
 
 -- | Sums up each occurence of an 'Activity', weighted by the sampling rate
-sumUp :: TimeLog ActivityData -> M.Map Activity Integer
+sumUp :: TimeLog (Ctx, ActivityData) -> M.Map Activity Integer
 sumUp = foldr go (M.empty) 
-  where go tl m = foldr go' m (tlData tl)
+  where go tl m = foldr go' m (snd (tlData tl))
           where go' act = M.insertWith (+) act (tlRate tl)
 
 

@@ -53,6 +53,9 @@ options =
      , Option []        ["also-inactive"]
               (NoArg (Filter AlsoInactive))
 	      "include samples with the tag \"inactive\""
+     , Option ['f']     ["filter"]
+              (ReqArg (Filter . GeneralCond) "COND")
+	      "only consider samples matching the condition"
      , Option ['m']     ["min-percentage"]
               (ReqArg (ReportOption . MinPercentage . read) "PERC")
 	      "do not show tags with a percentage lower than PERC% (default: 1)"
