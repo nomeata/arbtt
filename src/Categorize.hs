@@ -136,6 +136,16 @@ checkOr c1 c2 = do res1 <- c1
 checkNot :: Cond -> Cond
 checkNot = liftM (maybe (Just []) (const Nothing))
 
+parseCmp :: Ord a => Parser (a -> a -> Bool)
+parseCmp = choice $ map (\(s,o) -> reservedOp lang s >> return o)
+		     	[(">=",(>=)),
+			 (">", (>)),
+			 ("=", (==)),
+			 ("==",(==)),
+			 ("<",(<)),
+			 ("<=",(<=))]
+
+
 parseCondPrim :: Parser Cond
 parseCondPrim = choice
 	[    parens lang parseCond
@@ -155,13 +165,7 @@ parseCondPrim = choice
 			     return $ checkNot (checkEq varname str)
 			]
 		, do guard $ varname == "idle"
-		     op <- choice $ map (\(s,o) -> reservedOp lang s >> return o)
-		     	[(">=",(>=)),
-			 (">", (>)),
-			 ("=", (==)),
-			 ("==",(==)),
-			 ("<",(<)),
-			 ("<=",(<=))]
+		     op <- parseCmp
 		     num <- natural lang
 		     return $ checkNumCmp op varname num
 		, do guard $ varname == "active"
