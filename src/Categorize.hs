@@ -171,7 +171,7 @@ parseCondPrim = choice
 		     op <- parseCmp
 		     num <- natural lang
 		     return $ checkNumCmp op varname num
-		, do guard $ varname == "time"
+		, do guard $ varname `elem` ["time","sampleage"]
 		     op <- parseCmp 
 		     time <- parseTime
 		     return $ checkTimeCmp op varname time
@@ -196,9 +196,8 @@ parseRegex = lexeme lang $ choice
 	     return str
 	]
 	     
--- | Parses a day-of-time specification (hh:mm) to the number of seconds since
--- 00:00
-parseTime :: Parser Integer
+-- | Parses a day-of-time specification (hh:mm)
+parseTime :: Parser NominalDiffTime
 parseTime = fmap fromIntegral $ lexeme lang $ do
                h <- digitToInt <$> digit
 	       mh <- optionMaybe (do{ digitToInt <$> digit })
@@ -294,10 +293,13 @@ checkActive ctx = do (a,_,_) <- cWindowInScope ctx
 checkNumCmp ::  (Integer -> Integer -> Bool) -> String -> Integer -> Cond
 checkNumCmp (<?>) "idle" num ctx = [] `justIf` (cLastActivity (tlData (cNow ctx)) <?> (num*1000))
 
-checkTimeCmp ::  (DiffTime -> DiffTime -> Bool) -> String -> Integer -> Cond
+checkTimeCmp ::  (NominalDiffTime -> NominalDiffTime -> Bool) -> String -> NominalDiffTime -> Cond
 checkTimeCmp (<?>) "time" num ctx =
-	let time = utctDayTime (tlTime (cNow ctx))
-	in [] `justIf` (time <?> secondsToDiffTime num)
+	let time = tlTime (cNow ctx) `diffUTCTime` (tlTime (cNow ctx)) { utctDayTime = fromIntegral 0}
+	in [] `justIf` (time <?> num)
+checkTimeCmp (<?>) "sampleage" num ctx =
+	let age = cCurrentTime ctx `diffUTCTime` tlTime (cNow ctx)
+	in [] `justIf` (age <?> num)
 
 matchNone :: Rule
 matchNone = const []
