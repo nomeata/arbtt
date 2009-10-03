@@ -113,6 +113,10 @@ The tags that affect the selection (-x, -o, --also-inactive) of samples can
 be mixed with the report options (-m) and the reports (-i, -t, -c), but
 will apply to all reports.
 
+The flag --filter (-f) allows you to sepecify an arbitrary complex
+condition using the same syntax for conditions that you can use in the
+categorize.cfg file.
+
 Some useful examples:
 
   # Only consider the time when I was programming in Haskell 
@@ -121,6 +125,9 @@ Some useful examples:
   # Tell me what evolution folders I spend my time in when I actually do
   # work with e-Mail
   arbtt-stats -o Program:evolution -c Evo-Folder
+
+  # Generate statistics about the last hour
+  arbtt-stats -f '$sampleage < 1:00'
 
 Development
 ===========
