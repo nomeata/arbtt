@@ -30,7 +30,7 @@ Configuration
 
 Once arbtt-capture is running, it will start recording, without further
 configuration. The configuration is only needed to do an analysis of the
-recorded data. Thus, if you improve your categorization there, it will
+recorded data. Thus, if you improve your categorization later, it will
 apply even to previous data samples!
 
 The configuration file needs to be placed in ~/.arbtt/categorize.cfg. An
