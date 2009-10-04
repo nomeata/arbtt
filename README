@@ -129,6 +129,12 @@ Some useful examples:
   # Generate statistics about the last hour
   arbtt-stats -f '$sampleage < 1:00'
 
+Data Dump
+=========
+
+If you need to inspect the recorded sample, for example to think about
+interesting things to match, use arbtt-dump.
+
 Development
 ===========
 
