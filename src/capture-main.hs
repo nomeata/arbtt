@@ -17,6 +17,7 @@ import Data.Version (showVersion)
 
 import Capture
 import TimeLog
+import UpgradeLog1
 
 import Paths_arbtt (version)
 
@@ -76,4 +77,5 @@ main = do
     createDirectoryIfMissing False dir
     let captureFile = dir </> "capture.log"
     lockFile captureFile
+    upgradeLogFile1 captureFile
     runLogger captureFile (sampleRate * 1000) captureData
