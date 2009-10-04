@@ -49,6 +49,15 @@ executable arbtt-stats
         TimeLog
         Stats
 
+executable arbtt-dump
+    main-is:            dump-main.hs
+    hs-source-dirs:     src
+    build-depends:
+        base == 4.*, parsec == 2.*, containers, setlocale
+    other-modules:
+        Data
+        TimeLog
+
 source-repository head
     type:     darcs
     location: http://darcs.nomeata.de/arbtt
