@@ -47,7 +47,7 @@ options =
 
 -- | This is very raw, someone ought to improve this
 lockFile filename = flip catch (\e -> hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for " ++ filename ++"!") >> exitFailure) $ do
-    fd <- openFd (filename  ++ ".lck") WriteOnly (Just 0644) defaultFileFlags
+    fd <- openFd (filename  ++ ".lck") WriteOnly (Just 0o644) defaultFileFlags
     setLock fd (WriteLock, AbsoluteSeek, 0, 0)
 
 main = do
