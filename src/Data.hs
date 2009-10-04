@@ -31,7 +31,7 @@ data Activity = Activity
 	}
   deriving (Ord, Eq)
 
--- < An activity with special meaning: ignored by default (i.e. for idle times)
+-- | An activity with special meaning: ignored by default (i.e. for idle times)
 inactiveActivity = Activity Nothing "inactive"
 
 
