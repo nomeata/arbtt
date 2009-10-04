@@ -29,12 +29,13 @@ executable arbtt-capture
     hs-source-dirs:     src
     build-depends:
         base == 4.*, filepath, directory, mtl, time, unix,
-        X11 > 1.4.4
+        X11 > 1.4.4, bytestring, binary
     extra-libraries: Xss
     other-modules:
         Data
         Capture
         TimeLog
+        UpgradeLog1
         Graphics.X11.XScreenSaver
 
 executable arbtt-stats
