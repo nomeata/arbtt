@@ -35,12 +35,12 @@ getWindowTitle dpy w = fmap (fromMaybe "") $ fetchName dpy w
 getProgramName :: Display -> Window -> IO String
 getProgramName dpy w = fmap resName $ getClassHint dpy w
 
--- | Follows the tree of windows up until the condition is met or the window is
--- a direct child of the root.
+-- | Follows the tree of windows up until the condition is met or the root
+-- window is reached.
 followTreeUntil :: Display -> (Window -> Bool) -> Window -> IO Window 
 followTreeUntil dpy cond = go
   where go w | cond w    = return w
              | otherwise = do (r,p,_) <- queryTree dpy w
-	                      if r == p then return w
+	                      if p == 0 then return w
 			                else go p 
 
