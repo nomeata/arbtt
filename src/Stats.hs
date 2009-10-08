@@ -6,6 +6,7 @@ import Data.Maybe
 import Data.List
 import Data.Ord
 import Text.Tabular
+import qualified Text.Tabular.AsciiArt as TA
 import Text.Printf
 import qualified Data.Map as M
 
@@ -74,9 +75,12 @@ sumUp = foldr go (M.empty)
   where go tl m = foldr go' m (snd (tlData tl))
           where go' act = M.insertWith (+) act (tlRate tl)
 
+putReport :: [ReportOption] -> Calculations -> Report -> IO ()
+putReport opts c r = let (h,t) = reportToTable opts c r
+  			in putStrLnUnderlined h >> putStr (TA.render id id id t)
 
-renderReport :: [ReportOption] -> Calculations -> Report -> (String, Table String String String)
-renderReport opts (Calculations {..}) r = case r of
+reportToTable :: [ReportOption] -> Calculations -> Report -> (String, Table String String String)
+reportToTable opts (Calculations {..}) r = case r of
  	GeneralInfos -> ("General Information",
 		empty ^..^ colH "Value"
 		+.+ row "FirstRecord"
@@ -161,3 +165,7 @@ formatSeconds s' = go $ zip [days,hours,mins,secs] ["d","h","m","s"]
 	go' True  (a,u)             = (True, printf "%02d%s" a u)
 	go' False (a,u) | a > 0     = (True, printf "%2d%s" a u)
 	                | otherwise = (False, "")
+
+putStrLnUnderlined str = do
+        putStrLn str
+        putStrLn $ map (const '=') str

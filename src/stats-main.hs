@@ -13,7 +13,6 @@ import Data.Time
 import Text.Printf
 import Data.Maybe
 import Data.Version (showVersion)
-import qualified Text.Tabular.AsciiArt as TA
 
 import TimeLog
 import Data
@@ -112,16 +111,7 @@ main = do
   let c = prepareCalculations allTags tags
   
   sequence_ $ intersperse (putStrLn "")
-            $ map (\r -> let (h,t) = renderReport opts c r in do
-  			putStrLnUnderlined h
-			putStr (TA.render id id id t)
-	                )
-	    $ reps
-
-putStrLnUnderlined str = do
-        putStrLn str
-        putStrLn $ map (const '=') str
-
+            $ map (putReport opts c) reps
 
 {-
 import Data.Accessor
