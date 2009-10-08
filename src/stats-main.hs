@@ -67,6 +67,9 @@ options =
      , Option ['c']     ["category"]
               (ReqArg (Report . Category) "CATEGORY")
 	      "show statistics about category CATEGORY"
+     , Option []       ["each-category"]
+              (NoArg (Report EachCategory))
+	      "show statistics about each category found"
      ]
 
 

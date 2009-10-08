@@ -9,12 +9,13 @@ import Text.Tabular
 import qualified Text.Tabular.AsciiArt as TA
 import Text.Printf
 import qualified Data.Map as M
+import qualified Data.Set as S
 
 import Data
 import Categorize
 
 
-data Report = GeneralInfos | TotalTime | Category String
+data Report = GeneralInfos | TotalTime | Category String | EachCategory
         deriving Eq
 
 data Filter = Exclude Activity | Only Activity | AlsoInactive | GeneralCond String
@@ -75,7 +76,15 @@ sumUp = foldr go (M.empty)
   where go tl m = foldr go' m (snd (tlData tl))
           where go' act = M.insertWith (+) act (tlRate tl)
 
+
+listCategories :: TimeLog (Ctx, ActivityData) -> [Category]
+listCategories = S.toList . foldr go (S.empty) 
+  where go tl m = foldr go' m (snd (tlData tl))
+          where go' (Activity (Just cat) _) = S.insert cat
+	        go' _                       = id
+
 putReport :: [ReportOption] -> Calculations -> Report -> IO ()
+putReport opts c EachCategory = mapM_ (putReport opts c . Category) (listCategories (tags c))
 putReport opts c r = let (h,t) = reportToTable opts c r
   			in putStrLnUnderlined h >> putStr (TA.render id id id t)
 
