@@ -15,7 +15,7 @@ import System.Directory
 
 import qualified Data.ByteString.Lazy as BS
 
-magic = BS.pack $ map (fromIntegral.ord) $ "arbtt-timelog-v1\n"
+magic = BS.pack $ map (fromIntegral.ord) "arbtt-timelog-v1\n"
 
 -- | Runs the given action each delay milliseconds and appends the TimeLog to the
 -- given file.
@@ -33,7 +33,7 @@ createTimeLog force filename = do
 	when (not ex || force) $ BS.writeFile filename magic
 
 appendTimeLog :: Binary a => FilePath -> TimeLogEntry a -> IO ()
-appendTimeLog filename tle = BS.appendFile filename $ encode $ tle
+appendTimeLog filename = BS.appendFile filename . encode
 
 writeTimeLog :: Binary a => FilePath -> TimeLog a -> IO ()
 writeTimeLog filename tl = do createTimeLog True filename

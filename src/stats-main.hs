@@ -36,38 +36,38 @@ header = "Usage: arbtt-stats [OPTIONS...]"
 
 options :: [OptDescr Flag]
 options =
-     [ Option "h?"     ["help"]
+     [ Option "h?"      ["help"]
               (NoArg Help)
 	      "show this help"
-     , Option ['V']     ["version"]
+     , Option "V"       ["version"]
               (NoArg Version)
 	      "show the version number"
 --     , Option ['g']     ["graphical"] (NoArg Graphical)    "render the reports as graphical charts"
-     , Option ['x']     ["exclude"]
+     , Option "x"       ["exclude"]
               (ReqArg (Filter . Exclude . Activity Nothing) "TAG")
 	      "ignore samples containing this tag"
-     , Option ['o']     ["only"]
+     , Option "o"       ["only"]
               (ReqArg (Filter . Only . read) "TAG")
 	      "only consider samples containing this tag"
-     , Option []        ["also-inactive"]
+     , Option ""        ["also-inactive"]
               (NoArg (Filter AlsoInactive))
 	      "include samples with the tag \"inactive\""
-     , Option ['f']     ["filter"]
+     , Option "f"       ["filter"]
               (ReqArg (Filter . GeneralCond) "COND")
 	      "only consider samples matching the condition"
-     , Option ['m']     ["min-percentage"]
+     , Option "m"       ["min-percentage"]
               (ReqArg (ReportOption . MinPercentage . read) "PERC")
 	      "do not show tags with a percentage lower than PERC% (default: 1)"
-     , Option ['i']     ["information"]
+     , Option "i"       ["information"]
               (NoArg (Report GeneralInfos))
 	      "show general statistics about the data"
-     , Option ['t']     ["total-time"]
+     , Option "t"       ["total-time"]
               (NoArg (Report TotalTime))
 	      "show total time for each tag"
-     , Option ['c']     ["category"]
+     , Option "c"       ["category"]
               (ReqArg (Report . Category) "CATEGORY")
 	      "show statistics about category CATEGORY"
-     , Option []       ["each-category"]
+     , Option ""        ["each-category"]
               (NoArg (Report EachCategory))
 	      "show statistics about each category found"
      ]
@@ -91,9 +91,9 @@ main = do
 
   let categorizeFilename = dir </> "categorize.cfg"
   fileEx <- doesFileExist categorizeFilename
-  unless (fileEx) $ do
+  unless fileEx $ do
      putStrLn $ printf "Configuration file %s does not exist." categorizeFilename
-     putStrLn $ "Please see the example file and the README for more details"
+     putStrLn "Please see the example file and the README for more details"
      exitFailure
   categorizer <- readCategorizer categorizeFilename
 

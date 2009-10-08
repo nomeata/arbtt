@@ -38,10 +38,10 @@ options =
      [ Option "h?"     ["help"]
               (NoArg Help)
 	      "show this help"
-     , Option ['V']    ["version"]
+     , Option "V"      ["version"]
               (NoArg Version)
 	      "show the version number"
-     , Option ['r']    ["sample-rate"]
+     , Option "r"      ["sample-rate"]
      	      (ReqArg (SetRate . read) "RATE")
 	      "set the sample rate in seconds (default: 60)"
      ]	     

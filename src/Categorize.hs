@@ -2,7 +2,6 @@ module Categorize where
 
 import Data
 
-import Data.Maybe
 import qualified Text.Regex.PCRE.Light.Char8 as RE
 import qualified Data.Map as M
 import Control.Monad
@@ -45,16 +44,15 @@ readCategorizer filename = do
 	case parse (do {r <- parseRules; eof ; return r}) filename content of
 	  Left err -> do
 	  	putStrLn "Parser error:"
-		putStrLn (show err)
+		print err
 		exitFailure
 	  Right cat -> return ((fmap . fmap) (mkSecond (postpare . cat)) . prepare time)
 
 applyCond :: String -> TimeLog (Ctx, ActivityData) -> TimeLog (Ctx, ActivityData)
 applyCond s = 
 	case parse (do {c <- parseCond; eof ; return c}) "commad line parameter" s of
-	  Left err -> do
-		error (show err)
-	  Right c -> filter (isJust . c . fst . tlData)
+	  Left err -> error (show err)
+	  Right c  -> filter (isJust . c . fst . tlData)
 
 prepare :: UTCTime -> TimeLog CaptureData -> TimeLog Ctx
 prepare time tl = go' [] tl tl
@@ -67,7 +65,7 @@ prepare time tl = go' [] tl tl
 -- | Here, we filter out tags appearing twice, and make sure that only one of
 --   each category survives
 postpare :: ActivityData -> ActivityData
-postpare = nubBy $ go
+postpare = nubBy go
   where go (Activity (Just c1) _) (Activity (Just c2) _) = c1 == c2
         go a1                     a2                     = a1 == a2
 
@@ -184,7 +182,7 @@ parseCondPrim = choice
 		     time <- parseTime
 		     return $ checkTimeCmp op varname time
 		, do guard $ varname == "active"
-		     return $ checkActive
+		     return checkActive
 		]
 	, do reserved lang "current window"
 	     cond <- parseCond
@@ -208,7 +206,7 @@ parseRegex = lexeme lang $ choice
 parseTime :: Parser NominalDiffTime
 parseTime = fmap fromIntegral $ lexeme lang $ do
                h <- digitToInt <$> digit
-	       mh <- optionMaybe (do{ digitToInt <$> digit })
+	       mh <- optionMaybe (digitToInt <$> digit)
 	       char ':'
                m1 <- digitToInt <$> digit
                m2 <- digitToInt <$> digit

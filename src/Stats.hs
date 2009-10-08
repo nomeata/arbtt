@@ -72,13 +72,13 @@ prepareCalculations allTags tags =
 
 -- | Sums up each occurence of an 'Activity', weighted by the sampling rate
 sumUp :: TimeLog (Ctx, ActivityData) -> M.Map Activity Integer
-sumUp = foldr go (M.empty) 
+sumUp = foldr go M.empty
   where go tl m = foldr go' m (snd (tlData tl))
           where go' act = M.insertWith (+) act (tlRate tl)
 
 
 listCategories :: TimeLog (Ctx, ActivityData) -> [Category]
-listCategories = S.toList . foldr go (S.empty) 
+listCategories = S.toList . foldr go S.empty
   where go tl m = foldr go' m (snd (tlData tl))
           where go' (Activity (Just cat) _) = S.insert cat
 	        go' _                       = id
@@ -170,8 +170,8 @@ formatSeconds s' = go $ zip [days,hours,mins,secs] ["d","h","m","s"]
   where s = round s' :: Integer
         days  =  s `div` (24*60*60)
         hours = (s `div` (60*60)) `mod` 24
-        mins  = (s `div` (60)) `mod` 60
-	secs  = (s `mod` (60))
+        mins  = (s `div` 60) `mod` 60
+	secs  =  s `mod` 60 
 	go | s == 0    = const "0s"
 	   | otherwise = concat . snd . mapAccumL go' False 
 	go' True  (a,u)             = (True, printf "%02d%s" a u)

@@ -30,10 +30,10 @@ captureData = do
 	return $ CaptureData winData it
 
 getWindowTitle :: Display -> Window -> IO String
-getWindowTitle dpy w = fmap (fromMaybe "") $ fetchName dpy w
+getWindowTitle dpy = fmap (fromMaybe "") . fetchName dpy
 
 getProgramName :: Display -> Window -> IO String
-getProgramName dpy w = fmap resName $ getClassHint dpy w
+getProgramName dpy = fmap resName . getClassHint dpy
 
 -- | Follows the tree of windows up until the condition is met or the root
 -- window is reached.

@@ -24,7 +24,7 @@ options =
      [ Option "h?"     ["help"]
               (NoArg Help)
 	      "show this help"
-     , Option ['V']     ["version"]
+     , Option "V"      ["version"]
               (NoArg Version)
 	      "show the version number"
      ]
