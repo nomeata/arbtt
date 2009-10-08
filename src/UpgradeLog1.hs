@@ -48,7 +48,7 @@ upgradeLogFile1 captureFile = do
                         renameFile captureFile oldFile
                         captures <- readTimeLog oldFile
                         writeTimeLog captureFile (upgrade captures)
-                        putStrLn $ "done."
+                        putStrLn   "done."
 
  where oldFile = captureFile ++ ".old"
 
