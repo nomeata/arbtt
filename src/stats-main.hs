@@ -113,8 +113,7 @@ main = do
   -- advantageous.
   let c = prepareCalculations allTags tags
   
-  sequence_ $ intersperse (putStrLn "")
-            $ map (putReport opts c) reps
+  putReports opts c reps
 
 {-
 import Data.Accessor
