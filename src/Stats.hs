@@ -83,8 +83,11 @@ listCategories = S.toList . foldr go (S.empty)
           where go' (Activity (Just cat) _) = S.insert cat
 	        go' _                       = id
 
+putReports :: [ReportOption] -> Calculations -> [Report] -> IO ()
+putReports opts c = sequence_ . intersperse (putStrLn "") . map (putReport opts c) 
+
 putReport :: [ReportOption] -> Calculations -> Report -> IO ()
-putReport opts c EachCategory = mapM_ (putReport opts c . Category) (listCategories (tags c))
+putReport opts c EachCategory = putReports opts c (map Category (listCategories (tags c)))
 putReport opts c r = let (h,t) = reportToTable opts c r
   			in putStrLnUnderlined h >> putStr (TA.render id id id t)
 
