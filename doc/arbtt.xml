@@ -1,0 +1,830 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook EBNF Module V1.1CR1//EN"
+               "http://www.oasis-open.org/docbook/xml/ebnf/1.1CR1/dbebnf.dtd">
+<!--
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+  "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" []>
+-->
+<article>
+<articleinfo>
+  <title>arbtt – The Automatic Rule-Base Time Tracker</title>
+  <authorgroup>
+    <author>
+      <firstname>Joachim</firstname>
+      <surname>Breitner</surname>
+      <email>mail@joachim-breitner.de</email>
+    </author>
+  </authorgroup>
+  <pubdate>October 2009</pubdate>
+</articleinfo>
+<abstract>
+  <para>
+    arbtt is a background daemon that stores which windows are open, which one
+    has the focus and how long since your last action (and possibly more sources
+    later), and stores this. It is also a program that will, based on
+    expressive rules you specify, derive what you were doing, and what for.
+  </para>
+
+  <warning><para>The log file might contain very sensitive private data. Make sure
+    you understand the consequences of a full-time logger and be careful with this
+    data.</para></warning>
+</abstract>
+
+<sect1 id="installation">
+  <title>Installation</title>
+  <sect2>
+    <title>Building with <command>cabal-install</command></title>
+    <para>
+    arbtt comes in the form of a Cabalized<footnote><para>Cabal is the common software
+    packaging for Haskell programs and libraries, see <ulink
+    url="http://www.haskell.org/cabal/"/>.</para></footnote> package, and is
+    available from hackage. The easiest way of obtaining and installing arbtt is
+    via <command>cabal-install</command>. If you have
+    <command>cabal-install</command> available, just run
+    <screen>$ cabal install arbtt</screen>
+    to download, build and install arbtt.
+    </para>
+  </sect2>
+
+  <sect2>
+    <title>Building without <command>cabal-install</command></title>
+    <para>
+    You can fetch the latest arbtt source tarball from hackage, at
+    <ulink url="http://hackage.haskell.org/package/arbtt"/>. Extract the tarball
+    and run the following commands to build and install the arbtt binaries:
+    <screen>$ runhaskell Setup.hs configure
+$ runhaskell Setup.hs build
+$ runhaskell Setup.hs install</screen>
+    </para>
+  </sect2>
+
+  <sect2>
+    <title>Setting up the capture program</title>
+    <para>
+    To have arbtt gather useful data, you need to make sure that
+    <command>arbtt-capture</command> is started with your X session. If you use
+    GNOME or KDE, you can copy the file
+    <filename>arbtt-capture.desktop</filename> to
+    <filename>~/.config/autostart/</filename>. You might need to put the full
+    path to <command>arbtt-capture</command> in the Exec line there, if you did
+    not do a system wide installation.
+    </para>
+    <para>
+    By default, <command>arbtt-capture</command> will save one data sample per
+    minute. If you want to change that, you can pass <option>--sample-rate
+    <replaceable>RATE</replaceable></option> to <command>arbtt-capture</command>, where
+    <replaceable>RATE</replaceable> specifies the sample rate in seconds.
+    </para>
+  </sect2>
+
+  <sect2>
+    <title>Building the documentation</title>
+    <para>
+    Obviously, you can already read the documentation. If you still want to
+    build it yourself, enter the directory <filename>doc/</filename> and run
+    <command>make</command> for the documentation in HTML and PDF format. 
+    </para>
+  </sect2>
+
+
+  <sect2>
+    <title>Development version</title>
+    <para>
+      If you want to try the latest unreleased state of the code, or want to
+      contribute to arbtt, you can fetch the code with
+      <screen>darcs get <ulink url="http://darcs.nomeata.de/arbtt"/></screen>
+    </para>
+  </sect2>
+
+</sect1>
+
+<sect1 id="configuration">
+  <title>Configuring the arbtt categorizer</title>
+  <para>
+  Once arbtt-capture is running, it will start recording, without further
+  configuration. The configuration is only needed to do an analysis of the
+  recorded data. Thus, if you improve your categorization later, it will apply
+  even to previous data samples!
+  </para>
+
+  <para>
+  The configuration file needs to be placed in
+  <filename>~/.arbtt/categorize.cfg</filename>. An
+  example file is included in the source distribution, and reproduced here as
+  <xref linkend="catex"/>, which should be more enlightening than this rather
+  formal description.
+  </para>
+
+  <example id="catex">
+  <title>A complete <filename>categorize.cfg</filename></title>
+    <programlisting><xi:include  href="../categorize.cfg"  parse="text"  
+      xmlns:xi="http://www.w3.org/2001/XInclude" /></programlisting>
+  </example>
+
+  <sect2>
+    <title>The syntax</title>
+    <para>
+    The file <filename>categorize.cfg</filename> is a plain text file.
+    Whitespace is insignificant and Haskell-style comments are allowed. A formal
+    grammar is provided in <xref linkend="grammar"/>.
+    </para>
+
+    <figure id="grammar">
+        <title>The formal grammar of <filename>categorize.cfg</filename></title>
+	<productionset>
+	  <production id="g-rules">
+	    <lhs>Rules</lhs>
+	    <rhs>
+	      [ <nonterminal def="#g-aliasspec"/> ]
+	      <nonterminal def="#g-rule"/> ( (<quote>,</quote>
+	      <nonterminal def="#g-rule"/>)* | ( <quote>;</quote>
+	      <nonterminal def="#g-rule"/>)* )
+	    </rhs>
+	  </production>
+
+          <production id="g-aliasspec">
+            <lhs>AliasSpec</lhs>
+            <rhs><quote>aliases</quote> <quote>(</quote> <nonterminal
+              def="#g-alias"/> (<quote>,</quote> <nonterminal def="#g-alias"/>)*
+              <quote>)</quote> </rhs>
+          </production>
+
+          <production id="g-alias">
+            <lhs>Alias</lhs>
+            <rhs>Literal <quote>-&gt;</quote> Literal</rhs>
+          </production>
+
+	  <production id="g-rule">
+	    <lhs>Rule</lhs>
+	    <rhs><quote>{</quote> <nonterminal def="#g-rules"/>
+                 <quote>}</quote>
+            </rhs>
+            <rhs>
+              <nonterminal def="#g-cond"/> <quote>==&gt;</quote> 
+              <nonterminal def="#g-rule"/> | <quote>if</quote>
+              <nonterminal def="#g-cond"/> <quote>then</quote>
+              <nonterminal def="#g-rule"/> <quote>else</quote>
+              <nonterminal def="#g-rule"/>
+            </rhs>
+            <rhs>
+              <quote>tag</quote> <nonterminal def="#g-tag"/>
+            </rhs>
+	  </production>
+
+	  <production id="g-cond">
+	    <lhs>Cond</lhs>
+	    <rhs><quote>(</quote> <nonterminal def="#g-cond"/>
+                 <quote>)</quote>
+            </rhs>
+            <rhs><quote>!</quote> <nonterminal def="#g-cond"/> |
+                 <nonterminal def="#g-cond"/> <quote>&amp;&amp;</quote>
+                 <nonterminal def="#g-cond"/> |
+                 <nonterminal def="#g-cond"/> <quote>||</quote> <nonterminal
+                 def="#g-cond"/>
+            </rhs>
+            <rhs> <quote>$</quote> <nonterminal def="#g-svar"/>
+              <quote>==</quote> String |
+              <quote>$</quote> <nonterminal def="#g-svar"/>
+              <quote>/=</quote> String
+            </rhs>
+            <rhs> <quote>$</quote> <nonterminal def="#g-svar"/>
+              <quote>=~</quote> <nonterminal def="#g-regex"/></rhs>
+            <rhs> <quote>$</quote> <nonterminal def="#g-nvar"/>
+              <nonterminal def="#g-cmpop"/> Number
+            </rhs>
+            <rhs> <quote>$</quote> <nonterminal def="#g-tvar"/>
+              <nonterminal def="#g-cmpop"/> <nonterminal def="#g-tspec"/>
+            </rhs>
+            <rhs> <quote>$</quote> <nonterminal def="#g-bvar"/>
+            </rhs>
+            <rhs> <quote>current window</quote> <nonterminal def="#g-cond"/> </rhs>
+            <rhs> <quote>any window</quote> <nonterminal def="#g-cond"/> </rhs>
+	  </production>
+
+          <production id="g-tag">
+            <lhs>Tag</lhs>
+            <rhs> [ Literal <quote>:</quote> ] Literal </rhs>
+          </production>
+
+          <production id="g-regex">
+            <lhs>RegEx</lhs>
+            <rhs>  <quote>/</quote> Literal <quote>/</quote> |
+              <quote>m</quote> <replaceable>c</replaceable> Literal
+              <replaceable>c</replaceable><lineannotation>Where
+              <replaceable>c</replaceable> can be any
+              character.</lineannotation> </rhs>
+          </production>
+
+          <production id="g-cmpop">
+            <lhs>CmpOp</lhs>
+            <rhs><quote>&lt;=</quote> | <quote>&lt;</quote> | <quote>==</quote>
+            | <quote>&gt;</quote> | <quote>&gt;=</quote></rhs>
+          </production>
+
+          <production id="g-svar">
+            <lhs>StringVariable</lhs>
+            <rhs><quote>title</quote> | <quote>program</quote></rhs>
+          </production>
+
+          <production id="g-nvar">
+            <lhs>NumericVariable</lhs>
+            <rhs><quote>idle</quote></rhs>
+          </production>
+
+          <production id="g-bvar">
+            <lhs>BooleanVariable</lhs>
+            <rhs><quote>active</quote></rhs>
+          </production>
+
+          <production id="g-tvar">
+            <lhs>TimeVariable</lhs>
+            <rhs><quote>time</quote> | <quote>sampleage</quote></rhs>
+          </production>
+
+          <production id="g-tspec">
+            <lhs>TimeSpecification</lhs>
+            <rhs>[ Digit ] Digit <quote>:</quote> Digit Digit</rhs>
+          </production>
+
+	</productionset>
+      </figure>
+      <para>
+        A <literal>String</literal> refers to a double-quoted string of
+        characters, while a <literal>Literal</literal> is not quoted.
+        <nonterminal def="#g-tag">Tags</nonterminal> may only consist of
+        letters, dashes and underscores, or variable interpolations. A Tag maybe
+        be optionally prepended with a category, separated by a colon. The
+        category itself follows he same lexical rules as the tag. A variable
+        interpolation can be one of the following:
+        <variablelist>
+          <varlistentry>
+            <term><literal>$1</literal>, <literal>$2</literal>,...</term>
+            <listitem><simpara> will be replaced by the respective group in the last
+              successfully applied regular expression in the conditions enclosing the
+              current rule.
+            </simpara></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><literal>$current.title</literal></term>
+            <term><literal>$current.program</literal></term>
+            <listitem><simpara> will be replaced by title the currently active
+              window, resp. by the name of the currently active program.
+              If no window happens to be active, this tag will be ignored.
+            </simpara></listitem>
+          </varlistentry>
+        </variablelist>
+      </para>
+
+      <para>
+        A regular expression is, like in perl, either enclosed in forward
+        slashes or, alternatively, in any character of your choice with an
+        <literal>m</literal> (for <quote>match</quote>) in front. This is handy if you need
+        to use regular expressions that match directory names. Otherwise, the
+        syntax of the regular expressions is that of perl-compatible regular
+        expressions.
+      </para>
+  </sect2>
+  <sect2>
+    <title>The semantics</title>
+    <para>
+      A data sample consists of the time of recording, the time passed since the
+      user’s last action and the list of windows. Per window, the following
+      information is available:
+      <itemizedlist>
+        <listitem><simpara>the window title</simpara></listitem>
+        <listitem><simpara>the program name</simpara></listitem>
+        <listitem><simpara>whether the window was the active window</simpara></listitem>
+      </itemizedlist>
+      Base on this information, the categorizer will now assign
+      <emphasis>tags</emphasis> to each
+      sample, based on the rules layed out in
+      <filename>categorizer.cfg</filename>.
+    </para>
+
+    <para>
+      The keyword <literal>tag</literal>, usually wrapped in a condition,
+      assigns the tag to the sample. If the tag also contains a
+      <emphasis>category</emphasis>, it will only be assigned if no other tag of that
+      category is present. This means that for each sample and each category,
+      there can only be one tag of that category. Tags can contain references to
+      matches done of regular expressions in conditions.
+    </para>
+
+    <para>
+      The variable <literal>$idle</literal> contains the idle time of the user,
+      measured in seconds. Usually, it is used to assign the tag
+      <literal>inactive</literal>, which is handled specially by
+      <command>arbtt-stats</command>, as can be seen in <xref linkend="catex"/>.
+    </para>
+
+    <para>
+      While applying the conditions and rules, the categorizer has a notion of
+      the <emphasis>window in scope</emphasis>, and the variables
+      <literal>$title</literal>, <literal>$program</literal> and
+      <literal>$active</literal> always refer to the window in scope. At first,
+      no window is in scope. Only when evaluating a condition wrapped in
+      <literal>current window</literal> or <literal>any window</literal>, this
+      changes.
+    </para>
+
+    <para>
+      For <literal>current window</literal>, the currently active window is in
+      scope. If there is no such window, the condition is false.
+    </para>
+    
+    <para>
+      For <literal>any window</literal>, the condition is applied to each
+      window, in turn, and if any of the windows matches, the result is true. If
+      more than one window matches it is not defined from which match the
+      variables <literal>$1</literal>... are take from.
+    </para>
+
+    <para>
+      The variable <literal>$time</literal> refers to the time-of-day of the
+      sample (i.e. the time since 0:00 that day), while
+      <literal>$sampleage</literal> refers to the
+      time span from when the sample was created until now, the time of
+      evaluating the statistics. The latter variable is especially useful when
+      passed to the <option>--filter</option> option of
+      <command>arbtt-stats</command>.
+      They can be compared with expressions of the
+      type "hh:mm", for example
+      <programlisting>$time >=  8:00 &amp;&amp; $time &lt; 12:00 ==> tag time-of-day:morning</programlisting>
+    </para>
+  </sect2>
+</sect1>
+
+<sect1 id="references">
+  <title>Program references</title>
+  <para>arbtt consists of a few command line tools, the most important one is
+  <command>arbtt-stats</command>. This overview is followed by their manual
+  pages.
+  </para>
+  
+  <!-- <sect2>
+    <title>Generating statistics</title> -->
+    <para>To generate statistics about the data that
+    <command>arbtt-capture</command> has gathered, use the program
+    <command>arbtt-stats</command>. A detailed description of the possible
+    options is given in <xref linkend="arbtt-stats"/>.</para>
+  <!--
+  </sect2>
+
+  <sect2>
+    <title>Gathering data</title>
+  -->
+    <para>The collection of data is done by <command>arbtt-capture</command>.
+    Usually, you only set it up once to run automatically, as described in <xref
+    linkend="installation"/>, and do not have to
+    worry about it again. Its command line reference is given in <xref
+    linkend="arbtt-capture"/>.</para>
+  <!--
+  </sect2>
+
+  <sect2>
+    <title>Dumping data</title>
+  -->
+    <para>Because the data log file is binary, a tool names
+    <command>arbtt-dump</command> can bee used to dump the data in
+    textual form. Its command line reference is given in <xref
+    linkend="arbtt-dump"/>.</para>
+  <!--
+  </sect2>
+  -->
+
+
+  <refentry id="arbtt-stats">
+    <refmeta>
+      <refentrytitle>arbtt-stats</refentrytitle>
+      <manvolnum>1</manvolnum>
+      <refmiscinfo class="source">arbtt manual</refmiscinfo>
+    </refmeta>
+
+    <refnamediv>
+      <refname>arbtt-stats</refname>
+      <refpurpose>generate statistics from the arbtt data samples</refpurpose>
+    </refnamediv>
+  
+    <refsynopsisdiv>
+      <cmdsynopsis>
+        <command>arbtt-stats</command>
+        <arg rep="repeat">OPTION</arg>
+      </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1><title>Description</title>
+      <para>
+      <command>arbtt-stats</command> reads the samples that were recorded so far
+      by <command>arbtt-capture</command> from the log file, filters them
+      according to the users specifications and generates one or more reports
+      from the data.
+      </para>
+      <para>
+      When run without any options, <option>--total-time</option> is assumed.
+      </para>
+      <para>
+      The order in which filters (<option>--exclude</option>,
+      <option>--only</option>, <option>--also-inactive</option> and
+      <option>--filter</option>) and reports are passed to the program is
+      irrelevant: All filters given on the command line are active for all
+      reports.
+      </para>
+    </refsect1>
+
+    <refsect1><title>Options</title>
+      <variablelist>
+        <varlistentry>
+          <term><option>-h</option></term>
+          <term><option>-?</option></term>
+          <term><option>--help</option></term>
+          <listitem><simpara>shows a short summary of the available
+          options, and exists.</simpara></listitem>
+        </varlistentry>
+        <varlistentry>
+        <term><option>-V</option></term>
+        <term><option>--version</option></term>
+        <listitem><simpara>shows the version number, and exists.</simpara></listitem>
+        </varlistentry>
+      </variablelist>
+      <refsect2><title>Filtering options</title>
+        <variablelist>
+          <varlistentry>
+            <term><option>-x</option> <replaceable>TAG</replaceable></term>
+            <term><option>--exclude</option> <replaceable>TAG</replaceable></term>
+            <listitem><simpara>Ignore any data samples that have
+            been assigned this tag. Can be given more than once.</simpara></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>-o</option> <replaceable>TAG</replaceable></term>
+            <term><option>--only</option> <replaceable>TAB</replaceable></term>
+            <listitem><simpara>Ignore any data samples that have
+            not been assigned this tag. Can be given more than once.</simpara></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--also-inactive</option></term>
+            <listitem><simpara>by default, <command>arbtt-stats</command> ignores
+            any samples which have been assigned the tag
+            <literal>inactive</literal>. This flag disables this behaviour.</simpara></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>-f</option> <replaceable>CONDITION</replaceable></term>
+            <term><option>--filter</option> <replaceable>CONDITION</replaceable></term>
+            <listitem><simpara>Only consider samples matching
+            the given condition, which follows the same syntax as in
+            <filename>categorize.cfg</filename> (<nonterminal def="#g-cond"/> in
+            <xref linkend="grammar"/>).</simpara></listitem>
+          </varlistentry>
+        </variablelist>
+      </refsect2>
+      <refsect2><title>Report options</title>
+        <variablelist>
+          <varlistentry>
+            <term><option>-m</option> <replaceable>PERCENTAGE</replaceable></term>
+            <term><option>--min-percentage</option> <replaceable>PERCENTAGE</replaceable></term>
+            <listitem><para>
+              In the reports, any tag which occurs rarer than the given
+              percentage is ignored. The default value is 1.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+      </refsect2>
+      <refsect2><title>Reports</title>
+        <variablelist>
+          <varlistentry>
+            <term><option>-i</option></term>
+            <term><option>--information</option></term>
+            <listitem><para>
+              Various bits of information about the recorded data, such as total
+              time recorded, number of records etc. In this report, <quote>time
+              recorded</quote> is the sum of <emphasis>all</emphasis>
+              samples, including inactive and those that are disabled by the
+              filter, while <quote>time selected</quote> is the sum of the
+              samples that are matched by the given filters.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>-t</option></term>
+            <term><option>--total-time</option></term>
+            <listitem><para>For all tag, print the part of the selected time
+            with this tag applied to, both as an absolute value and a percentage
+            of the selected time.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>-c</option> <replaceable>CATEGORY</replaceable></term>
+            <term><option>--category</option> <replaceable>CATEGORY</replaceable></term>
+            <listitem><para>For the given category, give the textual equivalent
+            of a pie chart: For each possible value of the category, including
+            one for <quote>no tag of this category present</quote>, give the absolute time and
+            fraction. Entries which are not displayed because of the option
+            <option>--min-percentage</option> are aggregated.</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--each-category</option></term>
+            <listitem><para>This is just a shortcut for a series of
+            <option>--category</option> options, one for each category found in
+            the data.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+      </refsect2>
+    </refsect1>
+
+    <refsect1><title>Examples</title>
+      <para>Some useful examples of what you can do with
+      <command>arbtt-stats</command> are provided here:</para>
+      <screen># Only consider the time when I was programming in Haskell 
+arbtt-stats -o Editing-Haskell
+
+# Tell me what evolution folders I spend my time in when I actually do
+# work with e-Mail
+arbtt-stats -o Program:evolution -c Evo-Folder
+
+# Generate statistics about the last hour
+arbtt-stats -f '$sampleage &lt; 1:00'</screen>
+    </refsect1>
+
+    <refsect1><title>Files</title>
+      <variablelist>
+        <varlistentry>
+          <term><filename>~/.arbtt/capture.log</filename></term>
+          <listitem><para>binary file, storing the arbtt data samples</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><filename>~/.arbtt/categorize.cfg</filename></term>
+          <listitem><para>specification of the arbtt categorizer syntax. A
+          detailed description is given in <xref linkend="configuration"/></para></listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect1>
+
+    <refsect1><title>See also</title>
+      <para>See the arbtt manual for more information and the <ulink
+      url="http://www.hackage.org/package/arbtt">arbtt hackage page</ulink> for
+      newer versions of arbtt.</para>
+    </refsect1>
+  </refentry>
+  
+  <refentry id="arbtt-capture">
+    <refmeta>
+      <refentrytitle>arbtt-capture</refentrytitle>
+      <manvolnum>1</manvolnum>
+      <refmiscinfo class="source">arbtt manual</refmiscinfo>
+    </refmeta>
+
+    <refnamediv>
+      <refname>arbtt-capture</refname>
+      <refpurpose>collect data samples for arbtt</refpurpose>
+    </refnamediv>
+  
+    <refsynopsisdiv>
+      <cmdsynopsis>
+        <command>arbtt-capture</command>
+        <arg rep="repeat">OPTION</arg>
+      </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1><title>Description</title>
+      <para>
+      <command>arbtt-capture</command> runs continuously and saves at the given
+      sample rate, usually once per minute, the collected data to
+      <filename>~/.arbtt/capture.log</filename>. 
+      </para>
+    </refsect1>
+
+    <refsect1><title>Options</title>
+      <variablelist>
+        <varlistentry>
+          <term><option>-h</option></term>
+          <term><option>-?</option></term>
+          <term><option>--help</option></term>
+          <listitem><simpara>shows a short summary of the available
+          options, and exists.</simpara></listitem>
+        </varlistentry>
+        <varlistentry>
+        <term><option>-V</option></term>
+        <term><option>--version</option></term>
+        <listitem><simpara>shows the version number, and exists.</simpara></listitem>
+        </varlistentry>
+        <varlistentry>
+        <term><option>-r</option> <replaceable>RATE</replaceable></term>
+        <term><option>--rate</option> <replaceable>RATE</replaceable></term>
+        <listitem><simpara>set the sample rate in seconds (default: 60)</simpara></listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect1>
+    <refsect1><title>Files</title>
+      <variablelist>
+        <varlistentry>
+          <term><filename>~/.arbtt/capture.log</filename></term>
+          <listitem><para>binary file, storing the arbtt data samples</para></listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect1>
+
+
+    <refsect1><title>See also</title>
+      <para>See the arbtt manual for more information and the <ulink
+      url="http://www.hackage.org/package/arbtt">arbtt hackage page</ulink> for
+      newer versions of arbtt.</para>
+    </refsect1>
+  </refentry>
+
+  <refentry id="arbtt-dump">
+    <refmeta>
+      <refentrytitle>arbtt-dump</refentrytitle>
+      <manvolnum>1</manvolnum>
+      <refmiscinfo class="source">arbtt manual</refmiscinfo>
+    </refmeta>
+
+    <refnamediv>
+      <refname>arbtt-dump</refname>
+      <refpurpose>dumps arbtt data samples</refpurpose>
+    </refnamediv>
+  
+    <refsynopsisdiv>
+      <cmdsynopsis>
+        <command>arbtt-dump</command>
+        <arg rep="repeat">OPTION</arg>
+      </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1><title>Description</title>
+      <para>
+      <command>arbtt-dump</command> reads the data samples recorded by <xref
+      linkend="arbtt-capture"/> and writes them so the standard output in an
+      ascii based format.
+      </para>
+    </refsect1>
+
+    <refsect1><title>Options</title>
+      <variablelist>
+        <varlistentry>
+          <term><option>-h</option></term>
+          <term><option>-?</option></term>
+          <term><option>--help</option></term>
+          <listitem><simpara>shows a short summary of the available
+          options, and exists.</simpara></listitem>
+        </varlistentry>
+        <varlistentry>
+        <term><option>-V</option></term>
+        <term><option>--version</option></term>
+        <listitem><simpara>shows the version number, and exists.</simpara></listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect1>
+    <refsect1><title>Files</title>
+      <variablelist>
+        <varlistentry>
+          <term><filename>~/.arbtt/capture.log</filename></term>
+          <listitem><para>binary file, storing the arbtt data samples</para></listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect1>
+
+    <refsect1><title>See also</title>
+      <para>See the arbtt manual for more information and the <ulink
+      url="http://www.hackage.org/package/arbtt">arbtt hackage page</ulink> for
+      newer versions of arbtt.</para>
+    </refsect1>
+  </refentry>
+</sect1>
+
+<sect1 id="copyright">
+  <title>Copyright and Contact</title>
+  <para>
+  arbtt is Copyright © 2009 Joachim Breitner
+  </para>
+
+  <para>
+    arbtt does not have a bug tracker or other project infrastructure yet. If
+    you have bug reports, suggestions or questions, please send an email to
+    <ulink
+    url="mailto:mail@joachim-breitner.de">mail@joachim-breitner.de</ulink>.
+  </para>
+
+  <sect2>
+    <title>arbtt License</title>
+    <para>
+    <literallayout>
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+    </literallayout>
+    </para>
+  </sect2>
+</sect1>
+
+<sect1 id="release-notes">
+  <title>Release Notes</title>
+  <para>
+  The version history with changes relevant for the user are documented here.
+  </para>
+
+  <sect2>
+    <title>Version 0.4</title>
+    <itemizedlist>
+      <listitem>
+        <para>Implement option <option>--each-categories</option> to
+        <command>arbtt-stats</command></para>
+      </listitem>
+      <listitem>
+        <para>Eliminate one possible cause for crashes of
+        <command>arbtt-capture</command>.</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
+    <title>Version 0.3.0</title>
+    <itemizedlist>
+      <listitem>
+        <para>Switch to binary log file format, for greatly increased speed</para>
+      </listitem>
+      <listitem>
+        <para><command>arbtt-capture</command> will automatically detect and
+        convert log files in the old format.</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
+    <title>Version 0.2.0</title>
+    <itemizedlist>
+      <listitem>
+        <para>Add option <option>--filter</option> to
+        <command>arbtt-stats</command></para>
+      </listitem>
+      <listitem>
+        <para>Add option <option>--sample-rate</option> to
+        <command>arbtt-capture</command></para>
+      </listitem>
+      <listitem>
+        <para>Introduce time-base variables <literal>$time</literal> and
+        <literal>$sampleage</literal></para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
+    <title>Version 0.1.5</title>
+    <itemizedlist>
+      <listitem>
+        <para>Use <function>setlocale</function> to get umlauts in window titles correctly</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
+    <title>Version 0.1.4</title>
+    <itemizedlist>
+      <listitem>
+        <para>Be smarter when figuring out what window is active. Thanks to CJ
+        van den Berg for investigating the issue.</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
+    <title>Version 0.1.3</title>
+    <itemizedlist>
+      <listitem><para>Read <literal>_NET_CLIENT_LIST</literal> for the list of
+      applications, for compatibility with window managers such as metacity</para></listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
+    <title>Version 0.1.2</title>
+    <itemizedlist>
+      <listitem><para>Off-By-Ten error in the time display</para></listitem>
+      <listitem><para>Correctly show total number of records in
+      <option>--information</option></para></listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
+    <title>Version 0.1.1</title>
+    <para>
+    Rename files to allow building on MacOS.
+    </para>
+  </sect2>
+
+  <sect2>
+    <title>Version 0.1</title>
+    <para>
+    Initial release of arbtt
+    </para>
+  </sect2>
+</sect1>
+
+</article>
