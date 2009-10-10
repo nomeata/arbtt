@@ -7,8 +7,8 @@ XSLTPROC_HTML_PARAMS=\
 	--stringparam use.id.as.filename 1 \
 	--stringparam base.dir $(XSLTPROC_HTML_OUTDIR) \
 	--stringparam html.stylesheet $(XSLTPROC_HTML_CSS)
-XSLTPROC_HTML_STYLESHEET=/usr/share/xml/docbook/stylesheet/docbook-xsl/xhtml/chunk.xsl
-XSLTPROC_MAN_STYLESHEET=/usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl
+XSLTPROC_HTML_STYLESHEET=/usr/share/xml/docbook/stylesheet/nwalsh/xhtml/chunk.xsl
+XSLTPROC_MAN_STYLESHEET=/usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl
 XSLTPROC_MAN_OUTDIR=man/
 
 # build targets
