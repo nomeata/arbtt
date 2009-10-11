@@ -471,8 +471,8 @@ $ runhaskell Setup.hs install</screen>
             <term><option>--filter</option> <replaceable>CONDITION</replaceable></term>
             <listitem><simpara>Only consider samples matching
             the given condition, which follows the same syntax as in
-            <filename>categorize.cfg</filename> (<nonterminal def="#g-cond"/> in
-            <xref linkend="grammar"/>).</simpara></listitem>
+            <filename>categorize.cfg</filename> (Nonterminal <nonterminal def="#g-cond"/> in
+            <phrase condition="html"><xref linkend="grammar"/></phrase><phrase condition="man">the formal grammar specification found in the user guide</phrase>).</simpara></listitem>
           </varlistentry>
         </variablelist>
       </refsect2>

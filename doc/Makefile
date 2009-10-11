@@ -7,18 +7,19 @@ XSLTPROC_HTML_PARAMS=\
 	--stringparam use.id.as.filename 1 \
 	--stringparam base.dir $(XSLTPROC_HTML_OUTDIR) \
 	--stringparam html.stylesheet $(XSLTPROC_HTML_CSS)
-XSLTPROC_HTML_STYLESHEET=/usr/share/xml/docbook/stylesheet/nwalsh/xhtml/chunk.xsl
-XSLTPROC_MAN_STYLESHEET=/usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl
+XSLTPROC_HTML_STYLESHEET=/usr/share/xml/docbook/stylesheet/nwalsh/xhtml/profile-chunk.xsl
+XSLTPROC_MAN_STYLESHEET=/usr/share/xml/docbook/stylesheet/nwalsh/manpages/profile-docbook.xsl
 XSLTPROC_MAN_OUTDIR=man/
+XSLTPROC_MAN_OPTIONS=--stringparam man.output.in.separate.dir 1 --stringparam man.output.base.dir
 
 # build targets
 #
 .PHONY: man html pdf
 man: 
-	$(XSLTPROC) --xinclude --stringparam man.output.in.separate.dir 1 --stringparam man.output.base.dir $(XSLTPROC_MAN_OUTDIR) $(XSLTPROC_MAN_STYLESHEET) arbtt.xml
+	$(XSLTPROC) --xinclude --stringparam profile.condition man $(XSLTPROC_MAN_OPTIONS) $(XSLTPROC_MAN_OUTDIR) $(XSLTPROC_MAN_STYLESHEET) arbtt.xml
 
 html:
-	$(XSLTPROC) --xinclude $(XSLTPROC_HTML_PARAMS) $(XSLTPROC_HTML_STYLESHEET) arbtt.xml
+	$(XSLTPROC) --xinclude --stringparam profile.condition html $(XSLTPROC_HTML_PARAMS) $(XSLTPROC_HTML_STYLESHEET) arbtt.xml
 	cp $(XSLTPROC_HTML_CSS) $(XSLTPROC_HTML_OUTDIR)
 
 pdf:
