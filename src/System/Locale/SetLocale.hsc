@@ -1,5 +1,10 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 
+{-
+This file is copied from the setlocale-0.0.3 package. Its author is Lukas Mai
+and it is placed in the Public Domain.
+-}
+
 module System.Locale.SetLocale (
     Category(..),
     categoryToCInt,
