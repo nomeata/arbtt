@@ -744,6 +744,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <listitem>
         <para>Drop dependency on tabular: Implement custom table rendering code.</para>
       </listitem>
+      <listitem>
+        <para>In the absence of _NET_CLIENT_LIST, look for application windows as children of the root windows. This should work for users of window managers like i3 without EWHM support.</para>
+      </listitem>
     </itemizedlist>
   </sect2>
 

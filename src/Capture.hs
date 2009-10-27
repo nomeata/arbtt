@@ -17,7 +17,11 @@ captureData = do
 
 	a <- internAtom dpy "_NET_CLIENT_LIST" False
 	p <- getWindowProperty32 dpy a rwin
-	let cwins = maybe [] (map fromIntegral) p
+
+	cwins <- case p of
+		Just wins -> return (map fromIntegral wins)
+		Nothing -> do (_,_,cwins) <- queryTree dpy rwin
+		              filterM (isInterestingWindow dpy) cwins
 
 	(fsubwin,_) <- getInputFocus dpy
 	fwin <- followTreeUntil dpy (`elem` cwins) fsubwin
@@ -43,4 +47,16 @@ followTreeUntil dpy cond = go
              | otherwise = do (r,p,_) <- queryTree dpy w
 	                      if p == 0 then return w
 			                else go p 
+
+-- copied from XMonad/Main.hs, where function "ok" from "scan"
+isInterestingWindow :: Display -> Window -> IO Bool
+isInterestingWindow dpy w = do
+   wa <- getWindowAttributes dpy w
+   a  <- internAtom dpy "WM_STATE" False
+   p  <- getWindowProperty32 dpy a w
+   let ic = case p of
+             Just (3:_) -> True -- 3 for iconified
+             _          -> False
+   return $ not (wa_override_redirect wa)
+            && (wa_map_state wa == waIsViewable || ic)
 
