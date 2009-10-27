@@ -37,26 +37,29 @@ executable arbtt-capture
         TimeLog
         UpgradeLog1
         Graphics.X11.XScreenSaver
+        System.Locale.SetLocale
 
 executable arbtt-stats
     main-is:            stats-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, parsec == 2.*, containers, pcre-light, tabular, setlocale
+        base == 4.*, parsec == 2.*, containers, pcre-light, tabular
     other-modules:
         Data
         Categorize
         TimeLog
         Stats
+        System.Locale.SetLocale
 
 executable arbtt-dump
     main-is:            dump-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, parsec == 2.*, containers, setlocale
+        base == 4.*, parsec == 2.*, containers
     other-modules:
         Data
         TimeLog
+        System.Locale.SetLocale
 
 source-repository head
     type:     darcs
