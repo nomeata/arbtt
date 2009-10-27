@@ -738,6 +738,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <listitem>
         <para>Write this documentation</para>
       </listitem>
+      <listitem>
+        <para>Drop dependency on setlocale: Copy the SetLocale module.</para>
+      </listitem>
     </itemizedlist>
   </sect2>
 
