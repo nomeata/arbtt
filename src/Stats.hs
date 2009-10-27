@@ -5,8 +5,6 @@ import Data.Time
 import Data.Maybe
 import Data.List
 import Data.Ord
-import Text.Tabular
-import qualified Text.Tabular.AsciiArt as TA
 import Text.Printf
 import qualified Data.Map as M
 import qualified Data.Set as S
@@ -23,6 +21,14 @@ data Filter = Exclude Activity | Only Activity | AlsoInactive | GeneralCond Stri
 
 data ReportOption = MinPercentage Double
         deriving Eq
+
+-- Data format semantically representing the result of a report, including the
+-- title
+data ReportResults =
+	ListOfFields String [(String, String)]
+	| ListOfTimePercValues String [(String, String, Double)]
+	| PieChartOfTimePercValues  String [(String, String, Double)]
+
 
 applyFilters :: [Filter] -> TimeLog (Ctx, ActivityData) -> TimeLog (Ctx, ActivityData)
 applyFilters filters tle = 
@@ -88,82 +94,92 @@ putReports opts c = sequence_ . intersperse (putStrLn "") . map (putReport opts 
 
 putReport :: [ReportOption] -> Calculations -> Report -> IO ()
 putReport opts c EachCategory = putReports opts c (map Category (listCategories (tags c)))
-putReport opts c r = let (h,t) = reportToTable opts c r
-  			in putStrLnUnderlined h >> putStr (TA.render id id id t)
+putReport opts c r = renderReport $ reportToTable opts c r
 
-reportToTable :: [ReportOption] -> Calculations -> Report -> (String, Table String String String)
+reportToTable :: [ReportOption] -> Calculations -> Report -> ReportResults
 reportToTable opts (Calculations {..}) r = case r of
- 	GeneralInfos -> ("General Information",
-		empty ^..^ colH "Value"
-		+.+ row "FirstRecord"
-		        [show firstDate]
-		+.+ row "LastRecord"
-		        [show lastDate]
-		+.+ row "Number of records"
-		        [show (length allTags)]
-		+.+ row "Total time recorded"
-		        [formatSeconds (fromIntegral totalTimeRec / 1000)]
-		+.+ row "Total time selected"
-		        [formatSeconds (fromIntegral totalTimeSel / 1000)]
-		+.+ row "Fraction of total time recorded"
-		        [printf "%3.0f%%" (fractionRec * 100) ]
-		+.+ row "Fraction of total time selected"
-		        [printf "%3.0f%%" (fractionSel * 100) ]
-		+.+ row "Fraction of recorded time selected"
-		        [printf "%3.0f%%" (fractionSelRec * 100) ]
-		)
+ 	GeneralInfos -> ListOfFields "General Information" $
+		[ ("FirstRecord", show firstDate)
+		, ("LastRecord",  show lastDate)
+		, ("Number of records", show (length allTags))
+		, ("Total time recorded",  formatSeconds (fromIntegral totalTimeRec / 1000))
+		, ("Total time selected",  formatSeconds (fromIntegral totalTimeSel / 1000))
+		, ("Fraction of total time recorded", printf "%3.0f%%" (fractionRec * 100))
+		, ("Fraction of total time selected", printf "%3.0f%%" (fractionSel * 100))
+		, ("Fraction of recorded time selected", printf "%3.0f%%" (fractionSelRec * 100))
+		]
 
- 	TotalTime -> ("Total time per tag",
-		foldr (\(tag,time) ->
-		      let perc = fromIntegral time/fromIntegral totalTimeSel*100 in
-		      if perc >= minPercentage
-	 	      then (+.+ row (show tag) [
-		      		formatSeconds (fromIntegral time/1000),
-				printf "%.1f%%" perc])
-		      else id
-		      )
-		(empty ^..^ colH "Time" ^..^ colH "Percentage")
-		(sortBy (comparing snd) $ M.toList sums)
-		)
+ 	TotalTime -> ListOfTimePercValues "Total time per tag" $
+		mapMaybe (\(tag,time) ->
+		      let perc = fromIntegral time/fromIntegral totalTimeSel in
+		      if perc*100 >= minPercentage
+	 	      then Just $ ( show tag
+		                  , formatSeconds (fromIntegral time/1000)
+				  , perc)
+		      else Nothing
+		      ) $
+		reverse $
+		sortBy (comparing snd) $
+		M.toList sums
 	
-	Category cat -> ("Statistics for category " ++ cat,
+	Category cat -> PieChartOfTimePercValues ("Statistics for category " ++ cat) $
          	let filteredSums = M.filterWithKey (\a _ -> isCategory cat a) sums
 	            uncategorizedTime = totalTimeSel - M.fold (+) 0 filteredSums
           	    tooSmallSums = M.filter (\t -> fromIntegral t / fromIntegral totalTimeSel * 100 < minPercentage) filteredSums
 	  	    tooSmallTimes = M.fold (+) 0 tooSmallSums
 		in
 
-		(if uncategorizedTime > 0
-		then (+.+ row "(unmatched time)" [
-                        formatSeconds (fromIntegral uncategorizedTime/1000),
-                        printf "%.1f%%" (fromIntegral uncategorizedTime/fromIntegral totalTimeSel*100::Double)])
-		else id
-		)
-		.	
+		mapMaybe (\(tag,time) ->
+		      let perc = fromIntegral time/fromIntegral totalTimeSel in
+		      if perc*100 >= minPercentage
+	 	      then Just ( show tag
+		      		, formatSeconds (fromIntegral time/1000)
+				, perc)
+		      else Nothing
+		      )
+          	      (reverse $ sortBy (comparing snd) $ M.toList filteredSums)
+		++
 		(
 		if tooSmallTimes > 0
-		then (+.+ row (printf "(%d entries omitted)" (M.size tooSmallSums)) [
-                        formatSeconds (fromIntegral tooSmallTimes/1000),
-                        printf "%.1f%%" (fromIntegral tooSmallTimes/fromIntegral totalTimeSel*100::Double) ])
-		else id
+		then [( printf "(%d entries omitted)" (M.size tooSmallSums)
+		      , formatSeconds (fromIntegral tooSmallTimes/1000)
+		      , fromIntegral tooSmallTimes/fromIntegral totalTimeSel
+		      )]
+		else []
 		)
-		$	
-		foldr (\(tag,time) ->
-		      let perc = fromIntegral time/fromIntegral totalTimeSel*100 in
-		      if perc >= minPercentage
-	 	      then (+.+ row (show tag) [
-		      		formatSeconds (fromIntegral time/1000),
-				printf "%.1f%%" perc])
-		      else id
-		      )
-
-		(empty ^..^ colH "Time" ^..^ colH "Percentage")
-
-          	(sortBy (comparing snd) $ M.toList filteredSums)
+		++	
+		(if uncategorizedTime > 0
+		then [( "(unmatched time)"
+                      , formatSeconds (fromIntegral uncategorizedTime/1000)
+                      , fromIntegral uncategorizedTime/fromIntegral totalTimeSel
+		      )]
+		else []
 		)
 
   where minPercentage = last $ mapMaybe (\f -> case f of {MinPercentage m -> Just m {- ; _ -> Nothing -} }) opts
 
+
+renderReport (ListOfFields title dats) = do
+	putStrLnUnderlined title
+	putStr $ tabulate False $ map (\(f,v) -> [f,v]) dats
+
+renderReport (ListOfTimePercValues title dats) = do
+	putStrLnUnderlined title
+	putStr $ tabulate True $ ["Tag","Time","Percentage"] : map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
+
+renderReport (PieChartOfTimePercValues title dats) = do
+	putStrLnUnderlined title
+	putStr $ tabulate True $ ["Tag","Time","Percentage"] : map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
+
+
+tabulate :: Bool -> [[String]] -> String
+tabulate titlerow rows = unlines $ addTitleRow $ map (intercalate " | " . zipWith (\l s -> take (l - length s) (repeat ' ') ++ s) colwidths) rows
+  where cols = transpose rows
+        colwidths = map (maximum . map length) cols
+	addTitleRow | titlerow  = \(l:ls) -> (map (\c -> if c == ' ' then '_' else c) l ++ "_")
+	                                     : ls
+	         -- | titlerow  = \(l:ls) -> l : (take (length l) (repeat '-')) : ls
+	            | otherwise = id
 
 formatSeconds :: Double -> String
 formatSeconds s' = go $ zip [days,hours,mins,secs] ["d","h","m","s"]

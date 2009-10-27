@@ -741,6 +741,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <listitem>
         <para>Drop dependency on setlocale: Copy the SetLocale module.</para>
       </listitem>
+      <listitem>
+        <para>Drop dependency on tabular: Implement custom table rendering code.</para>
+      </listitem>
     </itemizedlist>
   </sect2>
 
