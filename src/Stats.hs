@@ -50,12 +50,12 @@ data Calculations = Calculations
 	{ firstDate :: UTCTime
 	, lastDate  :: UTCTime
 	, timeDiff :: NominalDiffTime
-	, totalTimeRec :: Integer
-	, totalTimeSel :: Integer
+	, totalTimeRec :: NominalDiffTime
+	, totalTimeSel :: NominalDiffTime
 	, fractionRec :: Double
 	, fractionSel :: Double
 	, fractionSelRec :: Double
-	, sums :: M.Map Activity Integer
+	, sums :: M.Map Activity NominalDiffTime
 	, allTags :: TimeLog (Ctx, ActivityData)
 	, tags :: TimeLog (Ctx, ActivityData)
 	}
@@ -66,21 +66,21 @@ prepareCalculations allTags tags =
 	  { firstDate = tlTime (head allTags)
 	  , lastDate = tlTime (last allTags)
 	  , timeDiff = diffUTCTime (lastDate c) (firstDate c)
-	  , totalTimeRec = sum (map tlRate allTags)
-	  , totalTimeSel = sum (map tlRate tags)
-	  , fractionRec = fromIntegral (totalTimeRec c) / (realToFrac (timeDiff c) * 1000)
-	  , fractionSel = fromIntegral (totalTimeSel c) / (realToFrac (timeDiff c) * 1000)
-	  , fractionSelRec = fromIntegral (totalTimeSel c) / fromIntegral (totalTimeRec c)
+	  , totalTimeRec = fromInteger (sum (map tlRate allTags))/1000
+	  , totalTimeSel = fromInteger (sum (map tlRate tags))/1000
+	  , fractionRec = realToFrac (totalTimeRec c) / (realToFrac (timeDiff c))
+	  , fractionSel = realToFrac (totalTimeSel c) / (realToFrac (timeDiff c))
+	  , fractionSelRec = realToFrac (totalTimeSel c) / realToFrac (totalTimeRec c)
 	  , sums = sumUp tags
 	  , allTags
 	  , tags
 	  } in c
 
 -- | Sums up each occurence of an 'Activity', weighted by the sampling rate
-sumUp :: TimeLog (Ctx, ActivityData) -> M.Map Activity Integer
+sumUp :: TimeLog (Ctx, ActivityData) -> M.Map Activity NominalDiffTime
 sumUp = foldr go M.empty
   where go tl m = foldr go' m (snd (tlData tl))
-          where go' act = M.insertWith (+) act (tlRate tl)
+          where go' act = M.insertWith (+) act (fromInteger (tlRate tl)/1000)
 
 
 listCategories :: TimeLog (Ctx, ActivityData) -> [Category]
@@ -102,8 +102,8 @@ reportToTable opts (Calculations {..}) r = case r of
 		[ ("FirstRecord", show firstDate)
 		, ("LastRecord",  show lastDate)
 		, ("Number of records", show (length allTags))
-		, ("Total time recorded",  formatSeconds (fromIntegral totalTimeRec / 1000))
-		, ("Total time selected",  formatSeconds (fromIntegral totalTimeSel / 1000))
+		, ("Total time recorded",  showTimeDiff totalTimeRec)
+		, ("Total time selected",  showTimeDiff totalTimeSel)
 		, ("Fraction of total time recorded", printf "%3.0f%%" (fractionRec * 100))
 		, ("Fraction of total time selected", printf "%3.0f%%" (fractionSel * 100))
 		, ("Fraction of recorded time selected", printf "%3.0f%%" (fractionSelRec * 100))
@@ -111,10 +111,10 @@ reportToTable opts (Calculations {..}) r = case r of
 
  	TotalTime -> ListOfTimePercValues "Total time per tag" $
 		mapMaybe (\(tag,time) ->
-		      let perc = fromIntegral time/fromIntegral totalTimeSel in
+		      let perc = realToFrac time/realToFrac totalTimeSel in
 		      if perc*100 >= minPercentage
 	 	      then Just $ ( show tag
-		                  , formatSeconds (fromIntegral time/1000)
+		                  , showTimeDiff time
 				  , perc)
 		      else Nothing
 		      ) $
@@ -125,15 +125,15 @@ reportToTable opts (Calculations {..}) r = case r of
 	Category cat -> PieChartOfTimePercValues ("Statistics for category " ++ cat) $
          	let filteredSums = M.filterWithKey (\a _ -> isCategory cat a) sums
 	            uncategorizedTime = totalTimeSel - M.fold (+) 0 filteredSums
-          	    tooSmallSums = M.filter (\t -> fromIntegral t / fromIntegral totalTimeSel * 100 < minPercentage) filteredSums
+          	    tooSmallSums = M.filter (\t -> realToFrac t / realToFrac totalTimeSel * 100 < minPercentage) filteredSums
 	  	    tooSmallTimes = M.fold (+) 0 tooSmallSums
 		in
 
 		mapMaybe (\(tag,time) ->
-		      let perc = fromIntegral time/fromIntegral totalTimeSel in
+		      let perc = realToFrac time/realToFrac totalTimeSel in
 		      if perc*100 >= minPercentage
 	 	      then Just ( show tag
-		      		, formatSeconds (fromIntegral time/1000)
+		      		, showTimeDiff time
 				, perc)
 		      else Nothing
 		      )
@@ -142,16 +142,16 @@ reportToTable opts (Calculations {..}) r = case r of
 		(
 		if tooSmallTimes > 0
 		then [( printf "(%d entries omitted)" (M.size tooSmallSums)
-		      , formatSeconds (fromIntegral tooSmallTimes/1000)
-		      , fromIntegral tooSmallTimes/fromIntegral totalTimeSel
+		      , showTimeDiff tooSmallTimes
+		      , realToFrac tooSmallTimes/realToFrac totalTimeSel
 		      )]
 		else []
 		)
 		++	
 		(if uncategorizedTime > 0
 		then [( "(unmatched time)"
-                      , formatSeconds (fromIntegral uncategorizedTime/1000)
-                      , fromIntegral uncategorizedTime/fromIntegral totalTimeSel
+                      , showTimeDiff uncategorizedTime
+                      , realToFrac uncategorizedTime/realToFrac totalTimeSel
 		      )]
 		else []
 		)
@@ -181,9 +181,9 @@ tabulate titlerow rows = unlines $ addTitleRow $ map (intercalate " | " . zipWit
 	         -- | titlerow  = \(l:ls) -> l : (take (length l) (repeat '-')) : ls
 	            | otherwise = id
 
-formatSeconds :: Double -> String
-formatSeconds s' = go $ zip [days,hours,mins,secs] ["d","h","m","s"]
-  where s = round s' :: Integer
+showTimeDiff :: NominalDiffTime -> String
+showTimeDiff t = go $ zip [days,hours,mins,secs] ["d","h","m","s"]
+  where s = round t :: Integer
         days  =  s `div` (24*60*60)
         hours = (s `div` (60*60)) `mod` 24
         mins  = (s `div` 60) `mod` 60
