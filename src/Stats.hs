@@ -182,17 +182,18 @@ tabulate titlerow rows = unlines $ addTitleRow $ map (intercalate " | " . zipWit
 	            | otherwise = id
 
 showTimeDiff :: NominalDiffTime -> String
-showTimeDiff t = go $ zip [days,hours,mins,secs] ["d","h","m","s"]
+showTimeDiff t = go False $ zip [days,hours,mins,secs] ["d","h","m","s"]
   where s = round t :: Integer
         days  =  s `div` (24*60*60)
         hours = (s `div` (60*60)) `mod` 24
         mins  = (s `div` 60) `mod` 60
 	secs  =  s `mod` 60 
-	go | s == 0    = const "0s"
-	   | otherwise = concat . snd . mapAccumL go' False 
-	go' True  (a,u)             = (True, printf "%02d%s" a u)
-	go' False (a,u) | a > 0     = (True, printf "%2d%s" a u)
-	                | otherwise = (False, "")
+	go False []         = "0s"
+	go True  []         = ""
+--	go True  vs         | all (==0) (map fst vs) = concat (replicate (length vs) "   ")
+	go True  ((a,u):vs)             = printf "%02d%s" a u ++ go True vs
+	go False ((a,u):vs) | a > 0     = printf "%2d%s" a u ++ go True vs
+	                    | otherwise =                       go False vs
 
 putStrLnUnderlined str = do
         putStrLn str
