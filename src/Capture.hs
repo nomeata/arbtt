@@ -8,6 +8,7 @@ import Control.Monad
 import Data.Maybe
 import Control.Applicative
 import Data.Time.Clock
+import System.IO
 
 captureData :: IO CaptureData
 captureData = do
@@ -18,15 +19,15 @@ captureData = do
 	a <- internAtom dpy "_NET_CLIENT_LIST" False
 	p <- getWindowProperty32 dpy a rwin
 
-	cwins <- case p of
+	wins <- case p of
 		Just wins -> return (map fromIntegral wins)
-		Nothing -> do (_,_,cwins) <- queryTree dpy rwin
-		              filterM (isInterestingWindow dpy) cwins
+		Nothing -> do hPutStrLn stderr "arbtt: ERROR: No _NET_CLIENT_LIST set for the root window"
+		              return []
 
 	(fsubwin,_) <- getInputFocus dpy
-	fwin <- followTreeUntil dpy (`elem` cwins) fsubwin
+	fwin <- followTreeUntil dpy (`elem` wins) fsubwin
 
-	winData <- mapM (\w -> (,,) (w == fwin) <$> getWindowTitle dpy w <*> getProgramName dpy w) cwins
+	winData <- mapM (\w -> (,,) (w == fwin) <$> getWindowTitle dpy w <*> getProgramName dpy w) wins
 
 	it <- fromIntegral `fmap` getXIdleTime dpy
 
@@ -47,16 +48,3 @@ followTreeUntil dpy cond = go
              | otherwise = do (r,p,_) <- queryTree dpy w
 	                      if p == 0 then return w
 			                else go p 
-
--- copied from XMonad/Main.hs, where function "ok" from "scan"
-isInterestingWindow :: Display -> Window -> IO Bool
-isInterestingWindow dpy w = do
-   wa <- getWindowAttributes dpy w
-   a  <- internAtom dpy "WM_STATE" False
-   p  <- getWindowProperty32 dpy a w
-   let ic = case p of
-             Just (3:_) -> True -- 3 for iconified
-             _          -> False
-   return $ not (wa_override_redirect wa)
-            && (wa_map_state wa == waIsViewable || ic)
-
