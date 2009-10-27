@@ -11,7 +11,7 @@ import Data.Time.Clock
 
 captureData :: IO CaptureData
 captureData = do
-	dpy <- openDisplay ":0"
+	dpy <- openDisplay ""
         xSetErrorHandler
 	let rwin = defaultRootWindow dpy
 
