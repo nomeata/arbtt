@@ -48,28 +48,31 @@ recoverTimeLog filename = do
 	content <- BS.readFile filename
         start content
   where start content = do
-  		let (startString, rest, _) = runGetState (getLazyByteString (BS.length magic)) content 0
+  		let (startString, rest, off) = runGetState (getLazyByteString (BS.length magic)) content 0
 		if startString /= magic
 		  then do putStrLn $ "WARNING: Timelog starts with unknown marker " ++
 				show (map (chr.fromIntegral) (BS.unpack startString))
 		  else do putStrLn $ "Found header, continuing... (" ++ show (BS.length rest) ++ " bytes to go)"
-		go rest
-        go input = do mb <- tryGet input
-	 	      flip (maybe (return [])) mb $
-		     	 \(v,rest,_) -> if BS.null rest then return [v]
-			                                else (v :) <$> go rest
-	tryGet input = catch (
+		go rest off
+        go input off = do mb <- tryGet input off
+	 	          flip (maybe (return [])) mb $
+		     	  	\(v,rest,off') -> if BS.null rest
+			                          then return [v]
+			                          else (v :) <$> go rest off'
+	tryGet input off = catch (
 			do -- putStrLn $ "Trying value at offset " ++ show off
-			   let (v,rest,off) = runGetState get input 0
+			   let (v,rest,off') = runGetState get input off
 			   evaluate rest
-			   return (Just (v,rest,off))
+			   return (Just (v,rest,off'))
 			) (
 			\e -> do
-			   putStrLn $ "Failed: " ++ show (e :: SomeException)
+			   putStrLn $ "Failed to read value at position " ++ show off ++ ":"
+			   putStrLn $ "   " ++ show (e :: SomeException)
 		    	   if BS.length input <= 1
-			     then return Nothing
-			     else do putStrLn $ "Failed to read value, retrying with rest"-- ++ show (off+1)
-			             tryGet (BS.tail input)
+			     then do putStrLn $ "End of file reached"
+			             return Nothing
+			     else do putStrLn $ "Trying at position " ++ show (off+1) ++ "."
+			             tryGet (BS.tail input) (off+1)
 			)
 
 readTimeLog :: Binary a => FilePath -> IO (TimeLog a)
