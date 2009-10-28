@@ -89,5 +89,5 @@ instance Binary CaptureData where
 	put (cLastActivity cd)
  get = do
  	v <- getWord8
-	when (v /= 1) $ error $ "Wrong TimeLogEntry version tag " ++ show v
+	when (v /= 1) $ error $ "Wrong CaptureData version tag " ++ show v
 	CaptureData <$> get <*> get
