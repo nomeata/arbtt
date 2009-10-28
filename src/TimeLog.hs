@@ -54,15 +54,17 @@ recoverTimeLog filename = do
 				show (map (chr.fromIntegral) (BS.unpack startString))
 		  else do putStrLn $ "Found header, continuing... (" ++ show (BS.length rest) ++ " bytes to go)"
 		go rest off
-        go input off = do mb <- tryGet input off
+        go input off = do mb <- tryGet False input off
 	 	          flip (maybe (return [])) mb $
 		     	  	\(v,rest,off') -> if BS.null rest
 			                          then return [v]
 			                          else (v :) <$> go rest off'
-	tryGet input off = catch (
+	tryGet retrying input off = catch (
 			do -- putStrLn $ "Trying value at offset " ++ show off
 			   let (v,rest,off') = runGetState get input off
 			   evaluate rest
+			   when retrying $
+			   	putStrLn $ "Succesfully read value at position " ++ show off
 			   return (Just (v,rest,off'))
 			) (
 			\e -> do
@@ -72,7 +74,7 @@ recoverTimeLog filename = do
 			     then do putStrLn $ "End of file reached"
 			             return Nothing
 			     else do putStrLn $ "Trying at position " ++ show (off+1) ++ "."
-			             tryGet (BS.tail input) (off+1)
+			             tryGet True (BS.tail input) (off+1)
 			)
 
 readTimeLog :: Binary a => FilePath -> IO (TimeLog a)
