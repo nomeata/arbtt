@@ -61,6 +61,16 @@ executable arbtt-dump
         TimeLog
         System.Locale.SetLocale
 
+executable arbtt-recover
+    main-is:            recover-main.hs
+    hs-source-dirs:     src
+    build-depends:
+        base == 4.*, parsec == 2.*, containers
+    other-modules:
+        Data
+        TimeLog
+        System.Locale.SetLocale
+
 source-repository head
     type:     darcs
     location: http://darcs.nomeata.de/arbtt

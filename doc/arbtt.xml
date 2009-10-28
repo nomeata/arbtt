@@ -389,6 +389,11 @@ $ runhaskell Setup.hs install</screen>
     <command>arbtt-dump</command> can bee used to dump the data in
     textual form. Its command line reference is given in <xref
     linkend="arbtt-dump"/>.</para>
+
+    <para>If <command>arbtt-capture</command> crashes it might be that the log
+    file is not readable any more. In some cases, this can be fixed using the
+    (relatively raw) <command>arbtt-recover</command> tool. Its command line
+    reference is given in <xref linkend="arbtt-recover"/>.</para>
   <!--
   </sect2>
   -->
@@ -694,6 +699,78 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
       newer versions of arbtt.</para>
     </refsect1>
   </refentry>
+
+  <refentry id="arbtt-recover">
+    <refmeta>
+      <refentrytitle>arbtt-recover</refentrytitle>
+      <manvolnum>1</manvolnum>
+      <refmiscinfo class="source">arbtt manual</refmiscinfo>
+    </refmeta>
+
+    <refnamediv>
+      <refname>arbtt-recover</refname>
+      <refpurpose>tries to recover a broken arbtt data log</refpurpose>
+    </refnamediv>
+  
+    <refsynopsisdiv>
+      <cmdsynopsis>
+        <command>arbtt-recover</command>
+        <arg rep="repeat">OPTION</arg>
+      </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1><title>Description</title>
+      <para>
+      <command>arbtt-recover</command> tries to readsthe data samples recorded
+      by <xref linkend="arbtt-capture"/>, skipping over possible broken entries. A fixed log file is written to <file>~/.arbtt/capture.log.recovered</file>.
+      </para>
+    </refsect1>
+
+    <refsect1><title>Options</title>
+      <variablelist>
+        <varlistentry>
+          <term><option>-h</option></term>
+          <term><option>-?</option></term>
+          <term><option>--help</option></term>
+          <listitem><simpara>shows a short summary of the available
+          options, and exists.</simpara></listitem>
+        </varlistentry>
+        <varlistentry>
+        <term><option>-V</option></term>
+        <term><option>--version</option></term>
+        <listitem><simpara>shows the version number, and exists.</simpara></listitem>
+	</varlistentry>
+        <varlistentry>
+        <term><option>-i</option></term>
+        <term><option>--infile</option></term>
+        <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
+        </varlistentry>
+        <varlistentry>
+        <term><option>-o</option></term>
+        <term><option>--outfile</option></term>
+        <listitem><simpara>where to save the recovered file, instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect1>
+    <refsect1><title>Files</title>
+      <variablelist>
+        <varlistentry>
+          <term><filename>~/.arbtt/capture.log</filename></term>
+          <listitem><para>binary file, storing the arbtt data samples</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term><filename>~/.arbtt/capture.log.recovered</filename></term>
+          <listitem><para>binary file, storing the fixed arbtt data samples</para></listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect1>
+
+    <refsect1><title>See also</title>
+      <para>See the arbtt manual for more information and the <ulink
+      url="http://www.hackage.org/package/arbtt">arbtt hackage page</ulink> for
+      newer versions of arbtt.</para>
+    </refsect1>
+  </refentry>
 </sect1>
 
 <sect1 id="copyright">
@@ -743,6 +820,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <listitem>
         <para>Implement option <option>--logfile</option> to
         <command>arbtt-dump</command></para>.
+      </listitem>
+      <listitem>
+	<para>New command <command>arbtt-recover</command> to rescue data from
+	a proken data log file.</para>.
       </listitem>
     </itemizedlist>
   </sect2>
