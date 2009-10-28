@@ -733,6 +733,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   </para>
 
   <sect2>
+    <title>Version unreleaed</title>
+    <itemizedlist>
+      <listitem>
+        <para>Implement option <option>--logfile</option> to
+        <command>arbtt-dump</command></para>.
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
     <title>Version 0.4.1</title>
     <itemizedlist>
       <listitem>
