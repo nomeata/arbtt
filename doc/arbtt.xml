@@ -671,6 +671,11 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <term><option>-V</option></term>
         <term><option>--version</option></term>
         <listitem><simpara>shows the version number, and exists.</simpara></listitem>
+	</varlistentry>
+        <varlistentry>
+        <term><option>-f</option></term>
+        <term><option>--logfile</option></term>
+        <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
         </varlistentry>
       </variablelist>
     </refsect1>
