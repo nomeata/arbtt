@@ -7,13 +7,15 @@ import System.Exit
 import System.IO
 import qualified Data.Map as M
 import Data.Version (showVersion)
+import Data.Maybe
+import Control.Monad
 
 import TimeLog
 import Data
 
 import Paths_arbtt (version)
 
-data Flag = Help | Version
+data Flag = Help | Version | LogFile String
         deriving Eq
 
 versionStr = "arbtt-dump " ++ showVersion version
@@ -27,13 +29,16 @@ options =
      , Option "V"      ["version"]
               (NoArg Version)
 	      "show the version number"
+     , Option "f"      ["logfile"]
+     	       (ReqArg LogFile "FILE")
+	       "use this file instead of ~/.arbtt/capture.log"
      ]
 
 
 main = do
   args <- getArgs
-  case getOpt Permute options args of
-          (o,[],[]) | Help `notElem` o  && Version `notElem` o -> return ()
+  flags <- case getOpt Permute options args of
+          (o,[],[]) | Help `notElem` o  && Version `notElem` o -> return o
           (o,_,_) | Version `elem` o -> do
                 hPutStrLn stderr versionStr
                 exitSuccess
@@ -46,7 +51,9 @@ main = do
 
   dir <- getAppUserDataDirectory "arbtt"
 
-
-  let captureFilename = dir </> "capture.log"
+  let captureFilename =
+  	fromMaybe (dir </> "capture.log") $ listToMaybe $
+ 	mapMaybe (\f -> case f of { LogFile f -> Just f; _ -> Nothing}) $
+	flags
   captures <- readTimeLog captureFilename :: IO (TimeLog CaptureData)
   mapM_ print captures
