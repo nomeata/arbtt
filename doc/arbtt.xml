@@ -819,11 +819,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <itemizedlist>
       <listitem>
         <para>Implement option <option>--logfile</option> to
-        <command>arbtt-dump</command></para>.
+        <command>arbtt-dump</command>.</para>
       </listitem>
       <listitem>
 	<para>New command <command>arbtt-recover</command> to rescue data from
-	a proken data log file.</para>.
+	a proken data log file.</para>
       </listitem>
     </itemizedlist>
   </sect2>
