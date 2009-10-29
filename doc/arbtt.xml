@@ -615,7 +615,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <varlistentry>
         <term><option>-r</option> <replaceable>RATE</replaceable></term>
         <term><option>--rate</option> <replaceable>RATE</replaceable></term>
-        <listitem><simpara>set the sample rate in seconds (default: 60)</simpara></listitem>
+        <listitem><simpara>sets the sample rate in seconds (default: 60)</simpara></listitem>
         </varlistentry>
       </variablelist>
     </refsect1>
