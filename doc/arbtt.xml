@@ -815,7 +815,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   </para>
 
   <sect2>
-    <title>Version unreleaed</title>
+    <title>Version 0.4.2</title>
     <itemizedlist>
       <listitem>
         <para>Implement option <option>--logfile</option> to
@@ -824,6 +824,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <listitem>
 	<para>New command <command>arbtt-recover</command> to rescue data from
 	a proken data log file.</para>
+      </listitem>
+      <listitem>
+	<para>Actually include this documentation in the released tarball.</para>
       </listitem>
     </itemizedlist>
   </sect2>
