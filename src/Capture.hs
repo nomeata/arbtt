@@ -5,8 +5,9 @@ import Graphics.X11
 import Graphics.X11.Xlib.Extras
 import Graphics.X11.XScreenSaver (getXIdleTime)
 import Control.Monad
-import Data.Maybe
+import Control.Exception (bracket)
 import Control.Applicative
+import Data.Maybe
 import Data.Time.Clock
 import System.IO
 
@@ -35,7 +36,7 @@ captureData = do
 	return $ CaptureData winData it
 
 getWindowTitle :: Display -> Window -> IO String
-getWindowTitle dpy = fmap (fromMaybe "") . fetchName dpy
+getWindowTitle dpy =  myFetchName dpy
 
 getProgramName :: Display -> Window -> IO String
 getProgramName dpy = fmap resName . getClassHint dpy
@@ -48,3 +49,19 @@ followTreeUntil dpy cond = go
              | otherwise = do (r,p,_) <- queryTree dpy w
 	                      if p == 0 then return w
 			                else go p 
+
+-- | better than fetchName from X11, as it supports _NET_WM_NAME and unicode
+--
+-- Code taken from XMonad.Managehook.title
+myFetchName :: Display -> Window -> IO String
+myFetchName d w = do
+	let getProp =
+	    	(internAtom d "_NET_WM_NAME" False >>= getTextProperty d w)
+		`catch`
+		(\_ -> getTextProperty d w wM_NAME)
+
+	    extract prop = do l <- wcTextPropertyToTextList d prop
+			      return $ if null l then "" else head l
+
+	bracket getProp (xFree . tp_value) extract `catch` \_ -> return ""
+
