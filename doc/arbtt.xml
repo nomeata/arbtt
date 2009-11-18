@@ -815,6 +815,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   </para>
 
   <sect2>
+    <title>Version 0.4.3</title>
+    <itemizedlist>
+      <listitem>
+        <para>Use fetchName from xmonad instead of xFetchName, as it works with unicode characters in window titles.</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
     <title>Version 0.4.2</title>
     <itemizedlist>
       <listitem>
