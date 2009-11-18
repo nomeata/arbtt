@@ -2,8 +2,8 @@
 --------------------------------------------------------------------
 -- |
 -- Module    : Graphics.X11.XScreenSaver
--- Copyright : (c) Haskell.org, 2009
--- License   : BSD3
+-- Copyright : (c) Joachim Breitner
+-- License   : GPL2
 --
 -- Maintainer: Joachim Breitner <mail@joachim-breitner.de>
 -- Stability : provisional
