@@ -56,6 +56,9 @@ Some of my plans or ideas include:
    would allow the user to catch the idle times more exactly.
  * Rules based on day of time, to create tags for worktime, weekend, late
    at night. (Partially done)
+ * Storing the current timezone in the tags, for the prevoius entry to be
+   more to be more useful.
+ * Storing the hostname, in case a user has several. 
  * Statistics based on time, to visualize trends.
  * Possibly more data sources?
 
