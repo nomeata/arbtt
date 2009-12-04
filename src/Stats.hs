@@ -14,13 +14,13 @@ import Categorize
 
 
 data Report = GeneralInfos | TotalTime | Category String | EachCategory
-        deriving Eq
+        deriving (Show, Eq)
 
 data Filter = Exclude Activity | Only Activity | AlsoInactive | GeneralCond String
-        deriving Eq
+        deriving (Show, Eq)
 
 data ReportOption = MinPercentage Double
-        deriving Eq
+        deriving (Show, Eq)
 
 -- Data format semantically representing the result of a report, including the
 -- title
