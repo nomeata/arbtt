@@ -820,6 +820,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <listitem>
         <para>Bugfix: Correctly parse a tag name containing a colon when passed to <command>arbtt-stats</command> <option>--exclude</option>.</para>
       </listitem>
+      <listitem>
+        <para>Bugfix: Only warn once when the <token>_NET_CLIENT_LIST</token> X property is not set for the root window.</para>
+      </listitem>
     </itemizedlist>
   </sect2>
 
