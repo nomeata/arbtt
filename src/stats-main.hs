@@ -44,7 +44,7 @@ options =
 	      "show the version number"
 --     , Option ['g']     ["graphical"] (NoArg Graphical)    "render the reports as graphical charts"
      , Option "x"       ["exclude"]
-              (ReqArg (Filter . Exclude . Activity Nothing) "TAG")
+              (ReqArg (Filter . Exclude . read) "TAG")
 	      "ignore samples containing this tag"
      , Option "o"       ["only"]
               (ReqArg (Filter . Only . read) "TAG")
