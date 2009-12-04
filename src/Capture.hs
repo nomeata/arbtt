@@ -11,6 +11,17 @@ import Data.Maybe
 import Data.Time.Clock
 import System.IO
 
+setupChecks :: IO ()
+setupChecks = do
+	dpy <- openDisplay ""
+        xSetErrorHandler
+	let rwin = defaultRootWindow dpy
+	a <- internAtom dpy "_NET_CLIENT_LIST" False
+	p <- getWindowProperty32 dpy a rwin
+	when (isNothing p) $ do
+		hPutStrLn stderr "arbtt: ERROR: No _NET_CLIENT_LIST set for the root window"
+	closeDisplay dpy
+
 captureData :: IO CaptureData
 captureData = do
 	dpy <- openDisplay ""
@@ -22,8 +33,7 @@ captureData = do
 
 	wins <- case p of
 		Just wins -> return (map fromIntegral wins)
-		Nothing -> do hPutStrLn stderr "arbtt: ERROR: No _NET_CLIENT_LIST set for the root window"
-		              return []
+		Nothing   -> return []
 
 	(fsubwin,_) <- getInputFocus dpy
 	fwin <- followTreeUntil dpy (`elem` wins) fsubwin
