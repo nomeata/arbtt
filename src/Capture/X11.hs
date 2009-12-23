@@ -3,7 +3,6 @@ module Capture.X11 where
 import Data
 import Graphics.X11
 import Graphics.X11.Xlib.Extras
-import Graphics.X11.XScreenSaver (getXIdleTime)
 import Control.Monad
 import Control.Exception (bracket)
 import Control.Applicative
@@ -11,8 +10,11 @@ import Data.Maybe
 import Data.Time.Clock
 import System.IO
 
-setupChecks :: IO ()
-setupChecks = do
+import System.Locale.SetLocale
+import Graphics.X11.XScreenSaver (getXIdleTime)
+
+setupCapture :: IO ()
+setupCapture = do
 	dpy <- openDisplay ""
         xSetErrorHandler
 	let rwin = defaultRootWindow dpy

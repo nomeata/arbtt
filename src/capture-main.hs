@@ -78,5 +78,5 @@ main = do
     let captureFile = dir </> "capture.log"
     lockFile captureFile
     upgradeLogFile1 captureFile
-    setupChecks
+    setupCapture
     runLogger captureFile (sampleRate * 1000) captureData
