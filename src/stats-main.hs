@@ -18,6 +18,7 @@ import TimeLog
 import Data
 import Categorize
 import Stats
+import CommonStartup
 
 import Paths_arbtt (version)
 
@@ -74,6 +75,7 @@ options =
 
 
 main = do
+  commonStartup
   args <- getArgs
   flags <- case getOpt Permute options args of
           (o,[],[]) | Help `notElem` o  && Version `notElem` o -> return o
