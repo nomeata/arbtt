@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Main where
 
 import Control.Monad
@@ -5,8 +6,10 @@ import Control.Concurrent
 import System.Directory
 import System.FilePath
 import System.IO
-import System.Posix.IO
 import System.IO.Error
+#ifndef WIN32
+import System.Posix.IO
+#endif
 import System.Exit
 import System.Console.GetOpt
 import System.Environment
@@ -46,9 +49,14 @@ options =
      ]	     
 
 -- | This is very raw, someone ought to improve this
-lockFile filename = flip catch (\e -> hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for " ++ filename ++"!") >> exitFailure) $ do
-    fd <- openFd (filename  ++ ".lck") WriteOnly (Just 0o644) defaultFileFlags
-    setLock fd (WriteLock, AbsoluteSeek, 0, 0)
+lockFile filename = 
+#ifdef WIN32
+    return ()
+#else
+    flip catch (\e -> hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for " ++ filename ++"!") >> exitFailure) $ do
+        fd <- openFd (filename  ++ ".lck") WriteOnly (Just 0o644) defaultFileFlags
+        setLock fd (WriteLock, AbsoluteSeek, 0, 0)
+#endif       
 
 main = do
     commonStartup
