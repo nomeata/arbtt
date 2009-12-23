@@ -9,7 +9,6 @@ import System.IO
 import System.Posix.IO
 import System.IO.Error
 import System.Exit
-import System.Locale.SetLocale
 import System.Console.GetOpt
 import System.Environment
 import Data.Maybe
@@ -18,6 +17,7 @@ import Data.Version (showVersion)
 import Capture
 import TimeLog
 import UpgradeLog1
+import CommonStartup
 
 import Paths_arbtt (version)
 
@@ -52,7 +52,7 @@ lockFile filename = flip catch (\e -> hPutStrLn stderr ("arbtt [Error]: Could no
     setLock fd (WriteLock, AbsoluteSeek, 0, 0)
 
 main = do
-    setLocale LC_ALL (Just "") 
+    commonStartup
     unless compiledWithXScreenSaver $
     	hPutStrLn stderr "arbtt [Warning]: X11 was compiled without support for XScreenSaver"
     
