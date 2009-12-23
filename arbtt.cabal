@@ -29,17 +29,28 @@ executable arbtt-capture
     main-is:            capture-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, filepath, directory, mtl, time, unix,
-        X11 > 1.4.4, bytestring, binary
-    extra-libraries: Xss
+        base == 4.*, filepath, directory, mtl, time,
+        bytestring, binary
     other-modules:
         Data
         Capture
-        Capture.X11
         TimeLog
         UpgradeLog1
-        Graphics.X11.XScreenSaver
-        System.Locale.SetLocale
+
+    if os(windows) 
+        cpp-options:    -DWIN32
+        other-modules:
+            Capture.Win32
+        build-depends:
+             Win32
+    else
+        extra-libraries: Xss
+        other-modules:
+            Capture.X11
+            Graphics.X11.XScreenSaver
+            System.Locale.SetLocale
+        build-depends:
+            X11 > 1.4.4, unix
 
 executable arbtt-stats
     main-is:            stats-main.hs
@@ -51,7 +62,11 @@ executable arbtt-stats
         Categorize
         TimeLog
         Stats
-        System.Locale.SetLocale
+    if os(windows) 
+        cpp-options:    -DWIN32
+    else
+        other-modules:
+            System.Locale.SetLocale
 
 executable arbtt-dump
     main-is:            dump-main.hs
@@ -61,7 +76,11 @@ executable arbtt-dump
     other-modules:
         Data
         TimeLog
-        System.Locale.SetLocale
+    if os(windows) 
+        cpp-options:    -DWIN32
+    else
+        other-modules:
+            System.Locale.SetLocale
 
 executable arbtt-recover
     main-is:            recover-main.hs
@@ -71,7 +90,11 @@ executable arbtt-recover
     other-modules:
         Data
         TimeLog
-        System.Locale.SetLocale
+    if os(windows) 
+        cpp-options:    -DWIN32
+    else
+        other-modules:
+            System.Locale.SetLocale
 
 source-repository head
     type:     darcs
