@@ -35,6 +35,7 @@ executable arbtt-capture
     other-modules:
         Data
         Capture
+        Capture.X11
         TimeLog
         UpgradeLog1
         Graphics.X11.XScreenSaver
