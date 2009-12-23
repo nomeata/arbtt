@@ -11,10 +11,12 @@ import Data.Time.Clock
 import System.IO
 
 import System.Locale.SetLocale
-import Graphics.X11.XScreenSaver (getXIdleTime)
+import Graphics.X11.XScreenSaver (getXIdleTime, compiledWithXScreenSaver)
 
 setupCapture :: IO ()
 setupCapture = do
+        unless compiledWithXScreenSaver $
+		hPutStrLn stderr "arbtt [Warning]: X11 was compiled without support for XScreenSaver"
 	dpy <- openDisplay ""
         xSetErrorHandler
 	let rwin = defaultRootWindow dpy

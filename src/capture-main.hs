@@ -4,7 +4,6 @@ import Control.Monad
 import Control.Concurrent
 import System.Directory
 import System.FilePath
-import Graphics.X11.XScreenSaver (compiledWithXScreenSaver)
 import System.IO
 import System.Posix.IO
 import System.IO.Error
@@ -53,8 +52,6 @@ lockFile filename = flip catch (\e -> hPutStrLn stderr ("arbtt [Error]: Could no
 
 main = do
     commonStartup
-    unless compiledWithXScreenSaver $
-    	hPutStrLn stderr "arbtt [Warning]: X11 was compiled without support for XScreenSaver"
     
     args <- getArgs
     flags <- case getOpt Permute options args of
