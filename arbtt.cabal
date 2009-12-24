@@ -42,6 +42,8 @@ executable arbtt-capture
         cpp-options:    -DWIN32
         other-modules:
             Capture.Win32
+            Graphics.Win32.Window.Extra
+            System.Win32.Mutex
         build-depends:
              Win32
     else
