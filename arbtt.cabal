@@ -23,7 +23,8 @@ homepage:           http://www.joachim-breitner.de/projects#arbtt
 
 extra-source-files:
     categorize.cfg, arbtt-capture.desktop, README,
-    doc/arbtt.xml, doc/fptools.css, doc/Makefile
+    doc/arbtt.xml, doc/fptools.css, doc/Makefile,
+    setup.iss, modpath.iss
 
 executable arbtt-capture
     main-is:            capture-main.hs
