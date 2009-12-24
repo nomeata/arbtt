@@ -38,6 +38,7 @@ executable arbtt-capture
         UpgradeLog1
 
     if os(windows) 
+        extra-libraries: psapi
         cpp-options:    -DWIN32
         other-modules:
             Capture.Win32
