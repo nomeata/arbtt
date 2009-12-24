@@ -40,6 +40,7 @@ executable arbtt-capture
     if os(windows) 
         extra-libraries: psapi
         cpp-options:    -DWIN32
+        ghc-options:    -optl-mwindows
         other-modules:
             Capture.Win32
             Graphics.Win32.Window.Extra
