@@ -7,7 +7,9 @@ import System.Directory
 import System.FilePath
 import System.IO
 import System.IO.Error
-#ifndef WIN32
+#ifdef WIN32
+import System.Win32.Mutex
+#else
 import System.Posix.IO
 #endif
 import System.Exit
@@ -49,9 +51,12 @@ options =
      ]	     
 
 -- | This is very raw, someone ought to improve this
-lockFile filename = 
+lockFile filename = do
 #ifdef WIN32
-    return ()
+    success <- claimMutex filename
+    unless success $ do
+    	hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for " ++ filename ++"!")
+	exitFailure
 #else
     flip catch (\e -> hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for " ++ filename ++"!") >> exitFailure) $ do
         fd <- openFd (filename  ++ ".lck") WriteOnly (Just 0o644) defaultFileFlags
