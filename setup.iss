@@ -4,7 +4,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{1DB6EA4F-D387-432D-A739-283E0E916AF6}
 AppName=arbtt
-AppVerName=arbtt-0.4.4
+;AppVerName=arbtt-0.4.4
+#include "dist\setup-app-ver-name.iss"
 AppPublisher=Joachim Breitner
 AppPublisherURL=http://www.joachim-breitner.de/projects#arbtt
 AppSupportURL=http://www.joachim-breitner.de/projects#arbtt
