@@ -18,8 +18,7 @@ Compression=lzma
 SolidCompression=yes
 ; Is there a point in displaying the LICENSE file?
 ; LicenseFile=LICENSE
-; TODO: README is UTF-8
-InfoBeforeFile=README
+InfoBeforeFile=README.Win32
 ChangesEnvironment=yes
 
 [Tasks]
