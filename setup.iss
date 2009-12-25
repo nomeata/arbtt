@@ -34,10 +34,12 @@ Source: "dist\build\arbtt-capture\arbtt-capture.exe"; DestDir: "{app}\bin"
 Source: "dist\build\arbtt-recover\arbtt-recover.exe"; DestDir: "{app}\bin"
 Source: "C:\Programme\GnuWin32\bin\pcre3.dll"; DestDir: "{app}\bin"
 Source: "categorize.cfg"; DestDir: "{userappdata}\arbtt"; Flags: onlyifdoesntexist uninsneveruninstall
+Source: "doc\users_guide\*.*"; DestDir: "{app}\doc";
 
 [Icons]
 Name: "{group}\Edit categorize.cfg"; Filename: "wordpad.exe"; Parameters: """{userappdata}\arbtt\categorize.cfg"""; Flags: useapppaths
 Name: "{group}\{cm:UninstallProgram,arbtt}"; Filename: "{uninstallexe}"
+Name: "{group}\arbtt documentation"; Filename: "{app}\doc\index.html"
 Name: "{commonstartup}\arbtt-capture"; Filename: "{app}\bin\arbtt-capture.exe"; Comment: "Collects data for computer useage statistics"; Tasks: autorun
 
 [Run]
