@@ -8,6 +8,7 @@ import Text.Read (readPrec)
 import Data.Binary
 import Data.Binary.Put
 import Data.Binary.Get
+import Data.Binary.StringRef
 import Control.Applicative
 import Control.Monad
 
@@ -60,17 +61,18 @@ isCategory _   _                        = False
 
 -- Data.Binary instances
 
-instance Binary a => Binary (TimeLogEntry a) where
- put tle = do
+instance StringReferencingBinary a => StringReferencingBinary (TimeLogEntry a) where
+ ls_put strs tle = do
  	-- A version tag
  	putWord8 1
 	put (tlTime tle)
 	put (tlRate tle)
-	put (tlData tle)
- get = do
+	ls_put strs (tlData tle)
+ ls_get strs = do
  	v <- getWord8
-	when (v /= 1) $ error $ "Wrong TimeLogEntry version tag " ++ show v
-	TimeLogEntry <$> get <*> get <*> get
+	case v of
+	 1 -> TimeLogEntry <$> get <*> get <*> ls_get strs
+	 _ -> error $ "Unsupported TimeLogEntry version tag " ++ show v
 
 instance Binary UTCTime where
  put (UTCTime (ModifiedJulianDay d) t) = do
@@ -81,13 +83,34 @@ instance Binary UTCTime where
 	t <- get
 	return $ UTCTime (ModifiedJulianDay d) (fromRational t)
 
-instance Binary CaptureData where
- put cd = do
+instance ListOfStringable CaptureData where
+  listOfStrings = concatMap (\(b,t,p) -> [t,p]) . cWindows
+
+instance StringReferencingBinary CaptureData where
+-- Versions:
+-- 1 First version
+-- 2 Using ListOfStringable
+ ls_put strs cd = do
  	-- A version tag
- 	putWord8 1
-	put (cWindows cd)
-	put (cLastActivity cd)
- get = do
+ 	putWord8 2
+	ls_put strs (cWindows cd)
+	ls_put strs (cLastActivity cd)
+ ls_get strs = do
  	v <- getWord8
-	when (v /= 1) $ error $ "Wrong CaptureData version tag " ++ show v
-	CaptureData <$> get <*> get
+	case v of
+	 1 -> CaptureData <$> get <*> get
+	 2 -> CaptureData <$> ls_get strs <*> ls_get strs
+	 _ -> error $ "Unsupported CaptureData version tag " ++ show v
+
+  -- | 'getMany n' get 'n' elements in order, without blowing the stack.
+  --   From Data.Binary
+getMany :: Binary a => Int -> Get [a]
+getMany n = go [] n
+ where
+    go xs 0 = return $! reverse xs
+    go xs i = do x <- get
+                 -- we must seq x to avoid stack overflows due to laziness in
+                 -- (>>=)
+                 x `seq` go (x:xs) (i-1)
+{-# INLINE getMany #-}
+
