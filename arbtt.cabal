@@ -34,6 +34,7 @@ executable arbtt-capture
         bytestring, binary
     other-modules:
         Data
+        Data.Binary.StringRef
         Capture
         TimeLog
         UpgradeLog1
@@ -64,6 +65,7 @@ executable arbtt-stats
         base == 4.*, parsec == 2.*, containers, pcre-light
     other-modules:
         Data
+        Data.Binary.StringRef
         Categorize
         TimeLog
         Stats
@@ -80,6 +82,7 @@ executable arbtt-dump
         base == 4.*, parsec == 2.*, containers
     other-modules:
         Data
+        Data.Binary.StringRef
         TimeLog
     if os(windows) 
         cpp-options:    -DWIN32
@@ -94,6 +97,7 @@ executable arbtt-recover
         base == 4.*, parsec == 2.*, containers
     other-modules:
         Data
+        Data.Binary.StringRef
         TimeLog
     if os(windows) 
         cpp-options:    -DWIN32
