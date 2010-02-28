@@ -1,5 +1,5 @@
 name:               arbtt
-version:            0.4.5
+version:            0.4.5.1
 license:            GPL
 license-file:       LICENSE
 category:           Desktop
@@ -35,6 +35,7 @@ executable arbtt-capture
     other-modules:
         Data
         Data.Binary.StringRef
+        CommonStartup
         Capture
         TimeLog
         UpgradeLog1
@@ -66,6 +67,7 @@ executable arbtt-stats
     other-modules:
         Data
         Data.Binary.StringRef
+        CommonStartup
         Categorize
         TimeLog
         Stats
@@ -83,6 +85,7 @@ executable arbtt-dump
     other-modules:
         Data
         Data.Binary.StringRef
+        CommonStartup
         TimeLog
     if os(windows) 
         cpp-options:    -DWIN32
@@ -98,6 +101,7 @@ executable arbtt-recover
     other-modules:
         Data
         Data.Binary.StringRef
+        CommonStartup
         TimeLog
     if os(windows) 
         cpp-options:    -DWIN32
