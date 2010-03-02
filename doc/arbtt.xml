@@ -722,7 +722,10 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
     <refsect1><title>Description</title>
       <para>
       <command>arbtt-recover</command> tries to readsthe data samples recorded
-      by <xref linkend="arbtt-capture"/>, skipping over possible broken entries. A fixed log file is written to <file>~/.arbtt/capture.log.recovered</file>.
+      by <xref linkend="arbtt-capture"/>, skipping over possible broken entries. A fixed log file is written to <file>~/.arbtt/capture.log.recovered</file>. If the recovery was successful, you should stop <command>arbtt-capture</command> and move the file to <file>~/.arbtt/capture.log</file>.
+      </para>
+      <para>
+      As a sid effect, <command>arbtt-recover</command> applies the log compression method implemented in version 0.4.5 to the samples created by an earlier version. If you have a large logfile written by older versions, running <command>arbtt-recover</command> is recommended.
       </para>
     </refsect1>
 
@@ -813,6 +816,26 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   <para>
   The version history with changes relevant for the user are documented here.
   </para>
+
+  <sect2>
+    <title>Version 0.4.5.1</title>
+    <itemizedlist>
+      <listitem>
+        <para>Bugfix: Added missing modules to the cabal file.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
+    <title>Version 0.4.5</title>
+    <itemizedlist>
+      <listitem>
+        <para>Implement a custom compression method greatly reduce the file size of the log file. Run <command>arbtt-capture</command> to compress the previous samples as well.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
 
   <sect2>
     <title>Version 0.4.4</title>
