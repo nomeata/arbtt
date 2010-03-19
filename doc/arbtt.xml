@@ -308,7 +308,8 @@ $ runhaskell Setup.hs install</screen>
       <emphasis>category</emphasis>, it will only be assigned if no other tag of that
       category is present. This means that for each sample and each category,
       there can only be one tag of that category. Tags can contain references to
-      matches done of regular expressions in conditions.
+      matches done of regular expressions in conditions. Remark that characters
+      other than letters or dashes will be substituted to underscores.
     </para>
 
     <para>
