@@ -1,3 +1,4 @@
+{-# LANGUAGE Rank2Types #-}
 module Categorize where
 
 import Data
@@ -19,6 +20,7 @@ import Data.Char
 import Data.Time.Clock
 import Debug.Trace
 import Control.Arrow (second)
+import Text.Printf
 
 type Categorizer = TimeLog CaptureData -> TimeLog (Ctx, ActivityData)
 type Rule = Ctx -> ActivityData
@@ -35,7 +37,18 @@ data Ctx = Ctx
 	}
   deriving (Show)
 
-type Cond = Ctx -> Maybe [String]
+type Cond = CtxFun [String]
+
+type CtxFun a = Ctx -> Maybe a
+
+data CondPrim
+	= CondString (CtxFun String)
+	| CondRegex (CtxFun RE.Regex)
+	| CondInteger (CtxFun Integer)
+	| CondTime (CtxFun NominalDiffTime)
+	| CondCond (CtxFun [String])
+
+newtype Cmp = Cmp (forall a. Ord a => a -> a -> Bool)
 
 readCategorizer :: FilePath -> IO Categorizer
 readCategorizer filename = do
@@ -52,7 +65,7 @@ applyCond :: String -> TimeLog (Ctx, ActivityData) -> TimeLog (Ctx, ActivityData
 applyCond s = 
 	case parse (do {c <- parseCond; eof ; return c}) "commad line parameter" s of
 	  Left err -> error (show err)
-	  Right c  -> filter (isJust . c . fst . tlData)
+	  Right c    -> filter (isJust . c . fst . tlData)
 
 prepare :: UTCTime -> TimeLog CaptureData -> TimeLog Ctx
 prepare time tl = go' [] tl tl
@@ -125,43 +138,141 @@ parseRule = choice
 	]
 
 parseCond :: Parser Cond
-parseCond = buildExpressionParser [
+parseCond = do cp <- parseCondExpr
+	       case cp of
+		CondCond c -> return c
+		cp         -> unexpected $ printf "Expression of type %s" (cpType cp)
+
+parseCondExpr :: Parser CondPrim
+parseCondExpr  = buildExpressionParser [
 		[ Prefix (reservedOp lang "!" >> return checkNot) ],
+		[ Infix (reservedOp lang "=~" >> return checkRegex) AssocNone 
+		, Infix (checkCmp <$> parseCmp) AssocNone
+		],
+		[ Prefix (reserved lang "current window" >> return checkCurrentwindow)
+		, Prefix (reserved lang "any window" >> return checkAnyWindow)
+		],
 		[ Infix (reservedOp lang "&&" >> return checkAnd) AssocLeft ],
 		[ Infix (reservedOp lang "||" >> return checkOr) AssocLeft ]
 	    ] parseCondPrim
 
-checkAnd :: Cond -> Cond -> Cond	    
-checkAnd c1 c2 = do res1 <- c1
-                    res2 <- c2
-		    return $ res1 >> res2
+cpType :: CondPrim -> String
+cpType (CondString _) = "String"
+cpType (CondRegex _) = "Regex"
+cpType (CondInteger _) = "Integer"
+cpType (CondTime _) = "Time"
+cpType (CondCond _) = "Condition"
 
+checkRegex :: CondPrim -> CondPrim -> CondPrim
+checkRegex (CondString getStr) (CondRegex getRegex) = CondCond $ \ctx -> do
+	str <- getStr ctx
+	regex <- getRegex ctx
+	tail <$> RE.match regex str []
+checkRegex cp1 cp2 = error $
+	printf "Can not apply =~ to an expression of type %s and type %s"
+	       (cpType cp1) (cpType cp2)
 
-checkOr :: Cond -> Cond -> Cond	    
-checkOr c1 c2 = do res1 <- c1
-                   res2 <- c2
-		   return $ res1 `mplus` res2
+checkAnd :: CondPrim-> CondPrim -> CondPrim
+checkAnd (CondCond c1) (CondCond c2) = CondCond $ do
+	res1 <- c1
+        res2 <- c2
+	return $ res1 >> res2
+checkAnd cp1 cp2 = error $
+	printf "Can not apply && to an expression of type %s and type %s"
+	       (cpType cp1) (cpType cp2)
 
-checkNot :: Cond -> Cond
-checkNot = liftM (maybe (Just []) (const Nothing))
+checkOr :: CondPrim-> CondPrim -> CondPrim
+checkOr (CondCond c1) (CondCond c2) = CondCond $ do
+	res1 <- c1
+        res2 <- c2
+	return $ res1 `mplus` res2
+checkOr cp1 cp2 = error $
+	printf "Can not apply && to an expression of type %s and type %s"
+	       (cpType cp1) (cpType cp2)
 
-parseCmp :: Ord a => Parser (a -> a -> Bool)
+checkNot :: CondPrim -> CondPrim
+checkNot (CondCond getCnd) = CondCond $ do
+	liftM (maybe (Just []) (const Nothing)) getCnd
+checkNot cp = error $
+	printf "Can not apply ! to an expression of type %s"
+	       (cpType cp)
+
+checkCmp :: Cmp -> CondPrim -> CondPrim -> CondPrim
+checkCmp (Cmp (?)) (CondInteger getN1) (CondInteger getN2) = CondCond $ \ctx -> do
+	n1 <- getN1 ctx
+	n2 <- getN2 ctx
+	guard (n1 ? n2)
+	return []
+checkCmp (Cmp (?)) (CondTime getT1) (CondTime getT2) = CondCond $ \ctx -> do
+	t1 <- getT1 ctx
+	t2 <- getT2 ctx
+	guard (t1 ? t2)
+	return []
+checkCmp (Cmp (?)) (CondString getS1) (CondString getS2) = CondCond $ \ctx -> do
+	s1 <- getS1 ctx
+	s2 <- getS2 ctx
+	guard (s1 ? s2)
+	return []
+checkCmp _ cp1 cp2 = error $
+	printf "Can not compare expressions of type %s and type %s"
+	       (cpType cp1) (cpType cp2)
+
+checkCurrentwindow :: CondPrim -> CondPrim
+checkCurrentwindow (CondCond cond) = CondCond $ \ctx -> 
+	cond (ctx { cWindowInScope = findActive (cWindows (tlData (cNow ctx))) })
+checkCurrentwindow cp = error $
+	printf "Can not apply current window to an expression of type %s"
+	       (cpType cp)
+
+checkAnyWindow :: CondPrim -> CondPrim
+checkAnyWindow (CondCond cond) = CondCond $ \ctx ->
+	msum $ map (\w -> cond (ctx { cWindowInScope = Just w }))
+                                     (cWindows (tlData (cNow ctx)))
+checkAnyWindow cp = error $
+	printf "Can not apply current window to an expression of type %s"
+	       (cpType cp)
+
+parseCmp :: Parser Cmp
 parseCmp = choice $ map (\(s,o) -> reservedOp lang s >> return o)
-		     	[(">=",(>=)),
-			 (">", (>)),
-			 ("=", (==)),
-			 ("==",(==)),
-			 ("<",(<)),
-			 ("<=",(<=))]
+		     	[(">=",Cmp (>=)),
+			 (">", Cmp (>)),
+			 ("==",Cmp (==)),
+			 ("=", Cmp (==)),
+			 ("<", Cmp (<)),
+			 ("<=",Cmp (<=))]
 
-
-parseCondPrim :: Parser Cond
+parseCondPrim :: Parser CondPrim
 parseCondPrim = choice
-	[    parens lang parseCond
-	, do char '$'
-	     varname <- show `liftM` natural lang <|> identifier lang
-	     choice
-	     	[ do guard $ varname `elem` ["title","program"]
+	[ parens lang parseCondExpr
+	, char '$' >> choice 
+	     [ do backref <- natural lang
+	          return $ CondString (getBackref backref)
+	     , do varname <- identifier lang 
+	          choice 
+	     	      [ do guard $ varname == "title"
+		           return $ CondString (getVar "title")
+		      , do guard $ varname == "program"
+		           return $ CondString (getVar "program")
+	   	      , do guard $ varname == "active"
+		           return $ CondCond checkActive
+	   	      , do guard $ varname == "idle"
+		           return $ CondInteger (getNumVar "idle")
+	   	      , do guard $ varname == "time"
+		           return $ CondTime (getTimeVar "time")
+	   	      , do guard $ varname == "sampleage"
+		           return $ CondTime (getTimeVar "sampleage")
+		     ]
+	      ] <?> "variable"
+	, do regex <- parseRegex <?> "regular expression"
+	     return $ CondRegex (const (Just regex))
+	, do str <- stringLiteral lang <?> "string"
+	     return $ CondString (const (Just str))
+	, try $ do time <- parseTime <?> "time" -- backtrack here, it might have been a number
+	           return $ CondTime (const (Just time))
+	, do num <- natural lang <?> "number"
+             return $ CondInteger (const (Just num))
+	]
+{-
 		     choice
 		     	[ do reservedOp lang "=~"
 		             regex <- parseRegex
@@ -191,9 +302,10 @@ parseCondPrim = choice
 	     cond <- parseCond
 	     return $ checkAnyWindow cond
 	]
+-}
 
-parseRegex :: Parser String
-parseRegex = lexeme lang $ choice
+parseRegex :: Parser RE.Regex
+parseRegex = fmap (flip RE.compile []) $ lexeme lang $ choice
 	[ between (char '/') (char '/') (many1 (noneOf "/"))
 	, do char 'm'
 	     c <- anyChar
@@ -233,8 +345,12 @@ parseSetTag = lexeme lang $ do
 parseTagPart :: Parser (Ctx -> Maybe String)
 parseTagPart = do parts <- many1 (choice 
 			[ do char '$'
-			     varname <- many1 (letter <|> oneOf ".") <|> many1 digit
-			     return $ getVar varname
+			     choice 
+			       [ do num <- natural lang
+			  	    return $ getBackref num
+			       , do varname <- many1 (letter <|> oneOf ".") 
+			            return $ getVar varname
+			       ] <?> "variable"
 			, do s <- many1 (letter <|> oneOf "-_")
 			     return $ const (Just s)
 			])
@@ -257,10 +373,11 @@ matchFirst rules = takeFirst <$> sequence rules
         takeFirst ([]:xs) = takeFirst xs
 	takeFirst (x:xs) = x
 
-getVar :: String -> Ctx -> Maybe String
-getVar v ctx | all isNumber  v = 
-		let n = read v in
-		listToMaybe (drop (n-1) (cSubsts ctx))
+
+getBackref :: Integer -> CtxFun String
+getBackref n ctx = listToMaybe (drop (fromIntegral n-1) (cSubsts ctx))
+
+getVar :: String -> CtxFun String
 getVar v ctx | "current" `isPrefixOf` v = do
 		let var = drop (length "current.") v
 		win <- findActive $ cWindows (tlData (cNow ctx))
@@ -271,11 +388,15 @@ getVar "title"   ctx = do
 getVar "program" ctx = do
 		(_,_,p) <- cWindowInScope ctx
                 return p
+getVar v ctx = error $ "Unknown variable " ++ v
 
-checkRegex :: String -> RE.Regex -> Cond
-checkRegex varname regex ctx = do s <- getVar varname ctx
-		                  matches <- RE.match regex s []
-				  return (tail matches)
+getNumVar :: String -> CtxFun Integer
+getNumVar "idle" ctx = Just $ cLastActivity (tlData (cNow ctx)) `div` 1000
+
+getTimeVar :: String -> CtxFun NominalDiffTime
+getTimeVar "time" ctx = Just $ tlTime (cNow ctx) `diffUTCTime` (tlTime (cNow ctx)) { utctDayTime = fromIntegral 0}
+getTimeVar "sampleage" ctx = Just $ cCurrentTime ctx `diffUTCTime` tlTime (cNow ctx)
+
 
 checkEq :: String -> String -> Cond
 checkEq varname str ctx = do s <- getVar varname ctx
@@ -284,28 +405,11 @@ checkEq varname str ctx = do s <- getVar varname ctx
 findActive :: [(Bool, t, t1)] -> Maybe (Bool, t, t1)
 findActive = find (\(a,_,_) -> a)				  
 
-checkCurrentwindow :: Cond -> Cond
-checkCurrentwindow cond ctx = cond (ctx { cWindowInScope = findActive (cWindows (tlData (cNow ctx))) })
-
-checkAnyWindow :: Cond -> Cond
-checkAnyWindow cond ctx = msum $ map (\w -> cond (ctx { cWindowInScope = Just w }))
-                                     (cWindows (tlData (cNow ctx)))
 
 checkActive :: Cond
 checkActive ctx = do (a,_,_) <- cWindowInScope ctx
                      guard a
 		     return []
-
-checkNumCmp ::  (Integer -> Integer -> Bool) -> String -> Integer -> Cond
-checkNumCmp (<?>) "idle" num ctx = [] `justIf` (cLastActivity (tlData (cNow ctx)) <?> (num*1000))
-
-checkTimeCmp ::  (NominalDiffTime -> NominalDiffTime -> Bool) -> String -> NominalDiffTime -> Cond
-checkTimeCmp (<?>) "time" num ctx =
-	let time = tlTime (cNow ctx) `diffUTCTime` (tlTime (cNow ctx)) { utctDayTime = fromIntegral 0}
-	in [] `justIf` (time <?> num)
-checkTimeCmp (<?>) "sampleage" num ctx =
-	let age = cCurrentTime ctx `diffUTCTime` tlTime (cNow ctx)
-	in [] `justIf` (age <?> num)
 
 matchNone :: Rule
 matchNone = const []
