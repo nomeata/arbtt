@@ -342,19 +342,22 @@ parseSetTag = lexeme lang $ do
                                             return $ Activity Nothing tag
                         ]
 
+replaceForbidden :: Maybe String -> Maybe String
+replaceForbidden = liftM $ map go
+  where
+    go c | isLetter c    = c
+         | c `elem` "-_" = c
+         | otherwise     = '_'
+
 parseTagPart :: Parser (Ctx -> Maybe String)
 parseTagPart = do parts <- many1 (choice 
-                        [ do char '$'
-                             choice 
-                               [ do num <- natural lang
-                                    return $ getBackref num
-                               , do varname <- many1 (letter <|> oneOf ".") 
-                                    return $ getVar varname
-                               ] <?> "variable"
-                        , do s <- many1 (letter <|> oneOf "-_")
-                             return $ const (Just s)
-                        ])
-                  return $ (fmap concat . sequence) <$> sequence parts
+			[ do char '$'
+			     varname <- many1 (letter <|> oneOf ".") <|> many1 digit
+			     return $ getVar varname
+			, do s <- many1 (letter <|> oneOf "-_")
+			     return $ const (Just s)
+			])
+		  return $ (fmap concat . sequence) <$> sequence parts
 
 ifThenElse :: Cond -> Rule -> Rule -> Rule
 ifThenElse cond r1 r2 = do res <- cond
