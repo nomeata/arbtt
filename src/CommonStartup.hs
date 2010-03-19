@@ -9,6 +9,6 @@ import System.Locale.SetLocale
 commonStartup :: IO ()
 commonStartup = do
 #ifndef WIN32
-	setLocale LC_ALL (Just "") 
+        setLocale LC_ALL (Just "") 
 #endif
-	return ()
+        return ()

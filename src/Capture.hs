@@ -2,11 +2,11 @@
 
 module Capture (
 #ifdef WIN32
-	module Capture.Win32
+        module Capture.Win32
 #else
-	module Capture.X11
+        module Capture.X11
 #endif
-	) where
+        ) where
 
 #ifdef WIN32
 import Capture.Win32
