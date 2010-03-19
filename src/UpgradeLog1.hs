@@ -16,19 +16,19 @@ import qualified Data as D
 type TimeLog a = [TimeLogEntry a]
 
 data TimeLogEntry a = TimeLogEntry
-	{ tlTime :: UTCTime
-	, tlRate :: Integer -- ^ in milli-seconds
-	, tlData :: a }
+        { tlTime :: UTCTime
+        , tlRate :: Integer -- ^ in milli-seconds
+        , tlData :: a }
   deriving (Show, Read)
 
 instance Functor TimeLogEntry where
-	fmap f tl = tl { tlData = f (tlData tl) }
+        fmap f tl = tl { tlData = f (tlData tl) }
 
 data CaptureData = CaptureData
-	{ cWindows :: [ (Bool, String, String) ]
-		-- ^ Active window, window title, programm name
-	, cLastActivity :: Integer -- ^ in milli-seconds
-	}
+        { cWindows :: [ (Bool, String, String) ]
+                -- ^ Active window, window title, programm name
+        , cLastActivity :: Integer -- ^ in milli-seconds
+        }
   deriving (Show, Read)
 
 readTimeLog :: Read a => FilePath -> IO (TimeLog a)
@@ -39,7 +39,7 @@ magicStart = BS.pack "\"TimeLogEntry"
 upgradeLogFile1 captureFile = do
         ex <- doesFileExist captureFile
         when ex $ do
-                h <- openFile captureFile ReadMode	
+                h <- openFile captureFile ReadMode      
                 start <- BS.hGet h (BS.length magicStart)
                 hClose h
                 when (start == magicStart) $ do

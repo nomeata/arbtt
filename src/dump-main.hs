@@ -26,13 +26,13 @@ options :: [OptDescr Flag]
 options =
      [ Option "h?"     ["help"]
               (NoArg Help)
-	      "show this help"
+              "show this help"
      , Option "V"      ["version"]
               (NoArg Version)
-	      "show the version number"
+              "show the version number"
      , Option "f"      ["logfile"]
-     	       (ReqArg LogFile "FILE")
-	       "use this file instead of ~/.arbtt/capture.log"
+               (ReqArg LogFile "FILE")
+               "use this file instead of ~/.arbtt/capture.log"
      ]
 
 
@@ -54,8 +54,8 @@ main = do
   dir <- getAppUserDataDirectory "arbtt"
 
   let captureFilename =
-  	fromMaybe (dir </> "capture.log") $ listToMaybe $
- 	mapMaybe (\f -> case f of { LogFile f -> Just f; _ -> Nothing}) $
-	flags
+        fromMaybe (dir </> "capture.log") $ listToMaybe $
+        mapMaybe (\f -> case f of { LogFile f -> Just f; _ -> Nothing}) $
+        flags
   captures <- readTimeLog captureFilename :: IO (TimeLog CaptureData)
   mapM_ print captures

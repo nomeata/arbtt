@@ -26,16 +26,16 @@ options :: [OptDescr Flag]
 options =
      [ Option "h?"     ["help"]
               (NoArg Help)
-	      "show this help"
+              "show this help"
      , Option "V"      ["version"]
               (NoArg Version)
-	      "show the version number"
+              "show the version number"
      , Option "i"      ["infile"]
-     	       (ReqArg InFile "FILE")
-	       "read from this file instead of ~/.arbtt/capture.log"
+               (ReqArg InFile "FILE")
+               "read from this file instead of ~/.arbtt/capture.log"
      , Option "o"      ["outfile"]
-     	       (ReqArg OutFile "FILE")
-	       "write to this file instead of ~/.arbtt/capture.log.recovered"
+               (ReqArg OutFile "FILE")
+               "write to this file instead of ~/.arbtt/capture.log.recovered"
      ]
 
 
@@ -57,13 +57,13 @@ main = do
   dir <- getAppUserDataDirectory "arbtt"
 
   let captureFilename =
-  	fromMaybe (dir </> "capture.log") $ listToMaybe $
- 	mapMaybe (\f -> case f of { InFile f -> Just f; _ -> Nothing}) $
-	flags
+        fromMaybe (dir </> "capture.log") $ listToMaybe $
+        mapMaybe (\f -> case f of { InFile f -> Just f; _ -> Nothing}) $
+        flags
   let saveFilename =
-  	fromMaybe (dir </> "capture.log.recovered") $ listToMaybe $
- 	mapMaybe (\f -> case f of { OutFile f -> Just f; _ -> Nothing}) $
-	flags
+        fromMaybe (dir </> "capture.log.recovered") $ listToMaybe $
+        mapMaybe (\f -> case f of { OutFile f -> Just f; _ -> Nothing}) $
+        flags
 
   captures <- recoverTimeLog captureFilename :: IO (TimeLog CaptureData)
   writeTimeLog saveFilename captures

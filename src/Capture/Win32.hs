@@ -12,17 +12,17 @@ import Graphics.Win32.Window.Extra
 
 setupCapture :: IO ()
 setupCapture = do
-	return ()
+        return ()
 
 captureData :: IO CaptureData
 captureData = do
-	titles <- fetchWindowTitles
-	foreground <- getForegroundWindow
+        titles <- fetchWindowTitles
+        foreground <- getForegroundWindow
 
-	let winData = map (
-		\(h,t,p) -> (h == foreground, t, p)
-		) titles
+        let winData = map (
+                \(h,t,p) -> (h == foreground, t, p)
+                ) titles
 
-	it <- fromIntegral `fmap` getIdleTime
+        it <- fromIntegral `fmap` getIdleTime
 
-	return $ CaptureData winData it
+        return $ CaptureData winData it

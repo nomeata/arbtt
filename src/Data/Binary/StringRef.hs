@@ -1,11 +1,11 @@
 {-# LANGUAGE FlexibleInstances, UndecidableInstances, TypeSynonymInstances, OverlappingInstances#-}
 
 module Data.Binary.StringRef 
-	( ListOfStringable(..)
-	, StringReferencingBinary(..)
-	, ls_encode
-	, ls_decode
-	) where
+        ( ListOfStringable(..)
+        , StringReferencingBinary(..)
+        , ls_encode
+        , ls_decode
+        ) where
 
 import Data.Binary
 import Data.Binary.Put
@@ -60,20 +60,20 @@ ls_getMany strs n = go [] n
 {-# INLINE ls_getMany #-}
 
 instance StringReferencingBinary String where
-	ls_put strs s = case elemIndex s strs of
-		Just i | 0 <= i && i  < 255 - 2 ->
-			put (fromIntegral (succ i) :: Word8)
-		_ ->    put (0 :: Word8) >> put s
-	ls_get strs = do
-		tag <- get
-		case tag :: Word8 of
-		  0 -> get
-		  i -> return $! strs !! fromIntegral (pred i)
+        ls_put strs s = case elemIndex s strs of
+                Just i | 0 <= i && i  < 255 - 2 ->
+                        put (fromIntegral (succ i) :: Word8)
+                _ ->    put (0 :: Word8) >> put s
+        ls_get strs = do
+                tag <- get
+                case tag :: Word8 of
+                  0 -> get
+                  i -> return $! strs !! fromIntegral (pred i)
 
 {-
 instance Binary a => StringReferencingBinary a where
-	ls_put _ = put
-	ls_get _ = get
+        ls_put _ = put
+        ls_get _ = get
 -}
 
 instance StringReferencingBinary Char where { ls_put _ = put; ls_get _ = get }

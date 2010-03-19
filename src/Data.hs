@@ -15,27 +15,27 @@ import Control.Monad
 type TimeLog a = [TimeLogEntry a]
 
 data TimeLogEntry a = TimeLogEntry
-	{ tlTime :: UTCTime
-	, tlRate :: Integer -- ^ in milli-seconds
-	, tlData :: a }
+        { tlTime :: UTCTime
+        , tlRate :: Integer -- ^ in milli-seconds
+        , tlData :: a }
   deriving (Show)
 
 instance Functor TimeLogEntry where
-	fmap f tl = tl { tlData = f (tlData tl) }
-	
+        fmap f tl = tl { tlData = f (tlData tl) }
+        
 data CaptureData = CaptureData
-	{ cWindows :: [ (Bool, String, String) ]
-		-- ^ Active window, window title, programm name
-	, cLastActivity :: Integer -- ^ in milli-seconds
-	}
+        { cWindows :: [ (Bool, String, String) ]
+                -- ^ Active window, window title, programm name
+        , cLastActivity :: Integer -- ^ in milli-seconds
+        }
   deriving (Show)
 
 type ActivityData = [Activity]
 
 data Activity = Activity 
-	{ activityCategory :: Maybe Category
-	, activityName :: String
-	}
+        { activityCategory :: Maybe Category
+        , activityName :: String
+        }
   deriving (Ord, Eq)
 
 -- | An activity with special meaning: ignored by default (i.e. for idle times)
@@ -46,11 +46,11 @@ instance Show Activity where
 
 instance Read Activity where
  readPrec = readP_to_Prec $ \_ ->
-		   (do cat <- munch1 (/= ':')
-		       char ':'
-		       tag <- many1 ReadP.get
-		       return $ Activity (Just cat) tag)
-		   <++ (Activity Nothing `fmap` many1 ReadP.get)
+                   (do cat <- munch1 (/= ':')
+                       char ':'
+                       tag <- many1 ReadP.get
+                       return $ Activity (Just cat) tag)
+                   <++ (Activity Nothing `fmap` many1 ReadP.get)
 
 type Category = String
 
@@ -63,25 +63,25 @@ isCategory _   _                        = False
 
 instance StringReferencingBinary a => StringReferencingBinary (TimeLogEntry a) where
  ls_put strs tle = do
- 	-- A version tag
- 	putWord8 1
-	put (tlTime tle)
-	put (tlRate tle)
-	ls_put strs (tlData tle)
+        -- A version tag
+        putWord8 1
+        put (tlTime tle)
+        put (tlRate tle)
+        ls_put strs (tlData tle)
  ls_get strs = do
- 	v <- getWord8
-	case v of
-	 1 -> TimeLogEntry <$> get <*> get <*> ls_get strs
-	 _ -> error $ "Unsupported TimeLogEntry version tag " ++ show v
+        v <- getWord8
+        case v of
+         1 -> TimeLogEntry <$> get <*> get <*> ls_get strs
+         _ -> error $ "Unsupported TimeLogEntry version tag " ++ show v
 
 instance Binary UTCTime where
  put (UTCTime (ModifiedJulianDay d) t) = do
- 	put d
-	put (toRational t)
+        put d
+        put (toRational t)
  get = do
- 	d <- get
-	t <- get
-	return $ UTCTime (ModifiedJulianDay d) (fromRational t)
+        d <- get
+        t <- get
+        return $ UTCTime (ModifiedJulianDay d) (fromRational t)
 
 instance ListOfStringable CaptureData where
   listOfStrings = concatMap (\(b,t,p) -> [t,p]) . cWindows
@@ -91,16 +91,16 @@ instance StringReferencingBinary CaptureData where
 -- 1 First version
 -- 2 Using ListOfStringable
  ls_put strs cd = do
- 	-- A version tag
- 	putWord8 2
-	ls_put strs (cWindows cd)
-	ls_put strs (cLastActivity cd)
+        -- A version tag
+        putWord8 2
+        ls_put strs (cWindows cd)
+        ls_put strs (cLastActivity cd)
  ls_get strs = do
- 	v <- getWord8
-	case v of
-	 1 -> CaptureData <$> get <*> get
-	 2 -> CaptureData <$> ls_get strs <*> ls_get strs
-	 _ -> error $ "Unsupported CaptureData version tag " ++ show v
+        v <- getWord8
+        case v of
+         1 -> CaptureData <$> get <*> get
+         2 -> CaptureData <$> ls_get strs <*> ls_get strs
+         _ -> error $ "Unsupported CaptureData version tag " ++ show v
 
   -- | 'getMany n' get 'n' elements in order, without blowing the stack.
   --   From Data.Binary
