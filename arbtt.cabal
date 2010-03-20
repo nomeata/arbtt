@@ -94,6 +94,22 @@ executable arbtt-dump
         other-modules:
             System.Locale.SetLocale
 
+executable arbtt-import
+    main-is:            import-main.hs
+    hs-source-dirs:     src
+    build-depends:
+        base == 4.*, parsec == 2.*, containers
+    other-modules:
+        Data
+        Data.Binary.StringRef
+        CommonStartup
+        TimeLog
+    if os(windows) 
+        cpp-options:    -DWIN32
+    else
+        other-modules:
+            System.Locale.SetLocale
+
 executable arbtt-recover
     main-is:            recover-main.hs
     hs-source-dirs:     src
