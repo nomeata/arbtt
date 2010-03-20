@@ -63,7 +63,7 @@ executable arbtt-stats
     main-is:            stats-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, parsec == 2.*, containers, pcre-light
+        base == 4.*, parsec == 2.*, containers, pcre-light, old-locale
     other-modules:
         Data
         Data.Binary.StringRef
