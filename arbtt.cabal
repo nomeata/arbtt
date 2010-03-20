@@ -71,6 +71,7 @@ executable arbtt-stats
         Categorize
         TimeLog
         Stats
+        Text.ParserCombinators.Parsec.ExprFail
     if os(windows) 
         cpp-options:    -DWIN32
     else
