@@ -1,6 +1,6 @@
 --------------------------------------------------------------------
 -- |
--- Module   : Text.Regex.PCRE.Light.Char8
+-- Module   : Text.Regex.PCRE.Light.String
 -- Copyright: Copyright (c) 2007-2008, Don Stewart
 -- License  : BSD3
 --
@@ -14,7 +14,7 @@
 -- (PCRE) via 8-bit latin1 Strings.
 --
 
-module Text.Regex.PCRE.Light.Char8 (
+module Text.Regex.PCRE.Light.String (
 
         -- * The abstract PCRE Regex type
           Regex
