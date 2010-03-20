@@ -176,7 +176,7 @@ checkRegex (CondString getStr) (CondRegex getRegex) = Right $ CondCond $ \ctx ->
         regex <- getRegex ctx
         tail <$> RE.match regex str []
 checkRegex cp1 cp2 = Left $
-        printf "Can not apply =~ to an expression of type %s and type %s"
+        printf "Cannot apply =~ to an expression of type %s and type %s"
                (cpType cp1) (cpType cp2)
 
 checkAnd :: CondPrim-> CondPrim -> Erring CondPrim
@@ -185,7 +185,7 @@ checkAnd (CondCond c1) (CondCond c2) = Right $ CondCond $ do
         res2 <- c2
         return $ res1 >> res2
 checkAnd cp1 cp2 = Left $
-        printf "Can not apply && to an expression of type %s and type %s"
+        printf "Cannot apply && to an expression of type %s and type %s"
                (cpType cp1) (cpType cp2)
 
 checkOr :: CondPrim-> CondPrim -> Erring CondPrim
@@ -194,14 +194,14 @@ checkOr (CondCond c1) (CondCond c2) = Right $ CondCond $ do
         res2 <- c2
         return $ res1 `mplus` res2
 checkOr cp1 cp2 = Left $
-        printf "Can not apply && to an expression of type %s and type %s"
+        printf "Cannot apply && to an expression of type %s and type %s"
                (cpType cp1) (cpType cp2)
 
 checkNot :: CondPrim -> Erring CondPrim
 checkNot (CondCond getCnd) = Right $ CondCond $ do
         liftM (maybe (Just []) (const Nothing)) getCnd
 checkNot cp = Left $
-        printf "Can not apply ! to an expression of type %s"
+        printf "Cannot apply ! to an expression of type %s"
                (cpType cp)
 
 checkCmp :: Cmp -> CondPrim -> CondPrim -> Erring CondPrim
@@ -221,14 +221,14 @@ checkCmp (Cmp (?)) (CondString getS1) (CondString getS2) = Right $ CondCond $ \c
         guard (s1 ? s2)
         return []
 checkCmp _ cp1 cp2 = Left $
-        printf "Can not compare expressions of type %s and type %s"
+        printf "Cannot compare expressions of type %s and type %s"
                (cpType cp1) (cpType cp2)
 
 checkCurrentwindow :: CondPrim -> Erring CondPrim
 checkCurrentwindow (CondCond cond) = Right $ CondCond $ \ctx -> 
         cond (ctx { cWindowInScope = findActive (cWindows (tlData (cNow ctx))) })
 checkCurrentwindow cp = Left $
-        printf "Can not apply current window to an expression of type %s"
+        printf "Cannot apply current window to an expression of type %s"
                (cpType cp)
 
 checkAnyWindow :: CondPrim -> Erring CondPrim
@@ -236,7 +236,7 @@ checkAnyWindow (CondCond cond) = Right $ CondCond $ \ctx ->
         msum $ map (\w -> cond (ctx { cWindowInScope = Just w }))
                                      (cWindows (tlData (cNow ctx)))
 checkAnyWindow cp = Left $
-        printf "Can not apply current window to an expression of type %s"
+        printf "Cannot apply current window to an expression of type %s"
                (cpType cp)
 
 -- TODO: extend Ctx with local TimeZone and evaluate day of week, month,
@@ -248,23 +248,35 @@ snd3 (_,b,_) = b
 trd3 (_,_,c) = c
 
 -- Day of week is an integer in [1..7].
-checkDayOfWeek :: CondPrim -> CondPrim
-checkDayOfWeek (CondDate df) = CondInteger $ \ctx ->
+checkDayOfWeek :: CondPrim -> Erring CondPrim
+checkDayOfWeek (CondDate df) = Right $ CondInteger $ \ctx ->
   (toInteger . trd3 . toWeekDate. utctDay) `liftM` df ctx
+checkDayOfWeek cp = Left $ printf
+  "Cannot apply day of week to an expression of type %s, only to $date."
+  (cpType cp)
 
 -- Day of month is an integer in [1..31].
-checkDayOfMonth :: CondPrim -> CondPrim
-checkDayOfMonth (CondDate df) = CondInteger $ \ctx ->
+checkDayOfMonth :: CondPrim -> Erring CondPrim
+checkDayOfMonth (CondDate df) = Right $ CondInteger $ \ctx ->
   (toInteger . trd3 . toGregorian . utctDay) `liftM` df ctx
+checkDayOfMonth cp = Left $ printf
+  "Cannot apply day of month to an expression of type %s, only to $date."
+  (cpType cp)
 
 -- Month is an integer in [1..12].
-checkMonth :: CondPrim -> CondPrim
-checkMonth (CondDate df) = CondInteger $ \ctx ->
+checkMonth :: CondPrim -> Erring CondPrim
+checkMonth (CondDate df) = Right $ CondInteger $ \ctx ->
   (toInteger . snd3 . toGregorian . utctDay) `liftM` df ctx
+checkMonth cp = Left $ printf
+  "Cannot apply month to an expression of type %s, only to $date."
+  (cpType cp)
 
-checkYear :: CondPrim -> CondPrim
-checkYear (CondDate df) = CondInteger $ \ctx ->
+checkYear :: CondPrim -> Erring CondPrim
+checkYear (CondDate df) = Right $ CondInteger $ \ctx ->
   (fst3 . toGregorian . utctDay) `liftM` df ctx
+checkYear cp = Left $ printf
+  "Cannot apply year to an expression of type %s, only to $date."
+  (cpType cp)
 
 parseCmp :: Parser Cmp
 parseCmp = choice $ map (\(s,o) -> reservedOp lang s >> return o)
