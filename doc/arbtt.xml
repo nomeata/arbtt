@@ -701,6 +701,70 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
     </refsect1>
   </refentry>
 
+  <refentry>
+    <refnamediv>
+      <refname>arbtt-import</refname>
+      <refpurpose>imports dumped arbtt data samples</refpurpose>
+    </refnamediv>
+  
+    <refsynopsisdiv>
+      <cmdsynopsis>
+        <command>arbtt-import</command>
+        <arg rep="repeat">OPTION</arg>
+      </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1><title>Description</title>
+      <para>
+      <command>arbtt-import</command> expects the output of
+      <command>arbtt-dump</command> on the standard input and saves them as the
+      logfile or the specified file.
+      </para>
+      <para>
+      This program would completely override the existing file, therefore it
+      will refuse to work if the log file already exists. If you want to
+      overwrite a file, please delete it before running
+      <command>arbtt-import</command>.
+      </para>
+    </refsect1>
+
+    <refsect1><title>Options</title>
+      <variablelist>
+        <varlistentry>
+          <term><option>-h</option></term>
+          <term><option>-?</option></term>
+          <term><option>--help</option></term>
+          <listitem><simpara>shows a short summary of the available
+          options, and exists.</simpara></listitem>
+        </varlistentry>
+        <varlistentry>
+        <term><option>-V</option></term>
+        <term><option>--version</option></term>
+        <listitem><simpara>shows the version number, and exists.</simpara></listitem>
+	</varlistentry>
+        <varlistentry>
+        <term><option>-f</option></term>
+        <term><option>--logfile</option></term>
+        <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect1>
+    <refsect1><title>Files</title>
+      <variablelist>
+        <varlistentry>
+          <term><filename>~/.arbtt/capture.log</filename></term>
+          <listitem><para>binary file, storing the arbtt data samples</para></listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect1>
+
+    <refsect1><title>See also</title>
+      <para>See the arbtt manual for more information and the <ulink
+      url="http://www.hackage.org/package/arbtt">arbtt hackage page</ulink> for
+      newer versions of arbtt.</para>
+    </refsect1>
+  </refentry>
+
   <refentry id="arbtt-recover">
     <refmeta>
       <refentrytitle>arbtt-recover</refentrytitle>
@@ -817,6 +881,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   <para>
   The version history with changes relevant for the user are documented here.
   </para>
+
+  <sect2>
+    <title>Version 0.5 (UNRELEASED)</title>
+    <itemizedlist>
+      <listitem>
+	<para>New command <command>arbtt-import</command>, which imports the output from <command>arbtt-dump</command>.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
 
   <sect2>
     <title>Version 0.4.5.1</title>
