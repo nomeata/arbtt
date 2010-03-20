@@ -18,6 +18,7 @@ import Data.List
 import Data.Maybe
 import Data.Char
 import Data.Time.Clock
+import Data.Time.LocalTime
 import Data.Time.Calendar (toGregorian)
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Debug.Trace
@@ -36,6 +37,7 @@ data Ctx = Ctx
         , cWindowInScope :: Maybe (Bool, String, String)
         , cSubsts :: [String]
         , cCurrentTime :: UTCTime
+        , cTimeZone :: TimeZone
         }
   deriving (Show)
 
@@ -57,12 +59,14 @@ readCategorizer :: FilePath -> IO Categorizer
 readCategorizer filename = do
         content <- readFile filename
         time <- getCurrentTime
+        tz <- getCurrentTimeZone
         case parse (do {r <- parseRules; eof ; return r}) filename content of
           Left err -> do
                 putStrLn "Parser error:"
                 print err
                 exitFailure
-          Right cat -> return ((fmap . fmap) (mkSecond (postpare . cat)) . prepare time)
+          Right cat -> return $
+                ((fmap . fmap) (mkSecond (postpare . cat)) . prepare time tz)
 
 applyCond :: String -> TimeLog (Ctx, ActivityData) -> TimeLog (Ctx, ActivityData)
 applyCond s = 
@@ -70,12 +74,12 @@ applyCond s =
           Left err -> error (show err)
           Right c    -> filter (isJust . c . fst . tlData)
 
-prepare :: UTCTime -> TimeLog CaptureData -> TimeLog Ctx
-prepare time tl = go' [] tl tl
+prepare :: UTCTime -> TimeZone -> TimeLog CaptureData -> TimeLog Ctx
+prepare time tz tl = go' [] tl tl
   where go' past [] []
                 = []
         go' past (this:future) (now:rest)
-                = now {tlData = Ctx now past future Nothing [] time } :
+                = now {tlData = Ctx now past future Nothing [] time tz } :
                   go' (this:past) future rest
 
 -- | Here, we filter out tags appearing twice, and make sure that only one of
@@ -240,10 +244,6 @@ checkAnyWindow cp = Left $
         printf "Cannot apply current window to an expression of type %s"
                (cpType cp)
 
--- TODO: extend Ctx with local TimeZone and evaluate day of week, month,
---       day of month in local time.
-
-
 fst3 (a,_,_) = a
 snd3 (_,b,_) = b
 trd3 (_,_,c) = c
@@ -251,7 +251,8 @@ trd3 (_,_,c) = c
 -- Day of week is an integer in [1..7].
 evalDayOfWeek :: CondPrim -> Erring CondPrim
 evalDayOfWeek (CondDate df) = Right $ CondInteger $ \ctx ->
-  (toInteger . trd3 . toWeekDate. utctDay) `liftM` df ctx
+  let tz = cTimeZone ctx in
+  (toInteger . trd3 . toWeekDate . localDay . utcToLocalTime tz) `liftM` df ctx
 evalDayOfWeek cp = Left $ printf
   "Cannot apply day of week to an expression of type %s, only to $date."
   (cpType cp)
@@ -259,7 +260,8 @@ evalDayOfWeek cp = Left $ printf
 -- Day of month is an integer in [1..31].
 evalDayOfMonth :: CondPrim -> Erring CondPrim
 evalDayOfMonth (CondDate df) = Right $ CondInteger $ \ctx ->
-  (toInteger . trd3 . toGregorian . utctDay) `liftM` df ctx
+  let tz = cTimeZone ctx in
+  (toInteger . trd3 . toGregorian . localDay . utcToLocalTime tz) `liftM` df ctx
 evalDayOfMonth cp = Left $ printf
   "Cannot apply day of month to an expression of type %s, only to $date."
   (cpType cp)
@@ -267,14 +269,16 @@ evalDayOfMonth cp = Left $ printf
 -- Month is an integer in [1..12].
 evalMonth :: CondPrim -> Erring CondPrim
 evalMonth (CondDate df) = Right $ CondInteger $ \ctx ->
-  (toInteger . snd3 . toGregorian . utctDay) `liftM` df ctx
+  let tz = cTimeZone ctx in
+  (toInteger . snd3 . toGregorian . localDay . utcToLocalTime tz) `liftM` df ctx
 evalMonth cp = Left $ printf
   "Cannot apply month to an expression of type %s, only to $date."
   (cpType cp)
 
 evalYear :: CondPrim -> Erring CondPrim
 evalYear (CondDate df) = Right $ CondInteger $ \ctx ->
-  (fst3 . toGregorian . utctDay) `liftM` df ctx
+  let tz = cTimeZone ctx in
+  (fst3 . toGregorian . localDay . utcToLocalTime tz) `liftM` df ctx
 evalYear cp = Left $ printf
   "Cannot apply year to an expression of type %s, only to $date."
   (cpType cp)
@@ -450,7 +454,12 @@ getNumVar :: String -> CtxFun Integer
 getNumVar "idle" ctx = Just $ cLastActivity (tlData (cNow ctx)) `div` 1000
 
 getTimeVar :: String -> CtxFun NominalDiffTime
-getTimeVar "time" ctx = Just $ tlTime (cNow ctx) `diffUTCTime` (tlTime (cNow ctx)) { utctDayTime = fromIntegral 0}
+getTimeVar "time" ctx = Just $
+   let utc = tlTime . cNow $ ctx
+       tz = cTimeZone ctx
+       local = utcToLocalTime tz utc
+       midnightUTC = localTimeToUTC tz $ local { localTimeOfDay = midnight }
+    in utc `diffUTCTime` midnightUTC
 getTimeVar "sampleage" ctx = Just $ cCurrentTime ctx `diffUTCTime` tlTime (cNow ctx)
 
 getDateVar :: String -> CtxFun UTCTime
