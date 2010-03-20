@@ -30,7 +30,7 @@ executable arbtt-capture
     main-is:            capture-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, filepath, directory, mtl, time,
+        base == 4.*, filepath, directory, mtl, time, utf8-string,
         bytestring, binary
     other-modules:
         Data
@@ -72,6 +72,7 @@ executable arbtt-stats
         TimeLog
         Stats
         Text.ParserCombinators.Parsec.ExprFail
+        Text.Regex.PCRE.Light.String
     if os(windows) 
         cpp-options:    -DWIN32
     else
