@@ -21,6 +21,8 @@ import Data.Time.Clock
 import Data.Time.LocalTime
 import Data.Time.Calendar (toGregorian)
 import Data.Time.Calendar.WeekDate (toWeekDate)
+import Data.Time.Format (formatTime)
+import System.Locale (defaultTimeLocale, iso8601DateFormat)
 import Debug.Trace
 import Control.Arrow (second)
 import Text.Printf
@@ -156,7 +158,8 @@ parseCondExpr  = buildExpressionParser [
                 [ Prefix (reserved lang "day of week" >> return evalDayOfWeek)
                 , Prefix (reserved lang "day of month" >> return evalDayOfMonth)
                 , Prefix (reserved lang "month" >> return evalMonth)
-                , Prefix (reserved lang "year" >> return evalYear) ],
+                , Prefix (reserved lang "year" >> return evalYear)
+                , Prefix (reserved lang "format" >> return formatDate) ],
                 [ Infix (reservedOp lang "=~" >> return checkRegex) AssocNone 
                 , Infix (checkCmp <$> parseCmp) AssocNone
                 ],
@@ -282,6 +285,15 @@ evalYear (CondDate df) = Right $ CondInteger $ \ctx ->
 evalYear cp = Left $ printf
   "Cannot apply year to an expression of type %s, only to $date."
   (cpType cp)
+
+-- format date according to ISO 8601 (YYYY-MM-DD)
+formatDate :: CondPrim -> Erring CondPrim
+formatDate (CondDate df) = Right $ CondString $ \ctx ->
+  let tz = cTimeZone ctx
+      local = utcToLocalTime tz `liftM` df ctx
+   in formatTime defaultTimeLocale (iso8601DateFormat Nothing) `liftM` local
+formatDate cp = Left $ printf
+  "Cannot format an expression of type %s, only $date." (cpType cp)
 
 parseCmp :: Parser Cmp
 parseCmp = choice $ map (\(s,o) -> reservedOp lang s >> return o)
