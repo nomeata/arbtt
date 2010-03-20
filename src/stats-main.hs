@@ -80,6 +80,9 @@ options =
      , Option ""        ["each-category"]
               (NoArg (Report EachCategory))
               "show statistics about each category found"
+     , Option ""       ["output-format"]
+              (ReqArg (ReportOption . OutputFormat . read) "FORMAT")
+              "one of: text, csv, tsv, xml (default: text)"
      ]
 
 
@@ -125,7 +128,6 @@ main = do
      exitFailure
       
   let tags = applyFilters (getFilters flags) allTags
-  let opts = case getRepOpts flags of {[] -> [MinPercentage 1]; ropts -> ropts }
   let reps = case getReports flags of {[] -> [TotalTime]; reps -> reps }
 
   -- These are defined here, but of course only evaluated when any report
@@ -133,7 +135,7 @@ main = do
   -- advantageous.
   let c = prepareCalculations allTags tags
   
-  putReports opts c reps
+  putReports (getRepOpts flags) c reps
 
 {-
 import Data.Accessor
