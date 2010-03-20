@@ -3,7 +3,7 @@ module Categorize where
 
 import Data
 
-import qualified Text.Regex.PCRE.Light.Char8 as RE
+import qualified Text.Regex.PCRE.Light.String as RE
 import qualified Data.Map as M
 import Control.Monad
 import Control.Monad.Instances
