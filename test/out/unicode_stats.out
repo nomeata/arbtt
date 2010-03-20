@@ -1,5 +1,4 @@
 Total time per tag
 ==================
-__Tag_|___Time_|_Percentage_
-   ok |  1m00s |     100.00
-notok |  1m00s |     100.00
+Tag_|___Time_|_Percentage_
+ ok |  1m00s |     100.00
