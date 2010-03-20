@@ -892,6 +892,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <listitem>
 	<para>New command <command>arbtt-import</command>, which imports the output from <command>arbtt-dump</command>.
         </para>
+        <para>The command <command>arbtt-stats</command> now supports the
+        <option>--logfile</option> as well.
+        </para>
       </listitem>
     </itemizedlist>
   </sect2>
