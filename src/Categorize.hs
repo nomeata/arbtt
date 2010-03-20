@@ -11,7 +11,7 @@ import Control.Monad.Instances
 import Text.ParserCombinators.Parsec hiding (Parser)
 import Text.ParserCombinators.Parsec.Token
 import Text.ParserCombinators.Parsec.Language
-import Text.ParserCombinators.Parsec.Expr
+import Text.ParserCombinators.Parsec.ExprFail
 import System.Exit
 import Control.Applicative ((<*>),(<$>))
 import Data.List
@@ -141,7 +141,7 @@ parseCond :: Parser Cond
 parseCond = do cp <- parseCondExpr
                case cp of
                 CondCond c -> return c
-                cp         -> unexpected $ printf "Expression of type %s" (cpType cp)
+                cp         -> fail $ printf "Expression of type %s" (cpType cp)
 
 parseCondExpr :: Parser CondPrim
 parseCondExpr  = buildExpressionParser [
@@ -163,72 +163,72 @@ cpType (CondInteger _) = "Integer"
 cpType (CondTime _) = "Time"
 cpType (CondCond _) = "Condition"
 
-checkRegex :: CondPrim -> CondPrim -> CondPrim
-checkRegex (CondString getStr) (CondRegex getRegex) = CondCond $ \ctx -> do
+checkRegex :: CondPrim -> CondPrim -> Erring CondPrim
+checkRegex (CondString getStr) (CondRegex getRegex) = Right $ CondCond $ \ctx -> do
         str <- getStr ctx
         regex <- getRegex ctx
         tail <$> RE.match regex str []
-checkRegex cp1 cp2 = error $
+checkRegex cp1 cp2 = Left $
         printf "Can not apply =~ to an expression of type %s and type %s"
                (cpType cp1) (cpType cp2)
 
-checkAnd :: CondPrim-> CondPrim -> CondPrim
-checkAnd (CondCond c1) (CondCond c2) = CondCond $ do
+checkAnd :: CondPrim-> CondPrim -> Erring CondPrim
+checkAnd (CondCond c1) (CondCond c2) = Right $ CondCond $ do
         res1 <- c1
         res2 <- c2
         return $ res1 >> res2
-checkAnd cp1 cp2 = error $
+checkAnd cp1 cp2 = Left $
         printf "Can not apply && to an expression of type %s and type %s"
                (cpType cp1) (cpType cp2)
 
-checkOr :: CondPrim-> CondPrim -> CondPrim
-checkOr (CondCond c1) (CondCond c2) = CondCond $ do
+checkOr :: CondPrim-> CondPrim -> Erring CondPrim
+checkOr (CondCond c1) (CondCond c2) = Right $ CondCond $ do
         res1 <- c1
         res2 <- c2
         return $ res1 `mplus` res2
-checkOr cp1 cp2 = error $
+checkOr cp1 cp2 = Left $
         printf "Can not apply && to an expression of type %s and type %s"
                (cpType cp1) (cpType cp2)
 
-checkNot :: CondPrim -> CondPrim
-checkNot (CondCond getCnd) = CondCond $ do
+checkNot :: CondPrim -> Erring CondPrim
+checkNot (CondCond getCnd) = Right $ CondCond $ do
         liftM (maybe (Just []) (const Nothing)) getCnd
-checkNot cp = error $
+checkNot cp = Left $
         printf "Can not apply ! to an expression of type %s"
                (cpType cp)
 
-checkCmp :: Cmp -> CondPrim -> CondPrim -> CondPrim
-checkCmp (Cmp (?)) (CondInteger getN1) (CondInteger getN2) = CondCond $ \ctx -> do
+checkCmp :: Cmp -> CondPrim -> CondPrim -> Erring CondPrim
+checkCmp (Cmp (?)) (CondInteger getN1) (CondInteger getN2) = Right $ CondCond $ \ctx -> do
         n1 <- getN1 ctx
         n2 <- getN2 ctx
         guard (n1 ? n2)
         return []
-checkCmp (Cmp (?)) (CondTime getT1) (CondTime getT2) = CondCond $ \ctx -> do
+checkCmp (Cmp (?)) (CondTime getT1) (CondTime getT2) = Right $ CondCond $ \ctx -> do
         t1 <- getT1 ctx
         t2 <- getT2 ctx
         guard (t1 ? t2)
         return []
-checkCmp (Cmp (?)) (CondString getS1) (CondString getS2) = CondCond $ \ctx -> do
+checkCmp (Cmp (?)) (CondString getS1) (CondString getS2) = Right $ CondCond $ \ctx -> do
         s1 <- getS1 ctx
         s2 <- getS2 ctx
         guard (s1 ? s2)
         return []
-checkCmp _ cp1 cp2 = error $
+checkCmp _ cp1 cp2 = Left $
         printf "Can not compare expressions of type %s and type %s"
                (cpType cp1) (cpType cp2)
 
-checkCurrentwindow :: CondPrim -> CondPrim
-checkCurrentwindow (CondCond cond) = CondCond $ \ctx -> 
+checkCurrentwindow :: CondPrim -> Erring CondPrim
+checkCurrentwindow (CondCond cond) = Right $ CondCond $ \ctx -> 
         cond (ctx { cWindowInScope = findActive (cWindows (tlData (cNow ctx))) })
-checkCurrentwindow cp = error $
+checkCurrentwindow cp = Left $
         printf "Can not apply current window to an expression of type %s"
                (cpType cp)
 
-checkAnyWindow :: CondPrim -> CondPrim
-checkAnyWindow (CondCond cond) = CondCond $ \ctx ->
+checkAnyWindow :: CondPrim -> Erring CondPrim
+checkAnyWindow (CondCond cond) = Right $ CondCond $ \ctx ->
         msum $ map (\w -> cond (ctx { cWindowInScope = Just w }))
                                      (cWindows (tlData (cNow ctx)))
-checkAnyWindow cp = error $
+checkAnyWindow cp = Left $
         printf "Can not apply current window to an expression of type %s"
                (cpType cp)
 
