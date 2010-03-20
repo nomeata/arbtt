@@ -1,0 +1,4 @@
+name: arbtt-dump_small
+call: arbtt-dump -f in/small.log
+in: /dev/null
+out: out/small_dump.out
