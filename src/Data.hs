@@ -18,7 +18,7 @@ data TimeLogEntry a = TimeLogEntry
         { tlTime :: UTCTime
         , tlRate :: Integer -- ^ in milli-seconds
         , tlData :: a }
-  deriving (Show)
+  deriving (Show, Read)
 
 instance Functor TimeLogEntry where
         fmap f tl = tl { tlData = f (tlData tl) }
@@ -28,7 +28,7 @@ data CaptureData = CaptureData
                 -- ^ Active window, window title, programm name
         , cLastActivity :: Integer -- ^ in milli-seconds
         }
-  deriving (Show)
+  deriving (Show, Read)
 
 type ActivityData = [Activity]
 
