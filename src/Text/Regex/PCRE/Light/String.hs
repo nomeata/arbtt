@@ -67,7 +67,7 @@ module Text.Regex.PCRE.Light.String (
 
     ) where
 
-import qualified Data.ByteString.Char8 as S
+import qualified Data.ByteString.UTF8 as S
 import qualified Text.Regex.PCRE.Light as S
 import Text.Regex.PCRE.Light hiding (match, compile, compileM)
 
@@ -121,7 +121,7 @@ import Text.Regex.PCRE.Light hiding (match, compile, compileM)
 --
 -- * 'ungreedy'        - Invert greediness of quantifiers
 --
--- * 'utf8'            - Run in UTF-8 mode
+-- * 'utf8'            - Run in UTF-8 mode (always enabled in this module)
 --
 -- * 'no_utf8_check'   - Do not check the pattern for UTF-8 validity
 --
@@ -139,13 +139,13 @@ import Text.Regex.PCRE.Light hiding (match, compile, compileM)
 -- See man pcreapi for more details.
 --
 compile :: String -> [PCREOption] -> Regex
-compile str os = S.compile (S.pack str) os
+compile str os = S.compile (S.fromString str) (utf8:os)
 {-# INLINE compile #-}
 
 -- | 'compileM'
 -- A safe version of 'compile' with failure lifted into an Either
 compileM :: String -> [PCREOption] -> Either String Regex
-compileM str os = S.compileM (S.pack str) os
+compileM str os = S.compileM (S.fromString str) (utf8:os)
 {-# INLINE compileM #-}
 
 
@@ -199,7 +199,7 @@ compileM str os = S.compileM (S.pack str) os
 --
 match :: Regex -> String -> [PCREExecOption] -> Maybe [String]
 match r subject os =
-    case S.match r (S.pack subject) os of
+    case S.match r (S.fromString subject) os of
            Nothing -> Nothing
-           Just x  -> Just (map S.unpack x)
+           Just x  -> Just (map S.toString x)
 {-# INLINE match #-}
