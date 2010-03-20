@@ -1,4 +1,4 @@
 name: arbtt-stats_small
-call: arbtt-stats --logfile in/small.log
+call: ../dist/build/arbtt-stats/arbtt-stats --logfile in/small.log
 in: /dev/null
 out: out/small_stats.out
