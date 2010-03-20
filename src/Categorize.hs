@@ -407,7 +407,7 @@ parseTagPart = do parts <- many1 (choice
                                , do varname <- many1 (letter <|> oneOf ".")
                                     return $ getVar varname
                                ] <?> "variable"
-                        , do s <- many1 (letter <|> oneOf "-_")
+                        , do s <- many1 (alphaNum <|> oneOf "-_")
                              return $ const (Just s)
                         ])
                   return $ (fmap concat . sequence) <$> sequence parts
