@@ -20,7 +20,12 @@ data Report = GeneralInfos | TotalTime | Category Text | EachCategory
 data Filter = Exclude Activity | Only Activity | AlsoInactive | GeneralCond String
         deriving (Show, Eq)
 
-data ReportOption = MinPercentage Double
+-- Supported report output formats: text, comma-separated values, tab-separated
+-- values and XML
+data ReportFormat = Text | CSV | TSV | XML
+        deriving (Show, Eq, Read)
+
+data ReportOption = MinPercentage Double | OutputFormat ReportFormat
         deriving (Show, Eq)
 
 -- Data format semantically representing the result of a report, including the
@@ -95,7 +100,7 @@ putReports opts c = sequence_ . intersperse (putStrLn "") . map (putReport opts 
 
 putReport :: [ReportOption] -> Calculations -> Report -> IO ()
 putReport opts c EachCategory = putReports opts c (map Category (listCategories (tags c)))
-putReport opts c r = renderReport $ reportToTable opts c r
+putReport opts c r = renderReport opts $ reportToTable opts c r
 
 reportToTable :: [ReportOption] -> Calculations -> Report -> ReportResults
 reportToTable opts (Calculations {..}) r = case r of
@@ -156,21 +161,48 @@ reportToTable opts (Calculations {..}) r = case r of
                       )]
                 else []
                 )
+    where
+        minPercentage = 
+            case pvalues of
+                [] -> 1
+                _  -> last pvalues
+        pvalues = mapMaybe pickPercentage opts
+        pickPercentage o = case o of
+            MinPercentage m -> Just m
+            _ -> Nothing
 
-  where minPercentage = last $ mapMaybe (\f -> case f of {MinPercentage m -> Just m {- ; _ -> Nothing -} }) opts
+renderReport opts reportdata = do
+    let results = doRender opts reportdata
+    putStr results
 
+doRender opts reportdata = results
+    where
+        results =
+            case outputformat of
+                Text -> renderReportText reportdata
+                CSV  -> "Comma-separated values not supported yet\n"
+                TSV  -> "Tab-separated values not supported yet\n"
+                XML  -> "XML not supported yet\n"
+        outputformat =
+            case formats of
+                [] -> Text
+                _  -> last formats
+        formats = mapMaybe pickFormats opts
+        pickFormats o = case o of
+            OutputFormat f -> Just f
+            _ -> Nothing
 
-renderReport (ListOfFields title dats) = do
-        putStrLnUnderlined title
-        putStr $ tabulate False $ map (\(f,v) -> [f,v]) dats
+renderReportText (ListOfFields title dats) = 
+    underline title ++
+    (tabulate False $ map (\(f,v) -> [f,v]) dats)
 
-renderReport (ListOfTimePercValues title dats) = do
-        putStrLnUnderlined title
-        putStr $ tabulate True $ ["Tag","Time","Percentage"] : map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
+renderReportText (ListOfTimePercValues title dats) = 
+    underline title ++
+    (tabulate True $ ["Tag","Time","Percentage"] : map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats)
 
-renderReport (PieChartOfTimePercValues title dats) = do
-        putStrLnUnderlined title
-        putStr $ tabulate True $ ["Tag","Time","Percentage"] : map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
+renderReportText (PieChartOfTimePercValues title dats) = 
+    underline title ++
+    (tabulate True $ ["Tag","Time","Percentage"] : map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats)
 
 
 tabulate :: Bool -> [[String]] -> String
@@ -196,6 +228,7 @@ showTimeDiff t = go False $ zip [days,hours,mins,secs] ["d","h","m","s"]
         go False ((a,u):vs) | a > 0     = printf "%2d%s" a u ++ go True vs
                             | otherwise =                       go False vs
 
-putStrLnUnderlined str = do
-        putStrLn str
-        putStrLn $ map (const '=') str
+underline str = unlines 
+    [ str
+    , map (const '=') str
+    ]
