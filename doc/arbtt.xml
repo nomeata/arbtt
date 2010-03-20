@@ -456,6 +456,10 @@ $ runhaskell Setup.hs install</screen>
         <term><option>--logfile</option></term>
         <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
         </varlistentry>
+        <varlistentry>
+        <term><option>--categorizefile</option></term>
+        <listitem><simpara>categorize file to use instead of <filename>~/.arbtt/categorize.cfg</filename></simpara></listitem>
+        </varlistentry>
       </variablelist>
       <refsect2><title>Filtering options</title>
         <variablelist>
@@ -893,7 +897,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 	<para>New command <command>arbtt-import</command>, which imports the output from <command>arbtt-dump</command>.
         </para>
         <para>The command <command>arbtt-stats</command> now supports the
-        <option>--logfile</option> as well.
+        <option>--logfile</option> and <option>--categorizefile</option> as well.
         </para>
       </listitem>
     </itemizedlist>

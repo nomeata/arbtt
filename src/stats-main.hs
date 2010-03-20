@@ -26,7 +26,8 @@ data Flag = Help | Version |
         Report Report |
         Filter Filter |
         ReportOption ReportOption |
-        LogFile String
+        LogFile String |
+        CategorizeFile String
         deriving Eq
 
 getReports = mapMaybe (\f -> case f of {Report r -> Just r; _ -> Nothing})
@@ -48,6 +49,9 @@ options =
      , Option ""      ["logfile"]
                (ReqArg LogFile "FILE")
                "use this file instead of ~/.arbtt/capture.log"
+     , Option ""      ["categorizefile"]
+               (ReqArg CategorizeFile "FILE")
+               "use this file instead of ~/.arbtt/categorize.cfg"
      , Option "x"       ["exclude"]
               (ReqArg (Filter . Exclude . read) "TAG")
               "ignore samples containing this tag"
@@ -100,7 +104,12 @@ main = do
         mapMaybe (\f -> case f of { LogFile f -> Just f; _ -> Nothing}) $
         flags
 
-  let categorizeFilename = dir </> "categorize.cfg"
+  let categorizeFilename =
+        fromMaybe (dir </> "categorize.cfg") $ listToMaybe $
+        mapMaybe
+          (\f -> case f of { CategorizeFile f -> Just f; _ -> Nothing}) $
+        flags
+
   fileEx <- doesFileExist categorizeFilename
   unless fileEx $ do
      putStrLn $ printf "Configuration file %s does not exist." categorizeFilename
