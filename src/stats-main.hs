@@ -25,7 +25,8 @@ import Paths_arbtt (version)
 data Flag = Help | Version |
         Report Report |
         Filter Filter |
-        ReportOption ReportOption
+        ReportOption ReportOption |
+        LogFile String
         deriving Eq
 
 getReports = mapMaybe (\f -> case f of {Report r -> Just r; _ -> Nothing})
@@ -44,6 +45,9 @@ options =
               (NoArg Version)
               "show the version number"
 --     , Option ['g']     ["graphical"] (NoArg Graphical)    "render the reports as graphical charts"
+     , Option ""      ["logfile"]
+               (ReqArg LogFile "FILE")
+               "use this file instead of ~/.arbtt/capture.log"
      , Option "x"       ["exclude"]
               (ReqArg (Filter . Exclude . read) "TAG")
               "ignore samples containing this tag"
@@ -91,6 +95,11 @@ main = do
 
   dir <- getAppUserDataDirectory "arbtt"
 
+  let captureFilename =
+        fromMaybe (dir </> "capture.log") $ listToMaybe $
+        mapMaybe (\f -> case f of { LogFile f -> Just f; _ -> Nothing}) $
+        flags
+
   let categorizeFilename = dir </> "categorize.cfg"
   fileEx <- doesFileExist categorizeFilename
   unless fileEx $ do
@@ -99,7 +108,6 @@ main = do
      exitFailure
   categorizer <- readCategorizer categorizeFilename
 
-  let captureFilename = dir </> "capture.log"
   captures <- readTimeLog captureFilename
   let allTags = categorizer captures
   when (null allTags) $ do
