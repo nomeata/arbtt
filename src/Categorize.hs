@@ -18,6 +18,8 @@ import Data.List
 import Data.Maybe
 import Data.Char
 import Data.Time.Clock
+import Data.Time.Calendar (toGregorian)
+import Data.Time.Calendar.WeekDate (toWeekDate)
 import Debug.Trace
 import Control.Arrow (second)
 import Text.Printf
@@ -46,6 +48,7 @@ data CondPrim
         | CondRegex (CtxFun RE.Regex)
         | CondInteger (CtxFun Integer)
         | CondTime (CtxFun NominalDiffTime)
+        | CondDate (CtxFun UTCTime)
         | CondCond (CtxFun [String])
 
 newtype Cmp = Cmp (forall a. Ord a => a -> a -> Bool)
@@ -146,6 +149,9 @@ parseCond = do cp <- parseCondExpr
 parseCondExpr :: Parser CondPrim
 parseCondExpr  = buildExpressionParser [
                 [ Prefix (reservedOp lang "!" >> return checkNot) ],
+                [ Prefix (reserved lang "day of week" >> return checkDayOfWeek)
+                , Prefix (reserved lang "day of month" >> return checkDayOfMonth)
+                , Prefix (reserved lang "month" >> return checkMonth) ],
                 [ Infix (reservedOp lang "=~" >> return checkRegex) AssocNone 
                 , Infix (checkCmp <$> parseCmp) AssocNone
                 ],
@@ -161,6 +167,7 @@ cpType (CondString _) = "String"
 cpType (CondRegex _) = "Regex"
 cpType (CondInteger _) = "Integer"
 cpType (CondTime _) = "Time"
+cpType (CondDate _) = "Date"
 cpType (CondCond _) = "Condition"
 
 checkRegex :: CondPrim -> CondPrim -> Erring CondPrim
@@ -232,6 +239,33 @@ checkAnyWindow cp = Left $
         printf "Can not apply current window to an expression of type %s"
                (cpType cp)
 
+-- TODO: extend Ctx with local TimeZone and evaluate day of week, month,
+--       day of month in local time.
+
+
+fst3 (a,_,_) = a
+snd3 (_,b,_) = b
+trd3 (_,_,c) = c
+
+-- Day of week is an integer in [1..7].
+checkDayOfWeek :: CondPrim -> CondPrim
+checkDayOfWeek (CondDate df) = CondInteger $ \ctx ->
+  (toInteger . trd3 . toWeekDate. utctDay) `liftM` df ctx
+
+-- Day of month is an integer in [1..31].
+checkDayOfMonth :: CondPrim -> CondPrim
+checkDayOfMonth (CondDate df) = CondInteger $ \ctx ->
+  (toInteger . trd3 . toGregorian . utctDay) `liftM` df ctx
+
+-- Month is an integer in [1..12].
+checkMonth :: CondPrim -> CondPrim
+checkMonth (CondDate df) = CondInteger $ \ctx ->
+  (toInteger . snd3 . toGregorian . utctDay) `liftM` df ctx
+
+checkYear :: CondPrim -> CondPrim
+checkYear (CondDate df) = CondInteger $ \ctx ->
+  (fst3 . toGregorian . utctDay) `liftM` df ctx
+
 parseCmp :: Parser Cmp
 parseCmp = choice $ map (\(s,o) -> reservedOp lang s >> return o)
                         [(">=",Cmp (>=)),
@@ -261,6 +295,8 @@ parseCondPrim = choice
                            return $ CondTime (getTimeVar "time")
                       , do guard $ varname == "sampleage"
                            return $ CondTime (getTimeVar "sampleage")
+                      , do guard $ varname == "date"
+                           return $ CondDate (getDateVar "date")
                      ]
               ] <?> "variable"
         , do regex <- parseRegex <?> "regular expression"
@@ -404,6 +440,8 @@ getTimeVar :: String -> CtxFun NominalDiffTime
 getTimeVar "time" ctx = Just $ tlTime (cNow ctx) `diffUTCTime` (tlTime (cNow ctx)) { utctDayTime = fromIntegral 0}
 getTimeVar "sampleage" ctx = Just $ cCurrentTime ctx `diffUTCTime` tlTime (cNow ctx)
 
+getDateVar :: String -> CtxFun UTCTime
+getDateVar "date" ctx = Just $ tlTime (cNow ctx)
 
 checkEq :: String -> String -> Cond
 checkEq varname str ctx = do s <- getVar varname ctx
