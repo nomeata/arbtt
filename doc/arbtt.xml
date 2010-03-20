@@ -452,6 +452,10 @@ $ runhaskell Setup.hs install</screen>
         <term><option>--version</option></term>
         <listitem><simpara>shows the version number, and exists.</simpara></listitem>
         </varlistentry>
+        <varlistentry>
+        <term><option>--logfile</option></term>
+        <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
+        </varlistentry>
       </variablelist>
       <refsect2><title>Filtering options</title>
         <variablelist>
