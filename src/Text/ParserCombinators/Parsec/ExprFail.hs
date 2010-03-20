@@ -13,7 +13,7 @@
 -- 
 -----------------------------------------------------------------------------
 
-module Text.ParserCombinators.Parsec.Expr
+module Text.ParserCombinators.Parsec.ExprFail
                  ( Assoc(..), Operator(..), OperatorTable
                  , buildExpressionParser
                  ) where
