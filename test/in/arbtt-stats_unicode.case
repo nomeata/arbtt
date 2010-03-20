@@ -1,0 +1,4 @@
+name: arbtt-stats_small
+call: ../dist/build/arbtt-stats/arbtt-stats --categorizefile in/unicode.cfg --logfile in/unicode.log
+in: /dev/null
+out: out/unicode_stats.out
