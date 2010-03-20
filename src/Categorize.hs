@@ -149,10 +149,10 @@ parseCond = do cp <- parseCondExpr
 parseCondExpr :: Parser CondPrim
 parseCondExpr  = buildExpressionParser [
                 [ Prefix (reservedOp lang "!" >> return checkNot) ],
-                [ Prefix (reserved lang "day of week" >> return checkDayOfWeek)
-                , Prefix (reserved lang "day of month" >> return checkDayOfMonth)
-                , Prefix (reserved lang "month" >> return checkMonth)
-                , Prefix (reserved lang "year" >> return checkYear) ],
+                [ Prefix (reserved lang "day of week" >> return evalDayOfWeek)
+                , Prefix (reserved lang "day of month" >> return evalDayOfMonth)
+                , Prefix (reserved lang "month" >> return evalMonth)
+                , Prefix (reserved lang "year" >> return evalYear) ],
                 [ Infix (reservedOp lang "=~" >> return checkRegex) AssocNone 
                 , Infix (checkCmp <$> parseCmp) AssocNone
                 ],
@@ -249,33 +249,33 @@ snd3 (_,b,_) = b
 trd3 (_,_,c) = c
 
 -- Day of week is an integer in [1..7].
-checkDayOfWeek :: CondPrim -> Erring CondPrim
-checkDayOfWeek (CondDate df) = Right $ CondInteger $ \ctx ->
+evalDayOfWeek :: CondPrim -> Erring CondPrim
+evalDayOfWeek (CondDate df) = Right $ CondInteger $ \ctx ->
   (toInteger . trd3 . toWeekDate. utctDay) `liftM` df ctx
-checkDayOfWeek cp = Left $ printf
+evalDayOfWeek cp = Left $ printf
   "Cannot apply day of week to an expression of type %s, only to $date."
   (cpType cp)
 
 -- Day of month is an integer in [1..31].
-checkDayOfMonth :: CondPrim -> Erring CondPrim
-checkDayOfMonth (CondDate df) = Right $ CondInteger $ \ctx ->
+evalDayOfMonth :: CondPrim -> Erring CondPrim
+evalDayOfMonth (CondDate df) = Right $ CondInteger $ \ctx ->
   (toInteger . trd3 . toGregorian . utctDay) `liftM` df ctx
-checkDayOfMonth cp = Left $ printf
+evalDayOfMonth cp = Left $ printf
   "Cannot apply day of month to an expression of type %s, only to $date."
   (cpType cp)
 
 -- Month is an integer in [1..12].
-checkMonth :: CondPrim -> Erring CondPrim
-checkMonth (CondDate df) = Right $ CondInteger $ \ctx ->
+evalMonth :: CondPrim -> Erring CondPrim
+evalMonth (CondDate df) = Right $ CondInteger $ \ctx ->
   (toInteger . snd3 . toGregorian . utctDay) `liftM` df ctx
-checkMonth cp = Left $ printf
+evalMonth cp = Left $ printf
   "Cannot apply month to an expression of type %s, only to $date."
   (cpType cp)
 
-checkYear :: CondPrim -> Erring CondPrim
-checkYear (CondDate df) = Right $ CondInteger $ \ctx ->
+evalYear :: CondPrim -> Erring CondPrim
+evalYear (CondDate df) = Right $ CondInteger $ \ctx ->
   (fst3 . toGregorian . utctDay) `liftM` df ctx
-checkYear cp = Left $ printf
+evalYear cp = Left $ printf
   "Cannot apply year to an expression of type %s, only to $date."
   (cpType cp)
 
