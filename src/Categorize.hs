@@ -151,7 +151,8 @@ parseCondExpr  = buildExpressionParser [
                 [ Prefix (reservedOp lang "!" >> return checkNot) ],
                 [ Prefix (reserved lang "day of week" >> return checkDayOfWeek)
                 , Prefix (reserved lang "day of month" >> return checkDayOfMonth)
-                , Prefix (reserved lang "month" >> return checkMonth) ],
+                , Prefix (reserved lang "month" >> return checkMonth)
+                , Prefix (reserved lang "year" >> return checkYear) ],
                 [ Infix (reservedOp lang "=~" >> return checkRegex) AssocNone 
                 , Infix (checkCmp <$> parseCmp) AssocNone
                 ],
