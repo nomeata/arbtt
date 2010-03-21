@@ -168,8 +168,8 @@ parseCondExpr  = buildExpressionParser [
                 [ Prefix (reserved lang "current window" >> return checkCurrentwindow)
                 , Prefix (reserved lang "any window" >> return checkAnyWindow)
                 ],
-                [ Infix (reservedOp lang "&&" >> return checkAnd) AssocLeft ],
-                [ Infix (reservedOp lang "||" >> return checkOr) AssocLeft ]
+                [ Infix (reservedOp lang "&&" >> return checkAnd) AssocRight ],
+                [ Infix (reservedOp lang "||" >> return checkOr) AssocRight ]
             ] parseCondPrim
 
 cpType :: CondPrim -> String
