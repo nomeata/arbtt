@@ -956,7 +956,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
 <sect1 id="copyright">
   <title>Copyright and Contact</title>
   <para>
-  arbtt is Copyright © 2009 Joachim Breitner
+  arbtt is Copyright © 2009-2010 Joachim Breitner
   </para>
 
   <para>
