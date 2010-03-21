@@ -6,7 +6,7 @@ import Data.Time
 import Control.Applicative
 import Control.Monad
 import System.Directory
-import qualified Data.Text as T
+import qualified Data.MyText as T
 
 import TimeLog (writeTimeLog)
 import qualified Data as D

@@ -10,8 +10,8 @@ import Data.Binary
 import Data.Binary.Put
 import Data.Binary.Get
 import Data.Binary.StringRef
-import qualified Data.Text as T
-import Data.Text (Text)
+import qualified Data.MyText as T
+import Data.MyText (Text)
 import Control.Applicative
 import Control.Monad
 
