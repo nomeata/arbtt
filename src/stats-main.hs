@@ -83,7 +83,7 @@ options =
               "show statistics about each category found"
      , Option ""       ["output-format"]
               (ReqArg (ReportOption . OutputFormat . readReportFormat) "FORMAT")
-              "one of: text, csv (comma-separated\nvalues), tsv (TAB-separated values,\ndefault: Text)"
+              "one of: text, csv (comma-separated values), tsv (TAB-separated values) (default: Text)"
      ]
 
 readReportFormat arg =
