@@ -996,7 +996,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   </para>
 
   <sect2>
-    <title>Version 0.5 (The ZuriHac-Release) (UNRELEASED)</title>
+    <title>Version 0.5 (The ZuriHac-Release)</title>
     <itemizedlist>
       <listitem>
 	<para>New command <command>arbtt-import</command>, which imports the output from <command>arbtt-dump</command>.
