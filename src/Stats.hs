@@ -20,9 +20,9 @@ data Report = GeneralInfos | TotalTime | Category Text | EachCategory
 data Filter = Exclude Activity | Only Activity | AlsoInactive | GeneralCond String
         deriving (Show, Eq)
 
--- Supported report output formats: text, comma-separated values, tab-separated
--- values and XML
-data ReportFormat = Text | CSV | TSV | XML
+-- Supported report output formats: text, comma-separated values and
+-- tab-separated values
+data ReportFormat = Text | CSV | TSV
         deriving (Show, Eq, Read)
 
 data ReportOption = MinPercentage Double | OutputFormat ReportFormat
@@ -181,8 +181,7 @@ doRender opts reportdata = results
             case outputformat of
                 Text -> renderReportText reportdata
                 CSV -> renderReportCSV reportdata
-                TSV  -> "Tab-separated values not supported yet\n"
-                XML  -> "XML not supported yet\n"
+                TSV -> renderReportTSV reportdata
         outputformat =
             case formats of
                 [] -> Text
@@ -220,6 +219,17 @@ renderReportCSV (ListOfTimePercValues title dats) =
 
 renderReportCSV (PieChartOfTimePercValues _ dats) = 
     unlines $ map (injectDelimiter ",") (piechartOfValues dats)
+
+-- The reporting of "General Information" is not supported for the
+-- TAB-separated output format.
+renderReportTSV (ListOfFields title dats) = 
+    error ("\"" ++ title ++ "\"" ++ " not supported for TAB-separated output format")
+
+renderReportTSV (ListOfTimePercValues title dats) = 
+    unlines $ map (injectDelimiter "\t") (listOfValues dats)
+
+renderReportTSV (PieChartOfTimePercValues _ dats) = 
+    unlines $ map (injectDelimiter "\t") (piechartOfValues dats)
 
 injectDelimiter d = concat . intersperse d
 
