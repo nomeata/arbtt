@@ -180,7 +180,7 @@ doRender opts reportdata = results
         results =
             case outputformat of
                 Text -> renderReportText reportdata
-                CSV  -> "Comma-separated values not supported yet\n"
+                CSV -> renderReportCSV reportdata
                 TSV  -> "Tab-separated values not supported yet\n"
                 XML  -> "XML not supported yet\n"
         outputformat =
@@ -203,6 +203,25 @@ renderReportText (ListOfTimePercValues title dats) =
 renderReportText (PieChartOfTimePercValues title dats) = 
     underline title ++
     (tabulate True $ ["Tag","Time","Percentage"] : map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats)
+
+renderReportCSV (ListOfFields title dats) = 
+    error ("\"" ++ title ++ "\"" ++ " not supported for comma-separated output format")
+
+renderReportCSV (ListOfTimePercValues title dats) = 
+    unlines datawithcommas
+    where
+        datawithcommas = map (concat . intersperse ",") resultdata
+        resultdata =
+            ["Tag","Time","Percentage"] :
+            map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
+
+renderReportCSV (PieChartOfTimePercValues _ dats) = 
+    unlines datawithcommas
+    where
+        datawithcommas = map (concat . intersperse ",") resultdata
+        resultdata =
+            ["Tag","Time","Percentage"] :
+            map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
 
 
 tabulate :: Bool -> [[String]] -> String
