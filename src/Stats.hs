@@ -197,12 +197,18 @@ renderReportText (ListOfFields title dats) =
     (tabulate False $ map (\(f,v) -> [f,v]) dats)
 
 renderReportText (ListOfTimePercValues title dats) = 
-    underline title ++
-    (tabulate True $ ["Tag","Time","Percentage"] : map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats)
+    underline title ++ (tabulate True $ listOfValues dats)
 
 renderReportText (PieChartOfTimePercValues title dats) = 
-    underline title ++
-    (tabulate True $ ["Tag","Time","Percentage"] : map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats)
+    underline title ++ (tabulate True $ piechartOfValues dats)
+
+listOfValues dats =
+    ["Tag","Time","Percentage"] :
+    map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
+
+piechartOfValues dats =
+    ["Tag","Time","Percentage"] :
+    map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
 
 -- The reporting of "General Information" is not supported for the
 -- comma-separated output format.
@@ -210,20 +216,12 @@ renderReportCSV (ListOfFields title dats) =
     error ("\"" ++ title ++ "\"" ++ " not supported for comma-separated output format")
 
 renderReportCSV (ListOfTimePercValues title dats) = 
-    unlines $ map renderCSV resultdata
-    where
-        resultdata =
-            ["Tag","Time","Percentage"] :
-            map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
+    unlines $ map (injectDelimiter ",") (listOfValues dats)
 
 renderReportCSV (PieChartOfTimePercValues _ dats) = 
-    unlines $ map renderCSV resultdata
-    where
-        resultdata =
-            ["Tag","Time","Percentage"] :
-            map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
+    unlines $ map (injectDelimiter ",") (piechartOfValues dats)
 
-renderCSV = concat . intersperse ","
+injectDelimiter d = concat . intersperse d
 
 tabulate :: Bool -> [[String]] -> String
 tabulate titlerow rows = unlines $ addTitleRow $ map (intercalate " | " . zipWith (\l s -> take (l - length s) (repeat ' ') ++ s) colwidths) rows
