@@ -100,34 +100,184 @@ $ runhaskell Setup.hs install</screen>
 </sect1>
 
 <sect1 id="configuration">
-  <title>Configuring the arbtt categorizer</title>
+  <title>Configuring the arbtt categorizer (<command>arbtt-stats</command>)</title>
   <para>
-  Once arbtt-capture is running, it will start recording, without further
-  configuration. The configuration is only needed to do an analysis of the
-  recorded data. Thus, if you improve your categorization later, it will apply
-  even to previous data samples!
+  Once <command>arbtt-capture</command> is running, it will record data without
+  any configuration. And only to analyze the recorded data, one needs to
+  configure the categorizer. Everytime the categorizer
+  (<command>arbtt-stats</command>) runs, it applies categorization rules to all
+  recorded data and tags it accordingly.  Thus, if you improve your
+  categorization rules later, they will apply also to all previous data
+  samples!
   </para>
 
+  <sect2>
+  <title>Configuration example</title>
   <para>
   The configuration file needs to be placed in
   <filename>~/.arbtt/categorize.cfg</filename>. An
-  example file is included in the source distribution, and reproduced here as
-  <xref linkend="catex"/>, which should be more enlightening than this rather
-  formal description.
+  example is included in the source distribution, and it is reproduced here:
+  see <xref linkend="catex"/>.
+  It should be more enlightening than a formal description.
   </para>
 
   <example id="catex">
-  <title>A complete <filename>categorize.cfg</filename></title>
+  <title><filename>categorize.cfg</filename></title>
     <programlisting><xi:include  href="../categorize.cfg"  parse="text"  
       xmlns:xi="http://www.w3.org/2001/XInclude" /></programlisting>
   </example>
+  </sect2>
+
+  <sect2>
+    <title>The semantics (informal)</title>
+    <para>
+      A data sample consists of the time of recording, the time passed since the
+      user’s last action and the list of windows. For each window this
+      information is available:
+      <itemizedlist>
+        <listitem><simpara>the window title</simpara></listitem>
+        <listitem><simpara>the program name</simpara></listitem>
+        <listitem><simpara>whether the window was the active window</simpara></listitem>
+      </itemizedlist>
+      Based on this information and on the rules in
+      <filename>categorize.cfg</filename>, the categorizer
+      (<command>arbtt-stats</command>) assigns <emphasis>tags</emphasis> to
+      each sample.
+    </para>
+
+    <para>
+      A simple rule consists of a condition followed by an arrow
+      (<literal>==></literal>) and a tag expression
+      (<literal>tag</literal> keyword followed by tag name).
+      The rule ends with a coma (<literal>,</literal>).
+    </para>
+
+    <para>
+      The keyword <literal>tag</literal>, usually preceded with a condition,
+      assigns a <emphasis>tag</emphasis> to the sample; <literal>tag</literal>
+      keyword is followed by a tag name (any sequence of alphanumeric symbols,
+      underscores and hyphens). If tag name contains a colon
+      (<literal>:</literal>), the first part of the name before the colon, is
+      considered to be tag <emphasis>category</emphasis>.
+    </para>
+
+    <para>
+      For example, this rule
+      <programlisting>month $date == 1 ==> tag month:January,</programlisting>
+      if it succeeds, assigns a the tag <literal>January</literal> in the
+      category <literal>month</literal>.
+    </para>
+
+    <para>If the tag has a <emphasis>category</emphasis>, it will only be
+      assigned if no other tag of that category has been assigned. This means
+      that for each sample and each category, there can be at most only one tag
+      in that category. Tags can contain references to group matches in the
+      regular expressions used in conditions (<literal>$1</literal>,
+      <literal>$2</literal>)...). Tags can also reference some
+      variables such as window title (<literal>$current.title</literal>) or
+      program name (<literal>$current.program</literal>).
+    </para>
+
+    <para>
+      The variable <literal>$idle</literal> contains the idle time of the user,
+      measured in seconds. Usually, it is used to assign the tag
+      <literal>inactive</literal>, which is handled specially by
+      <command>arbtt-stats</command>, as can be seen in <xref linkend="catex"/>.
+    </para>
+
+    <para>
+      When applying the rules, the categorizer has a notion of
+      the <emphasis>window in scope</emphasis>, and the variables
+      <literal>$title</literal>, <literal>$program</literal> and
+      <literal>$active</literal> always refer to the window in scope.
+      By default, there is no window is in scope. Condition should be prefixed
+      with either <literal>current window</literal> or <literal>any
+      window</literal>, to define scope of these variables.
+    </para>
+
+    <para>
+      For <literal>current window</literal>, the currently active window is in
+      scope. If there is no such window, the condition is false.
+    </para>
+    
+    <para>
+      For <literal>any window</literal>, the condition is applied to each
+      window, in turn, and if any of the windows matches, the result is true. If
+      more than one window matches it is not defined from which match the
+      variables <literal>$1</literal>... are taken from (see more about regular
+      expressions below).
+    </para>
+
+    <para>
+      The variable <literal>$time</literal> refers to the time-of-day of the
+      sample (i.e. the time since 00:00 that day, local time), while
+      <literal>$sampleage</literal> refers to the
+      time span from when the sample was recored until now, the time of
+      evaluating the statistics. The latter variable is especially useful when
+      passed to the <option>--filter</option> option of
+      <command>arbtt-stats</command>. They can be compared with expressions 
+      like "hh:mm", for example
+      <programlisting>$time >=  8:00 &amp;&amp; $time &lt; 12:00 ==> tag time-of-day:morning</programlisting>
+    </para>
+
+    <para>
+      The variable <literal>$date</literal> referes to the date and time of the
+      recorded sample. It cannot be compare to anything else directly, but
+      there are some helper functions to extract calendar information out of it.
+      All dates are evaluated in local time.
+    </para>
+    <para>
+      Expression <literal>format $date</literal> evaluates to a string with
+      a date formatted according to ISO 8601, i.e. like "YYYY-MM-DD". The 19th
+      of March 2010 is formatted as "2010-03-19". Formatted date can be compared
+      to strings. Formatted dates may be useful to tag particular date ranges.
+    </para>
+    <para>
+      Expression <literal>month $date</literal> evaluates to an integer, from 1
+      to 12, corresponding to the month number. Expression <literal>year
+      $date</literal> evaluates to an integer which is a year number.
+      Expression <literal>day of month $date</literal> evaluates to an integer,
+      from 1 to 31, corresponding to the day of month.
+      Expression <literal>day of week $date</literal> evaluates to an integer,
+      from 1 to 7, corresponding to the day of week, Monday is 1, Sunday is 7.
+      These expressions can be compared to integers.
+    </para>
+
+    <para>
+      Expressions can be compared to literal values with <literal>==</literal>
+      (equal), <literal>/=</literal> (not equal), <literal>&lt;</literal>,
+      <literal>&lt;=</literal>, <literal>&gt;=</literal>,
+      <literal>&gt;</literal> operators. String expressions
+      (<literal>$program</literal>, <literal>$title</literal>) can be matched
+      against regular expressions with <literal>=~</literal> operator.
+    </para>
+
+    <para>Regular expressions are written either between slashes
+       (<literal>/</literal> regular expression <literal>/</literal>),
+       or after a letter <literal>m</literal> followed by any symbol
+       (<literal>m</literal> <emphasis>c</emphasis> regular expression <emphasis>c</emphasis>, where <emphasis>c</emphasis> is any symbol).
+       The second appearance of that symbol ends the expression.
+       You can find both variants in <xref linkend="catex"/>.
+    </para>
+
+    <para>Complex conditions may be constructed from the simpler ones,
+      using Boolean AND (<literal>&amp;&amp;</literal>), OR
+      (<literal>||</literal>), and NOT (<literal>!</literal>) functions and
+      parentheses.
+    </para>
+
+  </sect2>
 
   <sect2>
     <title>The syntax</title>
     <para>
-    The file <filename>categorize.cfg</filename> is a plain text file.
-    Whitespace is insignificant and Haskell-style comments are allowed. A formal
-    grammar is provided in <xref linkend="grammar"/>.
+    <emphasis>This section is outdated. Please read the source code
+    to see the up-to-date grammar of the configuration file.</emphasis>
+    </para>
+    <para>
+    <filename>categorize.cfg</filename> is a plain text file.
+    Whitespace is insignificant and Haskell-style comments are allowed.
+    A formal grammar is provided in <xref linkend="grammar"/>.
     </para>
 
     <figure id="grammar">
@@ -285,75 +435,7 @@ $ runhaskell Setup.hs install</screen>
         expressions.
       </para>
   </sect2>
-  <sect2>
-    <title>The semantics</title>
-    <para>
-      A data sample consists of the time of recording, the time passed since the
-      user’s last action and the list of windows. Per window, the following
-      information is available:
-      <itemizedlist>
-        <listitem><simpara>the window title</simpara></listitem>
-        <listitem><simpara>the program name</simpara></listitem>
-        <listitem><simpara>whether the window was the active window</simpara></listitem>
-      </itemizedlist>
-      Base on this information, the categorizer will now assign
-      <emphasis>tags</emphasis> to each
-      sample, based on the rules layed out in
-      <filename>categorizer.cfg</filename>.
-    </para>
-
-    <para>
-      The keyword <literal>tag</literal>, usually wrapped in a condition,
-      assigns the tag to the sample. If the tag also contains a
-      <emphasis>category</emphasis>, it will only be assigned if no other tag of that
-      category is present. This means that for each sample and each category,
-      there can only be one tag of that category. Tags can contain references to
-      matches done of regular expressions in conditions. Remark that characters
-      other than letters or dashes will be substituted to underscores.
-    </para>
-
-    <para>
-      The variable <literal>$idle</literal> contains the idle time of the user,
-      measured in seconds. Usually, it is used to assign the tag
-      <literal>inactive</literal>, which is handled specially by
-      <command>arbtt-stats</command>, as can be seen in <xref linkend="catex"/>.
-    </para>
-
-    <para>
-      While applying the conditions and rules, the categorizer has a notion of
-      the <emphasis>window in scope</emphasis>, and the variables
-      <literal>$title</literal>, <literal>$program</literal> and
-      <literal>$active</literal> always refer to the window in scope. At first,
-      no window is in scope. Only when evaluating a condition wrapped in
-      <literal>current window</literal> or <literal>any window</literal>, this
-      changes.
-    </para>
-
-    <para>
-      For <literal>current window</literal>, the currently active window is in
-      scope. If there is no such window, the condition is false.
-    </para>
-    
-    <para>
-      For <literal>any window</literal>, the condition is applied to each
-      window, in turn, and if any of the windows matches, the result is true. If
-      more than one window matches it is not defined from which match the
-      variables <literal>$1</literal>... are take from.
-    </para>
-
-    <para>
-      The variable <literal>$time</literal> refers to the time-of-day of the
-      sample (i.e. the time since 0:00 that day), while
-      <literal>$sampleage</literal> refers to the
-      time span from when the sample was created until now, the time of
-      evaluating the statistics. The latter variable is especially useful when
-      passed to the <option>--filter</option> option of
-      <command>arbtt-stats</command>.
-      They can be compared with expressions of the
-      type "hh:mm", for example
-      <programlisting>$time >=  8:00 &amp;&amp; $time &lt; 12:00 ==> tag time-of-day:morning</programlisting>
-    </para>
-  </sect2>
+  
 </sect1>
 
 <sect1 id="references">
