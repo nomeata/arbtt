@@ -1,3 +1,5 @@
 #!/bin/bash
 
-blackbox-test -i in -s .case
+cd `dirname $0`
+
+blackbox-test
