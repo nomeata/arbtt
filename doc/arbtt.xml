@@ -15,19 +15,19 @@
       <email>mail@joachim-breitner.de</email>
       <contrib>Main author of arbtt</contrib>
     </author>
-    <author>
+    <author id="sergey">
       <firstname>Sergey</firstname>
       <surname>Astanin</surname>
       <email>s.astanin@gmail.com</email>
       <contrib>Contributor</contrib>
     </author>
-    <author>
+    <author id="martin">
       <firstname>Martin</firstname>
       <surname>Kiefel</surname>
       <email>mk@nopw.de</email>
       <contrib>Contributor</contrib>
     </author>
-    <author>
+    <author id="muharem">
       <firstname>Muharem</firstname>
       <surname>Hrnjadovic</surname>
       <email>muharem@linux.com</email>
@@ -996,7 +996,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   </para>
 
   <sect2>
-    <title>Version 0.5 (UNRELEASED)</title>
+    <title>Version 0.5 (The ZuriHac-Release) (UNRELEASED)</title>
     <itemizedlist>
       <listitem>
 	<para>New command <command>arbtt-import</command>, which imports the output from <command>arbtt-dump</command>.
@@ -1005,6 +1005,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <listitem>
         <para>The command <command>arbtt-stats</command> now supports the
         <option>--logfile</option> and <option>--categorizefile</option> as well.
+        (<xref linkend="martin"/>)
         </para>
       </listitem>
       <listitem>
@@ -1012,11 +1013,18 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           The command <command>arbtt-stats</command> now supports the csv
           (comma-separated values) and tsv (TAB-separated values) report output
           formats in addition to text.
+          (<xref linkend="muharem"/>)
         </para>
       </listitem>
       <listitem>
         <para>
 	  Unicode is handled correctly in regular expressions.
+	</para>
+      </listitem>
+      <listitem>
+        <para>
+	  Improved date-handling functions for <filename>categorize.cfg</filename>.
+          (<xref linkend="sergey"/>)
 	</para>
       </listitem>
     </itemizedlist>
