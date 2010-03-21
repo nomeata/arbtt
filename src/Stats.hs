@@ -214,22 +214,25 @@ piechartOfValues dats =
 renderReportCSV (ListOfFields title dats) = 
     error ("\"" ++ title ++ "\"" ++ " not supported for comma-separated output format")
 
-renderReportCSV (ListOfTimePercValues title dats) = 
-    unlines $ map (injectDelimiter ",") (listOfValues dats)
+renderReportCSV (ListOfTimePercValues _ dats) = 
+    renderWithDelimiter "," (listOfValues dats)
 
 renderReportCSV (PieChartOfTimePercValues _ dats) = 
-    unlines $ map (injectDelimiter ",") (piechartOfValues dats)
+    renderWithDelimiter "," (piechartOfValues dats)
 
 -- The reporting of "General Information" is not supported for the
 -- TAB-separated output format.
 renderReportTSV (ListOfFields title dats) = 
     error ("\"" ++ title ++ "\"" ++ " not supported for TAB-separated output format")
 
-renderReportTSV (ListOfTimePercValues title dats) = 
-    unlines $ map (injectDelimiter "\t") (listOfValues dats)
+renderReportTSV (ListOfTimePercValues _ dats) = 
+    renderWithDelimiter "\t" (listOfValues dats)
 
 renderReportTSV (PieChartOfTimePercValues _ dats) = 
-    unlines $ map (injectDelimiter "\t") (piechartOfValues dats)
+    renderWithDelimiter "\t" (piechartOfValues dats)
+
+renderWithDelimiter delim datasource =
+    unlines $ map (injectDelimiter delim) datasource
 
 injectDelimiter d = concat . intersperse d
 
