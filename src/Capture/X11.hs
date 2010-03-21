@@ -9,7 +9,7 @@ import Control.Applicative
 import Data.Maybe
 import Data.Time.Clock
 import System.IO
-import qualified Data.Text as T
+import qualified Data.MyText as T
 
 import System.Locale.SetLocale
 import Graphics.X11.XScreenSaver (getXIdleTime, compiledWithXScreenSaver)

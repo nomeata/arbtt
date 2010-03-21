@@ -5,8 +5,8 @@ import Data
 
 import qualified Text.Regex.PCRE.Light.Text as RE
 import qualified Data.Map as M
-import qualified Data.Text as T
-import Data.Text (Text)
+import qualified Data.MyText as T
+import Data.MyText (Text)
 import Control.Monad
 import Control.Monad.Instances
 

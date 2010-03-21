@@ -14,10 +14,8 @@ import Control.Monad
 import Control.Applicative ((<$>))
 import Data.List
 import Data.ByteString.Lazy (ByteString)
-import qualified Data.Text as T
-import Data.Text (Text)
-import Data.Text.Encoding (decodeUtf8, decodeUtf8With, encodeUtf8)
-import Data.Text.Encoding.Error
+import qualified Data.MyText as T
+import Data.MyText (Text, decodeUtf8, encodeUtf8)
 import Debug.Trace
 
 class StringReferencingBinary a => ListOfStringable a where
@@ -65,10 +63,6 @@ ls_getMany strs n = go [] n
                  x `seq` go (x:xs) (i-1)
 {-# INLINE ls_getMany #-}
 
-
-instance Binary Text where
-        put = put . T.unpack
-        get = T.pack <$> get
 
 instance StringReferencingBinary Text where
         ls_put strs s = case elemIndex s strs of

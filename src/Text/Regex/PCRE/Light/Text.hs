@@ -67,9 +67,8 @@ module Text.Regex.PCRE.Light.Text (
 
     ) where
 
-import qualified Data.Text as T
-import Data.Text.Encoding (decodeUtf8, encodeUtf8)
-import Data.Text (Text)
+import qualified Data.MyText as T
+import Data.MyText (Text, decodeUtf8, encodeUtf8)
 import qualified Text.Regex.PCRE.Light as S
 import Text.Regex.PCRE.Light hiding (match, compile, compileM)
 

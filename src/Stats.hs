@@ -8,7 +8,7 @@ import Data.Ord
 import Text.Printf
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Data.Text (Text)
+import Data.MyText (Text)
 
 import Data
 import Categorize
