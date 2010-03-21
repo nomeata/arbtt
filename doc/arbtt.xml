@@ -1006,11 +1006,18 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <para>The command <command>arbtt-stats</command> now supports the
         <option>--logfile</option> and <option>--categorizefile</option> as well.
         </para>
+      </listitem>
+      <listitem>
         <para>
           The command <command>arbtt-stats</command> now supports the csv
           (comma-separated values) and tsv (TAB-separated values) report output
           formats in addition to text.
         </para>
+      </listitem>
+      <listitem>
+        <para>
+	  Unicode is handled correctly in regular expressions.
+	</para>
       </listitem>
     </itemizedlist>
   </sect2>
