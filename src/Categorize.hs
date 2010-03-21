@@ -3,8 +3,10 @@ module Categorize where
 
 import Data
 
-import qualified Text.Regex.PCRE.Light.String as RE
+import qualified Text.Regex.PCRE.Light.Text as RE
 import qualified Data.Map as M
+import qualified Data.Text as T
+import Data.Text (Text)
 import Control.Monad
 import Control.Monad.Instances
 
@@ -36,24 +38,24 @@ data Ctx = Ctx
         { cNow :: TimeLogEntry CaptureData
         , cPast :: [TimeLogEntry CaptureData]
         , cFuture :: [TimeLogEntry CaptureData]
-        , cWindowInScope :: Maybe (Bool, String, String)
-        , cSubsts :: [String]
+        , cWindowInScope :: Maybe (Bool, Text, Text)
+        , cSubsts :: [Text]
         , cCurrentTime :: UTCTime
         , cTimeZone :: TimeZone
         }
   deriving (Show)
 
-type Cond = CtxFun [String]
+type Cond = CtxFun [Text]
 
 type CtxFun a = Ctx -> Maybe a
 
 data CondPrim
-        = CondString (CtxFun String)
+        = CondString (CtxFun Text)
         | CondRegex (CtxFun RE.Regex)
         | CondInteger (CtxFun Integer)
         | CondTime (CtxFun NominalDiffTime)
         | CondDate (CtxFun UTCTime)
-        | CondCond (CtxFun [String])
+        | CondCond (CtxFun [Text])
 
 newtype Cmp = Cmp (forall a. Ord a => a -> a -> Bool)
 
@@ -105,15 +107,15 @@ parseAliasSpecs :: Parser (ActivityData -> ActivityData)
 parseAliasSpecs = do as <- sepEndBy1 parseAliasSpec (comma lang)
                      return $ \ad -> foldr doAlias ad as
 
-doAlias :: (String, String) -> ActivityData -> ActivityData
+doAlias :: (Text, Text) -> ActivityData -> ActivityData
 doAlias (s1,s2) = map go
   where go (Activity cat tag) = Activity (if cat == Just s1 then Just s2 else cat)
                                          (if tag == s1 then s2 else tag)
 
-parseAliasSpec :: Parser (String, String)
-parseAliasSpec = do s1 <- stringLiteral lang
+parseAliasSpec :: Parser (Text, Text)
+parseAliasSpec = do s1 <- T.pack <$> stringLiteral lang
                     reservedOp lang "->"
-                    s2 <- stringLiteral lang
+                    s2 <- T.pack <$> stringLiteral lang
                     return (s1,s2)
 
 parseRulesBody :: Parser Rule
@@ -291,7 +293,7 @@ formatDate :: CondPrim -> Erring CondPrim
 formatDate (CondDate df) = Right $ CondString $ \ctx ->
   let tz = cTimeZone ctx
       local = utcToLocalTime tz `liftM` df ctx
-   in formatTime defaultTimeLocale (iso8601DateFormat Nothing) `liftM` local
+   in T.pack . formatTime defaultTimeLocale (iso8601DateFormat Nothing) <$> local
 formatDate cp = Left $ printf
   "Cannot format an expression of type %s, only $date." (cpType cp)
 
@@ -330,7 +332,7 @@ parseCondPrim = choice
               ] <?> "variable"
         , do regex <- parseRegex <?> "regular expression"
              return $ CondRegex (const (Just regex))
-        , do str <- stringLiteral lang <?> "string"
+        , do str <- T.pack <$> stringLiteral lang <?> "string"
              return $ CondString (const (Just str))
         , try $ do time <- parseTime <?> "time" -- backtrack here, it might have been a number
                    return $ CondTime (const (Just time))
@@ -370,7 +372,7 @@ parseCondPrim = choice
 -}
 
 parseRegex :: Parser RE.Regex
-parseRegex = fmap (flip RE.compile []) $ lexeme lang $ choice
+parseRegex = fmap (flip RE.compile [] . T.pack) $ lexeme lang $ choice
         [ between (char '/') (char '/') (many1 (noneOf "/"))
         , do char 'm'
              c <- anyChar
@@ -407,14 +409,14 @@ parseSetTag = lexeme lang $ do
                                             return $ Activity Nothing tag
                         ]
 
-replaceForbidden :: Maybe String -> Maybe String
-replaceForbidden = liftM $ map go
+replaceForbidden :: Maybe Text -> Maybe Text
+replaceForbidden = liftM $ T.map go
   where
     go c | isLetter c    = c
          | c `elem` "-_" = c
          | otherwise     = '_'
 
-parseTagPart :: Parser (Ctx -> Maybe String)
+parseTagPart :: Parser (Ctx -> Maybe Text)
 parseTagPart = do parts <- many1 (choice
                         [ do char '$'
                              choice
@@ -424,16 +426,16 @@ parseTagPart = do parts <- many1 (choice
                                     return $ getVar varname
                                ] <?> "variable"
                         , do s <- many1 (alphaNum <|> oneOf "-_")
-                             return $ const (Just s)
+                             return $ const (Just (T.pack s))
                         ])
-                  return $ (fmap concat . sequence) <$> sequence parts
+                  return $ (fmap T.concat . sequence) <$> sequence parts
 
 ifThenElse :: Cond -> Rule -> Rule -> Rule
 ifThenElse cond r1 r2 = do res <- cond
                            case res of 
                             Just substs -> r1 . setSubsts substs
                             Nothing -> r2
-  where setSubsts :: [String] -> Ctx -> Ctx
+  where setSubsts :: [Text] -> Ctx -> Ctx
         setSubsts substs ctx = ctx { cSubsts = substs }
         
 
@@ -446,10 +448,10 @@ matchFirst rules = takeFirst <$> sequence rules
         takeFirst (x:xs) = x
 
 
-getBackref :: Integer -> CtxFun String
+getBackref :: Integer -> CtxFun Text
 getBackref n ctx = listToMaybe (drop (fromIntegral n-1) (cSubsts ctx))
 
-getVar :: String -> CtxFun String
+getVar :: String -> CtxFun Text
 getVar v ctx | "current" `isPrefixOf` v = do
                 let var = drop (length "current.") v
                 win <- findActive $ cWindows (tlData (cNow ctx))
@@ -477,13 +479,8 @@ getTimeVar "sampleage" ctx = Just $ cCurrentTime ctx `diffUTCTime` tlTime (cNow 
 getDateVar :: String -> CtxFun UTCTime
 getDateVar "date" ctx = Just $ tlTime (cNow ctx)
 
-checkEq :: String -> String -> Cond
-checkEq varname str ctx = do s <- getVar varname ctx
-                             [] `justIf` (s == str)
-
 findActive :: [(Bool, t, t1)] -> Maybe (Bool, t, t1)
 findActive = find (\(a,_,_) -> a)                                 
-
 
 checkActive :: Cond
 checkActive ctx = do (a,_,_) <- cWindowInScope ctx

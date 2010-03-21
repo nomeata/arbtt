@@ -8,12 +8,13 @@ import Data.Ord
 import Text.Printf
 import qualified Data.Map as M
 import qualified Data.Set as S
+import Data.Text (Text)
 
 import Data
 import Categorize
 
 
-data Report = GeneralInfos | TotalTime | Category String | EachCategory
+data Report = GeneralInfos | TotalTime | Category Text | EachCategory
         deriving (Show, Eq)
 
 data Filter = Exclude Activity | Only Activity | AlsoInactive | GeneralCond String
@@ -122,7 +123,7 @@ reportToTable opts (Calculations {..}) r = case r of
                 sortBy (comparing snd) $
                 M.toList sums
         
-        Category cat -> PieChartOfTimePercValues ("Statistics for category " ++ cat) $
+        Category cat -> PieChartOfTimePercValues ("Statistics for category " ++ show cat) $
                 let filteredSums = M.filterWithKey (\a _ -> isCategory cat a) sums
                     uncategorizedTime = totalTimeSel - M.fold (+) 0 filteredSums
                     tooSmallSums = M.filter (\t -> realToFrac t / realToFrac totalTimeSel * 100 < minPercentage) filteredSums

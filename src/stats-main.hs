@@ -7,6 +7,7 @@ import System.Exit
 import System.IO
 import Control.Monad
 import qualified Data.Map as M
+import qualified Data.Text as T
 import Data.List
 import Data.Ord
 import Data.Time
@@ -74,7 +75,7 @@ options =
               (NoArg (Report TotalTime))
               "show total time for each tag"
      , Option "c"       ["category"]
-              (ReqArg (Report . Category) "CATEGORY")
+              (ReqArg (Report . Category . T.pack) "CATEGORY")
               "show statistics about category CATEGORY"
      , Option ""        ["each-category"]
               (NoArg (Report EachCategory))

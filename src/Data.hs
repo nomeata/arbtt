@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Data where
 
 import Data.Time
@@ -9,6 +10,8 @@ import Data.Binary
 import Data.Binary.Put
 import Data.Binary.Get
 import Data.Binary.StringRef
+import qualified Data.Text as T
+import Data.Text (Text)
 import Control.Applicative
 import Control.Monad
 
@@ -24,7 +27,7 @@ instance Functor TimeLogEntry where
         fmap f tl = tl { tlData = f (tlData tl) }
         
 data CaptureData = CaptureData
-        { cWindows :: [ (Bool, String, String) ]
+        { cWindows :: [ (Bool, Text, Text) ]
                 -- ^ Active window, window title, programm name
         , cLastActivity :: Integer -- ^ in milli-seconds
         }
@@ -34,7 +37,7 @@ type ActivityData = [Activity]
 
 data Activity = Activity 
         { activityCategory :: Maybe Category
-        , activityName :: String
+        , activityName :: Text
         }
   deriving (Ord, Eq)
 
@@ -42,17 +45,17 @@ data Activity = Activity
 inactiveActivity = Activity Nothing "inactive"
 
 instance Show Activity where
- show (Activity mbC t) = maybe "" (++":") mbC ++ t
+ show (Activity mbC t) = maybe "" ((++":").T.unpack) mbC ++ (T.unpack t)
 
 instance Read Activity where
  readPrec = readP_to_Prec $ \_ ->
                    (do cat <- munch1 (/= ':')
                        char ':'
                        tag <- many1 ReadP.get
-                       return $ Activity (Just cat) tag)
-                   <++ (Activity Nothing `fmap` many1 ReadP.get)
+                       return $ Activity (Just (T.pack cat)) (T.pack tag))
+                   <++ (Activity Nothing . T.pack <$> many1 ReadP.get)
 
-type Category = String
+type Category = Text
 
 isCategory :: Category -> Activity -> Bool
 isCategory cat (Activity (Just cat') _) = cat == cat'
@@ -113,4 +116,3 @@ getMany n = go [] n
                  -- (>>=)
                  x `seq` go (x:xs) (i-1)
 {-# INLINE getMany #-}
-
