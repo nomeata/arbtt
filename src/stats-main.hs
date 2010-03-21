@@ -7,6 +7,8 @@ import System.Exit
 import System.IO
 import Control.Monad
 import qualified Data.Map as M
+import qualified Data.MyText as T
+import Data.Char (toLower)
 import Data.List
 import Data.Ord
 import Data.Time
