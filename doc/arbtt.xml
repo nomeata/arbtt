@@ -587,8 +587,16 @@ $ runhaskell Setup.hs install</screen>
             <term><option>-m</option> <replaceable>PERCENTAGE</replaceable></term>
             <term><option>--min-percentage</option> <replaceable>PERCENTAGE</replaceable></term>
             <listitem><para>
-              In the reports, any tag which occurs rarer than the given
-              percentage is ignored. The default value is 1.
+              Ignore tags whose percentage is less than the value specified
+              here. Default percentage: 1%.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--output-format</option> <replaceable>FORMAT</replaceable></term>
+            <listitem><para>
+              Specify the report output format, may be one of: text, csv
+              (comma-separated values), tsv (TAB-separated values).
+              Default format: text.
             </para></listitem>
           </varlistentry>
         </variablelist>
@@ -990,6 +998,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <listitem>
         <para>The command <command>arbtt-stats</command> now supports the
         <option>--logfile</option> and <option>--categorizefile</option> as well.
+        </para>
+        <para>
+          The command <command>arbtt-stats</command> now supports the csv
+          (comma-separated values) and tsv (TAB-separated values) report output
+          formats in addition to text.
         </para>
       </listitem>
     </itemizedlist>
