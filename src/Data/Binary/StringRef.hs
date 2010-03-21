@@ -11,17 +11,23 @@ import Data.Binary
 import Data.Binary.Put
 import Data.Binary.Get
 import Control.Monad
+import Control.Applicative ((<$>))
 import Data.List
 import Data.ByteString.Lazy (ByteString)
+import qualified Data.Text as T
+import Data.Text (Text)
+import Data.Text.Encoding (decodeUtf8, decodeUtf8With, encodeUtf8)
+import Data.Text.Encoding.Error
+import Debug.Trace
 
 class StringReferencingBinary a => ListOfStringable a where
-  listOfStrings :: a -> [String]
+  listOfStrings :: a -> [Text]
 
 -- | An extended version of Binary that passes the list of strings of the
 -- previous sample
 class StringReferencingBinary a where
- ls_put :: [String] -> a -> Put
- ls_get :: [String] -> Get a
+ ls_put :: [Text] -> a -> Put
+ ls_get :: [Text] -> Get a
 
 ------------------------------------------------------------------------
 -- Instances for the first few tuples
@@ -49,7 +55,7 @@ instance StringReferencingBinary a => StringReferencingBinary [a] where
                         ls_getMany strs n
 
 -- | 'ls_get strsMany n' ls_get strs 'n' elements in order, without blowing the stack.
-ls_getMany :: StringReferencingBinary a => [String] -> Int -> Get [a]
+ls_getMany :: StringReferencingBinary a => [Text] -> Int -> Get [a]
 ls_getMany strs n = go [] n
  where
     go xs 0 = return $! reverse xs
@@ -59,7 +65,12 @@ ls_getMany strs n = go [] n
                  x `seq` go (x:xs) (i-1)
 {-# INLINE ls_getMany #-}
 
-instance StringReferencingBinary String where
+
+instance Binary Text where
+        put = put . T.unpack
+        get = T.pack <$> get
+
+instance StringReferencingBinary Text where
         ls_put strs s = case elemIndex s strs of
                 Just i | 0 <= i && i  < 255 - 2 ->
                         put (fromIntegral (succ i) :: Word8)
@@ -81,13 +92,13 @@ instance StringReferencingBinary Int  where { ls_put _ = put; ls_get _ = get }
 instance StringReferencingBinary Integer  where { ls_put _ = put; ls_get _ = get }
 instance StringReferencingBinary Bool  where { ls_put _ = put; ls_get _ = get }
 
-ls_encode :: StringReferencingBinary a => [String] -> a -> ByteString
+ls_encode :: StringReferencingBinary a => [Text] -> a -> ByteString
 ls_encode strs = runPut . ls_put strs
 {-# INLINE ls_encode #-}
 
 -- | Decode a value from a lazy ByteString, reconstructing the original structure.
 --
-ls_decode :: StringReferencingBinary a => [String] -> ByteString -> a
+ls_decode :: StringReferencingBinary a => [Text] -> ByteString -> a
 ls_decode strs = runGet (ls_get strs)
 
 

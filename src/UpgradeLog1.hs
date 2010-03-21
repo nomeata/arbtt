@@ -6,6 +6,7 @@ import Data.Time
 import Control.Applicative
 import Control.Monad
 import System.Directory
+import qualified Data.Text as T
 
 import TimeLog (writeTimeLog)
 import qualified Data as D
@@ -56,6 +57,6 @@ upgrade :: TimeLog CaptureData -> D.TimeLog D.CaptureData
 upgrade = map $ \(TimeLogEntry a b c) -> D.TimeLogEntry a b (upgradeCD c)
 
 upgradeCD :: CaptureData -> D.CaptureData
-upgradeCD (CaptureData a b) = D.CaptureData a b
+upgradeCD (CaptureData a b) = D.CaptureData (map (\(b,s1,s2) -> (b, T.pack s1, T.pack s2)) a) b
 
 

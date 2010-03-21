@@ -30,7 +30,7 @@ executable arbtt-capture
     main-is:            capture-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, filepath, directory, mtl, time, utf8-string,
+        base == 4.*, filepath, directory, mtl, time, utf8-string, text,
         bytestring, binary
     other-modules:
         Data
@@ -63,7 +63,7 @@ executable arbtt-stats
     main-is:            stats-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, parsec == 2.*, containers, pcre-light, old-locale
+        base == 4.*, parsec == 2.*, containers, pcre-light, old-locale, text
     other-modules:
         Data
         Data.Binary.StringRef
@@ -72,7 +72,7 @@ executable arbtt-stats
         TimeLog
         Stats
         Text.ParserCombinators.Parsec.ExprFail
-        Text.Regex.PCRE.Light.String
+        Text.Regex.PCRE.Light.Text
     if os(windows) 
         cpp-options:    -DWIN32
     else
@@ -99,7 +99,7 @@ executable arbtt-import
     main-is:            import-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, parsec == 2.*, containers
+        base == 4.*, parsec == 2.*, containers, text
     other-modules:
         Data
         Data.Binary.StringRef
@@ -115,7 +115,7 @@ executable arbtt-recover
     main-is:            recover-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, parsec == 2.*, containers
+        base == 4.*, parsec == 2.*, containers, text
     other-modules:
         Data
         Data.Binary.StringRef

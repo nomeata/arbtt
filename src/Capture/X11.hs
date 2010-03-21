@@ -9,6 +9,7 @@ import Control.Applicative
 import Data.Maybe
 import Data.Time.Clock
 import System.IO
+import qualified Data.Text as T
 
 import System.Locale.SetLocale
 import Graphics.X11.XScreenSaver (getXIdleTime, compiledWithXScreenSaver)
@@ -42,7 +43,10 @@ captureData = do
         (fsubwin,_) <- getInputFocus dpy
         fwin <- followTreeUntil dpy (`elem` wins) fsubwin
 
-        winData <- mapM (\w -> (,,) (w == fwin) <$> getWindowTitle dpy w <*> getProgramName dpy w) wins
+        winData <- forM wins $ \w -> (,,)
+            (w == fwin) <$>
+            (T.pack <$> getWindowTitle dpy w) <*>
+            (T.pack <$> getProgramName dpy w)
 
         it <- fromIntegral `fmap` getXIdleTime dpy
 
