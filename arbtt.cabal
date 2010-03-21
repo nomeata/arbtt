@@ -1,5 +1,5 @@
 name:               arbtt
-version:            0.4.5.1
+version:            0.5
 license:            GPL
 license-file:       LICENSE
 category:           Desktop
@@ -7,7 +7,7 @@ cabal-version:      >= 1.6
 build-type:         Simple
 author:             Joachim Breitner <mail@joachim-breitner.de>
 maintainer:         Joachim Breitner <mail@joachim-breitner.de>
-copyright:          Joachim Breitner 2009
+copyright:          Joachim Breitner 2009-2010
 synopsis:           Automatic Rule-Based Time Tracker
 description:
     arbtt is a background daemon that stores which windows are open, which one
@@ -34,6 +34,7 @@ executable arbtt-capture
         bytestring, binary
     other-modules:
         Data
+        Data.MyText
         Data.Binary.StringRef
         CommonStartup
         Capture
@@ -66,6 +67,7 @@ executable arbtt-stats
         base == 4.*, parsec == 2.*, containers, pcre-light, old-locale
     other-modules:
         Data
+        Data.MyText
         Data.Binary.StringRef
         CommonStartup
         Categorize
@@ -86,6 +88,7 @@ executable arbtt-dump
         base == 4.*, parsec == 2.*, containers
     other-modules:
         Data
+        Data.MyText
         Data.Binary.StringRef
         CommonStartup
         TimeLog
@@ -102,6 +105,7 @@ executable arbtt-import
         base == 4.*, parsec == 2.*, containers
     other-modules:
         Data
+        Data.MyText
         Data.Binary.StringRef
         CommonStartup
         TimeLog
@@ -118,6 +122,7 @@ executable arbtt-recover
         base == 4.*, parsec == 2.*, containers
     other-modules:
         Data
+        Data.MyText
         Data.Binary.StringRef
         CommonStartup
         TimeLog
