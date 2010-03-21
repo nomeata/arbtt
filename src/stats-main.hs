@@ -89,8 +89,9 @@ options =
 readReportFormat arg =
     case (tolower arg) of
         "text" -> RFText
-        "csv" -> RFCSV
-        "tsv" -> RFTSV
+        "csv"  -> RFCSV
+        "tsv"  -> RFTSV
+        _      -> error ("Unsupported report output format: '" ++ arg ++ "'")
     where
         tolower = map toLower
 
