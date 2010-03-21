@@ -7,7 +7,6 @@ import System.Exit
 import System.IO
 import Control.Monad
 import qualified Data.Map as M
-import qualified Data.MyText as T
 import Data.List
 import Data.Ord
 import Data.Time
@@ -81,10 +80,17 @@ options =
               (NoArg (Report EachCategory))
               "show statistics about each category found"
      , Option ""       ["output-format"]
-              (ReqArg (ReportOption . OutputFormat . read) "FORMAT")
-              "one of: Text, CSV (comma-separated\nvalues), TSV (TAB-separated values,\ndefault: Text)"
+              (ReqArg (ReportOption . OutputFormat . readReportFormat) "FORMAT")
+              "one of: text, csv (comma-separated\nvalues), tsv (TAB-separated values,\ndefault: Text)"
      ]
 
+readReportFormat arg =
+    case (tolower arg) of
+        "text" -> RFText
+        "csv" -> RFCSV
+        "tsv" -> RFTSV
+    where
+        tolower = map toLower
 
 main = do
   commonStartup

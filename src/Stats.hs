@@ -22,8 +22,8 @@ data Filter = Exclude Activity | Only Activity | AlsoInactive | GeneralCond Stri
 
 -- Supported report output formats: text, comma-separated values and
 -- tab-separated values
-data ReportFormat = Text | CSV | TSV
-        deriving (Show, Eq, Read)
+data ReportFormat = RFText | RFCSV | RFTSV
+        deriving (Show, Eq)
 
 data ReportOption = MinPercentage Double | OutputFormat ReportFormat
         deriving (Show, Eq)
@@ -179,12 +179,12 @@ doRender opts reportdata = results
     where
         results =
             case outputformat of
-                Text -> renderReportText reportdata
-                CSV -> renderReportCSV reportdata
-                TSV -> renderReportTSV reportdata
+                RFText -> renderReportText reportdata
+                RFCSV -> renderReportCSV reportdata
+                RFTSV -> renderReportTSV reportdata
         outputformat =
             case formats of
-                [] -> Text
+                [] -> RFText
                 _  -> last formats
         formats = mapMaybe pickFormats opts
         pickFormats o = case o of
