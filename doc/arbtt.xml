@@ -283,10 +283,6 @@ $ runhaskell Setup.hs install</screen>
   <sect2>
     <title>The syntax</title>
     <para>
-    <emphasis>This section is outdated. Please read the source code
-    to see the up-to-date grammar of the configuration file.</emphasis>
-    </para>
-    <para>
     <filename>categorize.cfg</filename> is a plain text file.
     Whitespace is insignificant and Haskell-style comments are allowed.
     A formal grammar is provided in <xref linkend="grammar"/>.
@@ -345,23 +341,48 @@ $ runhaskell Setup.hs install</screen>
                  <nonterminal def="#g-cond"/> <quote>||</quote> <nonterminal
                  def="#g-cond"/>
             </rhs>
-            <rhs> <quote>$</quote> <nonterminal def="#g-svar"/>
-              <quote>==</quote> String |
-              <quote>$</quote> <nonterminal def="#g-svar"/>
-              <quote>/=</quote> String
-            </rhs>
-            <rhs> <quote>$</quote> <nonterminal def="#g-svar"/>
-              <quote>=~</quote> <nonterminal def="#g-regex"/></rhs>
-            <rhs> <quote>$</quote> <nonterminal def="#g-nvar"/>
-              <nonterminal def="#g-cmpop"/> Number
-            </rhs>
-            <rhs> <quote>$</quote> <nonterminal def="#g-tvar"/>
-              <nonterminal def="#g-cmpop"/> <nonterminal def="#g-tspec"/>
-            </rhs>
-            <rhs> <quote>$</quote> <nonterminal def="#g-bvar"/>
-            </rhs>
+	    <rhs> <quote>$active</quote> </rhs>
+            <rhs> <nonterminal def="#g-string"/> <nonterminal def="#g-cmpop"/>
+	   	 <nonterminal def="#g-string"/> </rhs>
+            <rhs> <nonterminal def="#g-string"/> <quote>=~</quote>
+	    	 <nonterminal def="#g-regex"/></rhs>
+            <rhs> <nonterminal def="#g-number"/> <nonterminal def="#g-cmpop"/>
+	   	 <nonterminal def="#g-number"/> </rhs>
+            <rhs> <nonterminal def="#g-timediff"/> <nonterminal def="#g-cmpop"/>
+	   	 <nonterminal def="#g-timediff"/> </rhs>
             <rhs> <quote>current window</quote> <nonterminal def="#g-cond"/> </rhs>
             <rhs> <quote>any window</quote> <nonterminal def="#g-cond"/> </rhs>
+	  </production>
+
+	  <production id="g-string">
+	    <lhs>String</lhs>
+	    <rhs> <quote>$title</quote> </rhs>
+	    <rhs> <quote>$program</quote> </rhs>
+	    <rhs> <quote>format</quote> <nonterminal def="#g-date" /> </rhs>
+	    <rhs> <quote>"</quote> string literal <quote>"</quote> </rhs>
+	  </production>
+
+	  <production id="g-number">
+	    <lhs>Number</lhs>
+	    <rhs> <quote>$idle</quote> </rhs>
+	    <rhs> <quote>day</quote> <nonterminal def="#g-date" /> </rhs>
+	    <rhs> <quote>month</quote> <nonterminal def="#g-date" /> </rhs>
+	    <rhs> <quote>year</quote> <nonterminal def="#g-date" /> </rhs>
+	    <rhs> number literal </rhs>
+	  </production>
+
+	  <production id="g-date">
+	    <lhs>Date</lhs>
+	    <rhs> <quote>$date</quote> </rhs>
+	    <!-- <rhs> <quote>$now</quote> </rhs> -->
+	  </production>
+
+	  <production id="g-timediff">
+	    <lhs>TimeDiff</lhs>
+	    <rhs> <quote>$time</quote> </rhs>
+	    <rhs> <quote>$sampleage</quote> </rhs>
+	    <!-- <rhs> <nonterminal def="#g-date"/> <quote>-</quote> <nonterminal def="#g-date"/></rhs> -->
+            <rhs>[ Digit ] Digit <quote>:</quote> Digit Digit</rhs>
 	  </production>
 
           <production id="g-tag">
@@ -382,31 +403,6 @@ $ runhaskell Setup.hs install</screen>
             <lhs>CmpOp</lhs>
             <rhs><quote>&lt;=</quote> | <quote>&lt;</quote> | <quote>==</quote>
             | <quote>&gt;</quote> | <quote>&gt;=</quote></rhs>
-          </production>
-
-          <production id="g-svar">
-            <lhs>StringVariable</lhs>
-            <rhs><quote>title</quote> | <quote>program</quote></rhs>
-          </production>
-
-          <production id="g-nvar">
-            <lhs>NumericVariable</lhs>
-            <rhs><quote>idle</quote></rhs>
-          </production>
-
-          <production id="g-bvar">
-            <lhs>BooleanVariable</lhs>
-            <rhs><quote>active</quote></rhs>
-          </production>
-
-          <production id="g-tvar">
-            <lhs>TimeVariable</lhs>
-            <rhs><quote>time</quote> | <quote>sampleage</quote></rhs>
-          </production>
-
-          <production id="g-tspec">
-            <lhs>TimeSpecification</lhs>
-            <rhs>[ Digit ] Digit <quote>:</quote> Digit Digit</rhs>
           </production>
 
 	</productionset>
