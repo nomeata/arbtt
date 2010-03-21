@@ -960,10 +960,8 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
   </para>
 
   <para>
-    arbtt does not have a bug tracker or other project infrastructure yet. If
-    you have bug reports, suggestions or questions, please send an email to
-    <ulink
-    url="mailto:mail@joachim-breitner.de">mail@joachim-breitner.de</ulink>.
+    arbtt does not have a bug tracker yet. If you have bug reports, suggestions
+    or questions, please send an email to the arbtt mailing list at <ulink url="mailto:arbtt@lists.nomeata.de">arbtt@lists.nomeata.de</ulink>, which you can subscribe at <ulink url="http://lists.nomeata.de/mailman/listinfo/arbtt">http://lists.nomeata.de/mailman/listinfo/arbtt</ulink>.
   </para>
 
   <sect2>
