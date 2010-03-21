@@ -371,7 +371,8 @@ $ runhaskell Setup.hs install</screen>
 	  <production id="g-number">
 	    <lhs>Number</lhs>
 	    <rhs> <quote>$idle</quote> </rhs>
-	    <rhs> <quote>day</quote> <nonterminal def="#g-date" /> </rhs>
+	    <rhs> <quote>day of week</quote> <nonterminal def="#g-date" /> </rhs>
+	    <rhs> <quote>day of month</quote> <nonterminal def="#g-date" /> </rhs>
 	    <rhs> <quote>month</quote> <nonterminal def="#g-date" /> </rhs>
 	    <rhs> <quote>year</quote> <nonterminal def="#g-date" /> </rhs>
 	    <rhs> number literal </rhs>
