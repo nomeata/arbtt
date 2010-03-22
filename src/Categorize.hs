@@ -419,9 +419,9 @@ replaceForbidden = liftM $ T.map go
 parseTagPart :: Parser (Ctx -> Maybe Text)
 parseTagPart = do parts <- many1 (choice
                         [ do char '$'
-                             choice
+                             (replaceForbidden . ) <$> choice
                                [ do num <- natural lang
-                                    return $ replaceForbidden . getBackref num
+                                    return $ getBackref num
                                , do varname <- many1 (letter <|> oneOf ".")
                                     return $ getVar varname
                                ] <?> "variable"
