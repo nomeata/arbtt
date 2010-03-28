@@ -6,18 +6,12 @@ import System.Environment
 import System.Exit
 import System.IO
 import Control.Monad
-import qualified Data.Map as M
 import qualified Data.MyText as T
 import Data.Char (toLower)
-import Data.List
-import Data.Ord
-import Data.Time
 import Text.Printf
-import Data.Maybe
 import Data.Version (showVersion)
 
 import TimeLog
-import Data
 import Categorize
 import Stats
 import CommonStartup
@@ -43,6 +37,7 @@ defaultOptions dir = Options
     , optCategorizeFile = dir </> "categorize.cfg"
     }
     
+versionStr, header :: String
 versionStr = "arbtt-stats " ++ showVersion version
 header = "Usage: arbtt-stats [OPTIONS...]"
 
@@ -108,6 +103,7 @@ options =
               "one of: text, csv (comma-separated values), tsv (TAB-separated values) (default: Text)"
      ]
 
+readReportFormat :: String -> ReportFormat
 readReportFormat arg =
     case (tolower arg) of
         "text" -> RFText
@@ -117,6 +113,7 @@ readReportFormat arg =
     where
         tolower = map toLower
 
+main :: IO ()
 main = do
   commonStartup
   args <- getArgs
