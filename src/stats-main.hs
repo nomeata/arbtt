@@ -141,7 +141,7 @@ main = do
       
   let filters = (if optAlsoInactive flags then id else (defaultFilter:)) $ optFilters flags
   let tags = applyFilters filters allTags
-  let reps = case optReports flags of {[] -> [TotalTime]; reps -> reps }
+  let reps = case optReports flags of {[] -> [TotalTime]; reps -> reverse reps }
 
   -- These are defined here, but of course only evaluated when any report
   -- refers to them. Some are needed by more than one report, which is then
