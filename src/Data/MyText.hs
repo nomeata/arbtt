@@ -4,11 +4,18 @@ import qualified Data.ByteString.UTF8 as BSU
 import qualified Data.ByteString as BS
 import Data.Binary
 import Control.Applicative ((<$>))
+import Control.Arrow (first)
 import Prelude hiding (length, map)
 import qualified Prelude
 import GHC.Exts( IsString(..) )
 
-newtype Text = Text { toBytestring :: BSU.ByteString } deriving (Eq, Ord, Show, Read)
+newtype Text = Text { toBytestring :: BSU.ByteString } deriving (Eq, Ord)
+
+instance Show Text where
+    showsPrec i t = showsPrec i (toBytestring t)
+
+instance Read Text where
+    readsPrec i s = Prelude.map (first Text) $ readsPrec i s 
 
 instance IsString Text where
     fromString = pack
