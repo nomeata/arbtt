@@ -24,65 +24,87 @@ import CommonStartup
 
 import Paths_arbtt (version)
 
-data Flag = Help | Version |
-        Report Report |
-        Filter Filter |
-        ReportOption ReportOption |
-        LogFile String |
-        CategorizeFile String
-        deriving Eq
+data Options = Options
+    { optReports :: [Report]
+    , optFilters :: [Filter]
+    , optAlsoInactive :: Bool
+    , optReportOptions :: ReportOptions
+    , optLogFile :: String
+    , optCategorizeFile :: String
+    }
 
-getReports = mapMaybe (\f -> case f of {Report r -> Just r; _ -> Nothing})
-getFilters = mapMaybe (\f -> case f of {Filter f -> Just f; _ -> Nothing})
-getRepOpts = mapMaybe (\f -> case f of {ReportOption o -> Just o; _ -> Nothing})
-
+defaultOptions :: FilePath -> Options
+defaultOptions dir = Options
+    { optReports = []
+    , optFilters = []
+    , optAlsoInactive = False
+    , optReportOptions = defaultReportOptions
+    , optLogFile = dir </> "capture.log"
+    , optCategorizeFile = dir </> "categorize.cfg"
+    }
+    
 versionStr = "arbtt-stats " ++ showVersion version
 header = "Usage: arbtt-stats [OPTIONS...]"
 
-options :: [OptDescr Flag]
+options :: [OptDescr (Options -> IO Options)]
 options =
      [ Option "h?"      ["help"]
-              (NoArg Help)
+              (NoArg $ \_ -> do
+                    hPutStr stderr (usageInfo header options)
+                    exitSuccess
+              )
               "show this help"
      , Option "V"       ["version"]
-              (NoArg Version)
+              (NoArg $ \_ -> do
+                    hPutStrLn stderr versionStr
+                    exitSuccess
+              )
               "show the version number"
 --     , Option ['g']     ["graphical"] (NoArg Graphical)    "render the reports as graphical charts"
      , Option ""      ["logfile"]
-               (ReqArg LogFile "FILE")
+              (ReqArg (\arg opt -> return opt { optLogFile = arg }) "FILE")
                "use this file instead of ~/.arbtt/capture.log"
      , Option ""      ["categorizefile"]
-               (ReqArg CategorizeFile "FILE")
+              (ReqArg (\arg opt -> return opt { optCategorizeFile = arg }) "FILE")
                "use this file instead of ~/.arbtt/categorize.cfg"
      , Option "x"       ["exclude"]
-              (ReqArg (Filter . Exclude . read) "TAG")
+              (ReqArg (\arg opt -> let filters = Exclude (read arg) : optFilters opt
+                                   in  return opt { optFilters = filters }) "TAG")
               "ignore samples containing this tag"
      , Option "o"       ["only"]
-              (ReqArg (Filter . Only . read) "TAG")
+              (ReqArg (\arg opt -> let filters = Only (read arg) : optFilters opt
+                                   in  return opt { optFilters = filters }) "TAG")
               "only consider samples containing this tag"
      , Option ""        ["also-inactive"]
-              (NoArg (Filter AlsoInactive))
+              (NoArg (\opt ->      return opt { optAlsoInactive = True }))
               "include samples with the tag \"inactive\""
      , Option "f"       ["filter"]
-              (ReqArg (Filter . GeneralCond) "COND")
+              (ReqArg (\arg opt -> let filters = GeneralCond arg : optFilters opt
+                                   in  return opt { optFilters = filters }) "COND")
               "only consider samples matching the condition"
      , Option "m"       ["min-percentage"]
-              (ReqArg (ReportOption . MinPercentage . read) "PERC")
+              (ReqArg (\arg opt -> let ro = (optReportOptions opt) { roMinPercentage = read arg}
+                                   in  return opt { optReportOptions = ro }) "COND")
               "do not show tags with a percentage lower than PERC% (default: 1)"
      , Option "i"       ["information"]
-              (NoArg (Report GeneralInfos))
+              (NoArg (\opt ->      let reports = GeneralInfos : optReports opt
+                                   in  return opt { optReports = reports }))
               "show general statistics about the data"
      , Option "t"       ["total-time"]
-              (NoArg (Report TotalTime))
+              (NoArg (\opt ->      let reports = TotalTime : optReports opt
+                                   in  return opt { optReports = reports }))
               "show total time for each tag"
      , Option "c"       ["category"]
-              (ReqArg (Report . Category . T.pack) "CATEGORY")
+              (ReqArg (\arg opt -> let reports = Category (T.pack arg) : optReports opt
+                                   in  return opt { optReports = reports }) "CATEGORY")
               "show statistics about category CATEGORY"
      , Option ""        ["each-category"]
-              (NoArg (Report EachCategory))
+              (NoArg (\opt ->      let reports = EachCategory : optReports opt
+                                   in  return opt { optReports = reports }))
               "show statistics about each category found"
      , Option ""       ["output-format"]
-              (ReqArg (ReportOption . OutputFormat . readReportFormat) "FORMAT")
+              (ReqArg (\arg opt -> let ro = (optReportOptions opt) { roReportFormat = readReportFormat arg }
+                                   in  return opt { optReportOptions = ro }) "FORMAT")
               "one of: text, csv (comma-separated values), tsv (TAB-separated values) (default: Text)"
      ]
 
@@ -98,53 +120,38 @@ readReportFormat arg =
 main = do
   commonStartup
   args <- getArgs
-  flags <- case getOpt Permute options args of
-          (o,[],[]) | Help `notElem` o  && Version `notElem` o -> return o
-          (o,_,_) | Version `elem` o -> do
-                hPutStrLn stderr versionStr
-                exitSuccess
-          (o,_,_) | Help `elem` o -> do
-                hPutStr stderr (usageInfo header options)
-                exitSuccess
+  actions <- case getOpt Permute options args of
+          (o,[],[])  -> return o
           (_,_,errs) -> do
                 hPutStr stderr (concat errs ++ usageInfo header options)
                 exitFailure
 
   dir <- getAppUserDataDirectory "arbtt"
+  flags <- foldl (>>=) (return (defaultOptions dir)) actions
 
-  let captureFilename =
-        fromMaybe (dir </> "capture.log") $ listToMaybe $
-        mapMaybe (\f -> case f of { LogFile f -> Just f; _ -> Nothing}) $
-        flags
-
-  let categorizeFilename =
-        fromMaybe (dir </> "categorize.cfg") $ listToMaybe $
-        mapMaybe
-          (\f -> case f of { CategorizeFile f -> Just f; _ -> Nothing}) $
-        flags
-
-  fileEx <- doesFileExist categorizeFilename
+  fileEx <- doesFileExist (optCategorizeFile flags)
   unless fileEx $ do
-     putStrLn $ printf "Configuration file %s does not exist." categorizeFilename
+     putStrLn $ printf "Configuration file %s does not exist." (optCategorizeFile flags)
      putStrLn "Please see the example file and the README for more details"
      exitFailure
-  categorizer <- readCategorizer categorizeFilename
+  categorizer <- readCategorizer (optCategorizeFile flags)
 
-  captures <- readTimeLog captureFilename
+  captures <- readTimeLog (optLogFile flags)
   let allTags = categorizer captures
   when (null allTags) $ do
      putStrLn "Nothing recorded yet"
      exitFailure
       
-  let tags = applyFilters (getFilters flags) allTags
-  let reps = case getReports flags of {[] -> [TotalTime]; reps -> reps }
+  let filters = (if optAlsoInactive flags then id else (defaultFilter:)) $ optFilters flags
+  let tags = applyFilters filters allTags
+  let reps = case optReports flags of {[] -> [TotalTime]; reps -> reps }
 
   -- These are defined here, but of course only evaluated when any report
   -- refers to them. Some are needed by more than one report, which is then
   -- advantageous.
   let c = prepareCalculations allTags tags
   
-  putReports (getRepOpts flags) c reps
+  putReports (optReportOptions flags) c reps
 
 {-
 import Data.Accessor

@@ -17,7 +17,7 @@ import Categorize
 data Report = GeneralInfos | TotalTime | Category Text | EachCategory
         deriving (Show, Eq)
 
-data Filter = Exclude Activity | Only Activity | AlsoInactive | GeneralCond String
+data Filter = Exclude Activity | Only Activity | GeneralCond String
         deriving (Show, Eq)
 
 -- Supported report output formats: text, comma-separated values and
@@ -25,8 +25,16 @@ data Filter = Exclude Activity | Only Activity | AlsoInactive | GeneralCond Stri
 data ReportFormat = RFText | RFCSV | RFTSV
         deriving (Show, Eq)
 
-data ReportOption = MinPercentage Double | OutputFormat ReportFormat
+data ReportOptions = ReportOptions
+    { roMinPercentage :: Double
+    , roReportFormat :: ReportFormat
+    }
         deriving (Show, Eq)
+
+defaultReportOptions = ReportOptions
+    { roMinPercentage = 1
+    , roReportFormat = RFText
+    }
 
 -- Data format semantically representing the result of a report, including the
 -- title
@@ -41,14 +49,13 @@ applyFilters filters tle =
         foldr (\flag -> case flag of 
                                 Exclude act  -> excludeTag act
                                 Only act     -> onlyTag act
-                                AlsoInactive -> id
                                 GeneralCond s-> applyCond s 
-        ) (if AlsoInactive `elem` filters then tle else defaultFilter tle) filters
+        ) tle filters
 
 
 excludeTag act = filter (notElem act . snd . tlData)
 onlyTag act = filter (elem act . snd . tlData)
-defaultFilter = excludeTag inactiveActivity
+defaultFilter = Exclude inactiveActivity
 
 -- | to be used lazily, to re-use computation when generating more than one
 -- report at a time
@@ -95,14 +102,14 @@ listCategories = S.toList . foldr go S.empty
           where go' (Activity (Just cat) _) = S.insert cat
                 go' _                       = id
 
-putReports :: [ReportOption] -> Calculations -> [Report] -> IO ()
+putReports :: ReportOptions -> Calculations -> [Report] -> IO ()
 putReports opts c = sequence_ . intersperse (putStrLn "") . map (putReport opts c) 
 
-putReport :: [ReportOption] -> Calculations -> Report -> IO ()
+putReport :: ReportOptions -> Calculations -> Report -> IO ()
 putReport opts c EachCategory = putReports opts c (map Category (listCategories (tags c)))
 putReport opts c r = renderReport opts $ reportToTable opts c r
 
-reportToTable :: [ReportOption] -> Calculations -> Report -> ReportResults
+reportToTable :: ReportOptions -> Calculations -> Report -> ReportResults
 reportToTable opts (Calculations {..}) r = case r of
         GeneralInfos -> ListOfFields "General Information" $
                 [ ("FirstRecord", show firstDate)
@@ -118,7 +125,7 @@ reportToTable opts (Calculations {..}) r = case r of
         TotalTime -> ListOfTimePercValues "Total time per tag" $
                 mapMaybe (\(tag,time) ->
                       let perc = realToFrac time/realToFrac totalTimeSel in
-                      if perc*100 >= minPercentage
+                      if perc*100 >= roMinPercentage opts
                       then Just $ ( show tag
                                   , showTimeDiff time
                                   , perc)
@@ -131,13 +138,13 @@ reportToTable opts (Calculations {..}) r = case r of
         Category cat -> PieChartOfTimePercValues ("Statistics for category " ++ show cat) $
                 let filteredSums = M.filterWithKey (\a _ -> isCategory cat a) sums
                     uncategorizedTime = totalTimeSel - M.fold (+) 0 filteredSums
-                    tooSmallSums = M.filter (\t -> realToFrac t / realToFrac totalTimeSel * 100 < minPercentage) filteredSums
+                    tooSmallSums = M.filter (\t -> realToFrac t / realToFrac totalTimeSel * 100 < roMinPercentage opts) filteredSums
                     tooSmallTimes = M.fold (+) 0 tooSmallSums
                 in
 
                 mapMaybe (\(tag,time) ->
                       let perc = realToFrac time/realToFrac totalTimeSel in
-                      if perc*100 >= minPercentage
+                      if perc*100 >= roMinPercentage opts
                       then Just ( show tag
                                 , showTimeDiff time
                                 , perc)
@@ -161,35 +168,15 @@ reportToTable opts (Calculations {..}) r = case r of
                       )]
                 else []
                 )
-    where
-        minPercentage = 
-            case pvalues of
-                [] -> 1
-                _  -> last pvalues
-        pvalues = mapMaybe pickPercentage opts
-        pickPercentage o = case o of
-            MinPercentage m -> Just m
-            _ -> Nothing
 
 renderReport opts reportdata = do
     let results = doRender opts reportdata
     putStr results
 
-doRender opts reportdata = results
-    where
-        results =
-            case outputformat of
+doRender opts reportdata = case roReportFormat opts of
                 RFText -> renderReportText reportdata
                 RFCSV -> renderReportCSV reportdata
                 RFTSV -> renderReportTSV reportdata
-        outputformat =
-            case formats of
-                [] -> RFText
-                _  -> last formats
-        formats = mapMaybe pickFormats opts
-        pickFormats o = case o of
-            OutputFormat f -> Just f
-            _ -> Nothing
 
 renderReportText (ListOfFields title dats) = 
     underline title ++
