@@ -549,7 +549,7 @@ $ runhaskell Setup.hs install</screen>
         <listitem><simpara>shows the version number, and exists.</simpara></listitem>
         </varlistentry>
         <varlistentry>
-        <term><option>--logfile</option></term>
+        <term><option>--logfile</option> <replaceable>FILE</replaceable></term>
         <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
         </varlistentry>
         <varlistentry>
@@ -730,6 +730,11 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <term><option>--rate</option> <replaceable>RATE</replaceable></term>
         <listitem><simpara>sets the sample rate in seconds (default: 60)</simpara></listitem>
         </varlistentry>
+        <varlistentry>
+        <term><option>-f</option> <replaceable>FILE</replaceable></term>
+        <term><option>--logfile</option> <replaceable>FILE</replaceable></term>
+        <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
+        </varlistentry>
       </variablelist>
     </refsect1>
     <refsect1><title>Files</title>
@@ -791,8 +796,8 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <listitem><simpara>shows the version number, and exists.</simpara></listitem>
 	</varlistentry>
         <varlistentry>
-        <term><option>-f</option></term>
-        <term><option>--logfile</option></term>
+        <term><option>-f</option> <replaceable>FILE</replaceable></term>
+        <term><option>--logfile</option> <replaceable>FILE</replaceable></term>
         <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
         </varlistentry>
       </variablelist>
@@ -855,8 +860,8 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <listitem><simpara>shows the version number, and exists.</simpara></listitem>
 	</varlistentry>
         <varlistentry>
-        <term><option>-f</option></term>
-        <term><option>--logfile</option></term>
+        <term><option>-f</option> <replaceable>FILE</replaceable></term>
+        <term><option>--logfile</option> <replaceable>FILE</replaceable></term>
         <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
         </varlistentry>
       </variablelist>
@@ -991,6 +996,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   <para>
   The version history with changes relevant for the user are documented here.
   </para>
+  
+  <sect2>
+    <title>Version 0.5.1 (UNRELEASED)</title>
+    <itemizedlist>
+      <listitem>
+        <para>The command <command>arbtt-capture</command> now supports the
+        <option>--logfile</option>.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
 
   <sect2>
     <title>Version 0.5 (The ZuriHac-Release)</title>
