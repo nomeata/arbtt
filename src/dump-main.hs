@@ -16,46 +16,48 @@ import CommonStartup
 
 import Paths_arbtt (version)
 
-data Flag = Help | Version | LogFile String
-        deriving Eq
+data Options = Options
+    { optLogFile :: String
+    }
+
+defaultOptions dir = Options
+    { optLogFile = dir </> "capture.log"
+    }
+
 
 versionStr = "arbtt-dump " ++ showVersion version
 header = "Usage: arbtt-dump [OPTIONS...]"
 
-options :: [OptDescr Flag]
+options :: [OptDescr (Options -> IO Options)]
 options =
      [ Option "h?"     ["help"]
-              (NoArg Help)
+              (NoArg $ \_ -> do
+                    hPutStr stderr (usageInfo header options)
+                    exitSuccess
+              )
               "show this help"
      , Option "V"      ["version"]
-              (NoArg Version)
+              (NoArg $ \_ -> do
+                    hPutStrLn stderr versionStr
+                    exitSuccess
+              )
               "show the version number"
      , Option "f"      ["logfile"]
-               (ReqArg LogFile "FILE")
+              (ReqArg (\arg opt -> return opt { optLogFile = arg }) "FILE")
                "use this file instead of ~/.arbtt/capture.log"
      ]
-
 
 main = do
   commonStartup
   args <- getArgs
-  flags <- case getOpt Permute options args of
-          (o,[],[]) | Help `notElem` o  && Version `notElem` o -> return o
-          (o,_,_) | Version `elem` o -> do
-                hPutStrLn stderr versionStr
-                exitSuccess
-          (o,_,_) | Help `elem` o -> do
-                hPutStr stderr (usageInfo header options)
-                exitSuccess
+  actions <- case getOpt Permute options args of
+          (o,[],[])  -> return o
           (_,_,errs) -> do
                 hPutStr stderr (concat errs ++ usageInfo header options)
                 exitFailure
 
   dir <- getAppUserDataDirectory "arbtt"
-
-  let captureFilename =
-        fromMaybe (dir </> "capture.log") $ listToMaybe $
-        mapMaybe (\f -> case f of { LogFile f -> Just f; _ -> Nothing}) $
-        flags
-  captures <- readTimeLog captureFilename :: IO (TimeLog CaptureData)
+  flags <- foldl (>>=) (return (defaultOptions dir)) actions
+  
+  captures <- readTimeLog (optLogFile flags) :: IO (TimeLog CaptureData)
   mapM_ print captures

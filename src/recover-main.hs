@@ -16,54 +16,53 @@ import CommonStartup
 
 import Paths_arbtt (version)
 
-data Flag = Help | Version | InFile String | OutFile String
-        deriving Eq
+data Options = Options
+    { optInFile :: String
+    , optOutFile :: String
+    }
+
+defaultOptions dir = Options
+    { optInFile = dir </> "capture.log"
+    , optOutFile = dir </> "capture.log.recovered"
+    }
+
 
 versionStr = "arbtt-recover " ++ showVersion version
 header = "Usage: arbtt-recover [OPTIONS...]"
 
-options :: [OptDescr Flag]
+options :: [OptDescr (Options -> IO Options)]
 options =
      [ Option "h?"     ["help"]
-              (NoArg Help)
+              (NoArg $ \_ -> do
+                    hPutStr stderr (usageInfo header options)
+                    exitSuccess
+              )
               "show this help"
      , Option "V"      ["version"]
-              (NoArg Version)
+              (NoArg $ \_ -> do
+                    hPutStrLn stderr versionStr
+                    exitSuccess
+              )
               "show the version number"
      , Option "i"      ["infile"]
-               (ReqArg InFile "FILE")
-               "read from this file instead of ~/.arbtt/capture.log"
+              (ReqArg (\arg opt -> return opt { optInFile = arg }) "FILE")
+              "read from this file instead of ~/.arbtt/capture.log"
      , Option "o"      ["outfile"]
-               (ReqArg OutFile "FILE")
-               "write to this file instead of ~/.arbtt/capture.log.recovered"
+              (ReqArg (\arg opt -> return opt { optOutFile = arg }) "FILE")
+              "write to this file instead of ~/.arbtt/capture.log.recovered"
      ]
 
 
 main = do
   commonStartup
   args <- getArgs
-  flags <- case getOpt Permute options args of
-          (o,[],[]) | Help `notElem` o  && Version `notElem` o -> return o
-          (o,_,_) | Version `elem` o -> do
-                hPutStrLn stderr versionStr
-                exitSuccess
-          (o,_,_) | Help `elem` o -> do
-                hPutStr stderr (usageInfo header options)
-                exitSuccess
+  actions <- case getOpt Permute options args of
+          (o,[],[])  -> return o
           (_,_,errs) -> do
                 hPutStr stderr (concat errs ++ usageInfo header options)
                 exitFailure
-
   dir <- getAppUserDataDirectory "arbtt"
+  flags <- foldl (>>=) (return (defaultOptions dir)) actions
 
-  let captureFilename =
-        fromMaybe (dir </> "capture.log") $ listToMaybe $
-        mapMaybe (\f -> case f of { InFile f -> Just f; _ -> Nothing}) $
-        flags
-  let saveFilename =
-        fromMaybe (dir </> "capture.log.recovered") $ listToMaybe $
-        mapMaybe (\f -> case f of { OutFile f -> Just f; _ -> Nothing}) $
-        flags
-
-  captures <- recoverTimeLog captureFilename :: IO (TimeLog CaptureData)
-  writeTimeLog saveFilename captures
+  captures <- recoverTimeLog (optInFile flags) :: IO (TimeLog CaptureData)
+  writeTimeLog (optOutFile flags) captures

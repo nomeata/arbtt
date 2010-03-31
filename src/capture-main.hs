@@ -26,29 +26,41 @@ import CommonStartup
 import Paths_arbtt (version)
 
 
-data Conf = Conf {
-        cSampleRate :: Integer
-        }
-defaultConf = Conf 60
+data Options = Options
+    { optSampleRate :: Integer
+    , optLogFile :: String
+    }
 
-data Opts = Help | Version | SetRate Integer
-        deriving Eq
+defaultOptions :: FilePath -> Options
+defaultOptions dir = Options
+    { optSampleRate = 60
+    , optLogFile = dir </> "capture.log"
+    }
 
 versionStr = "arbtt-capture " ++ showVersion version
 header = "Usage: arbtt-capture [OPTIONS...]"
 
-options :: [OptDescr Opts]
-options = 
+options :: [OptDescr (Options -> IO Options)]
+options =
      [ Option "h?"     ["help"]
-              (NoArg Help)
+              (NoArg $ \_ -> do
+                    hPutStr stderr (usageInfo header options)
+                    exitSuccess
+              )
               "show this help"
      , Option "V"      ["version"]
-              (NoArg Version)
+              (NoArg $ \_ -> do
+                    hPutStrLn stderr versionStr
+                    exitSuccess
+              )
               "show the version number"
+     , Option "f"      ["logfile"]
+              (ReqArg (\arg opt -> return opt { optLogFile = arg }) "FILE")
+               "use this file instead of ~/.arbtt/capture.log"
      , Option "r"      ["sample-rate"]
-              (ReqArg (SetRate . read) "RATE")
+              (ReqArg (\arg opt -> return opt { optSampleRate = read arg }) "RATE")
               "set the sample rate in seconds (default: 60)"
-     ]       
+     ]
 
 -- | This is very raw, someone ought to improve this
 lockFile filename = do
@@ -67,26 +79,17 @@ main = do
     commonStartup
     
     args <- getArgs
-    flags <- case getOpt Permute options args of
-        (o, [], []) | Help `notElem` o && Version `notElem` o -> return o
-        (o, _, _)   | Version `elem` o -> do
-                hPutStrLn stderr versionStr
-                exitSuccess
-        (o, _, _)   | Help `elem` o -> do
-                hPutStr stderr (usageInfo header options)
-                exitSuccess
-        (_,_,errs) -> do
+    actions <- case getOpt Permute options args of
+          (o,[],[])  -> return o
+          (_,_,errs) -> do
                 hPutStr stderr (concat errs ++ usageInfo header options)
                 exitFailure
 
-    let sampleRate = foldr (.) id
-                     (map (\f -> case f of {SetRate r -> const r; _ -> id}) flags)
-                     60
-
     dir <- getAppUserDataDirectory "arbtt"
+    flags <- foldl (>>=) (return (defaultOptions dir)) actions
+
     createDirectoryIfMissing False dir
-    let captureFile = dir </> "capture.log"
-    lockFile captureFile
-    upgradeLogFile1 captureFile
+    lockFile (optLogFile flags)
+    upgradeLogFile1 (optLogFile flags)
     setupCapture
-    runLogger captureFile (sampleRate * 1000) captureData
+    runLogger (optLogFile flags) (optSampleRate flags * 1000) captureData
