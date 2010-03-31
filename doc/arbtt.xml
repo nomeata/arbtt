@@ -12,26 +12,26 @@
     <author>
       <firstname>Joachim</firstname>
       <surname>Breitner</surname>
-      <email>mail@joachim-breitner.de</email>
       <contrib>Main author of arbtt</contrib>
+      <email>mail@joachim-breitner.de</email>
     </author>
     <author id="sergey">
       <firstname>Sergey</firstname>
       <surname>Astanin</surname>
-      <email>s.astanin@gmail.com</email>
       <contrib>Contributor</contrib>
+      <email>s.astanin@gmail.com</email>
     </author>
     <author id="martin">
       <firstname>Martin</firstname>
       <surname>Kiefel</surname>
-      <email>mk@nopw.de</email>
       <contrib>Contributor</contrib>
+      <email>mk@nopw.de</email>
     </author>
     <author id="muharem">
       <firstname>Muharem</firstname>
       <surname>Hrnjadovic</surname>
-      <email>muharem@linux.com</email>
       <contrib>Contributor</contrib>
+      <email>muharem@linux.com</email>
     </author>
   </authorgroup>
 </articleinfo>
@@ -41,11 +41,12 @@
     has the focus and how long since your last action (and possibly more sources
     later), and stores this. It is also a program that will, based on
     expressive rules you specify, derive what you were doing, and what for.
-  </para>
 
-  <warning><para>The log file might contain very sensitive private data. Make sure
+    <warning><para>The log file might contain very sensitive private data. Make sure
+
     you understand the consequences of a full-time logger and be careful with this
     data.</para></warning>
+  </para>
 </abstract>
 
 <sect1 id="installation">
