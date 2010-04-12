@@ -1,4 +1,6 @@
-name: arbtt-import_small
-call: ../dist/build/arbtt-import/arbtt-import -f $outfile
-in: in/small_import.in
-out: out/small_import.out
+tmpRepair = tmp()
+
+name = "arbtt-import_small"
+call = "../dist/build/arbtt-import/arbtt-import -f " .. tmpRepair
+stdin = "in/small_import.in"
+test = {{ type = "file", left = tmpRepair, right = "out/small_import.out" }}

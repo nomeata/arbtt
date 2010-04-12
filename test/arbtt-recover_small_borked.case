@@ -1,0 +1,6 @@
+tmpRecover = tmp()
+
+name = "arbtt-recover_small_borked"
+call = "../dist/build/arbtt-recover/arbtt-recover -i in/small_borked.log -o " .. tmpRecover
+stdin = "/dev/null"
+test = {{ type = "file", left = tmpRecover, right = "out/small_borked_recover.out" }}
