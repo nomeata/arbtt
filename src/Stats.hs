@@ -53,17 +53,25 @@ data ReportResults =
         | ListOfIntervals String [(String,String,String,String)]
 
 
-applyFilters :: [Filter] -> TimeLog (Ctx, ActivityData) -> TimeLog (Ctx, ActivityData)
-applyFilters filters tle = 
-        foldr (\flag -> case flag of 
-                                Exclude act  -> excludeTag act
-                                Only act     -> onlyTag act
-                                GeneralCond s-> applyCond s 
-        ) tle filters
+-- We apply the filters in a way such that consecutive runs of selected samples
+-- are in the same sublist, and sublists are separated by non-selected samples
+applyFilters :: [Filter] -> TimeLog (Ctx, ActivityData) -> [TimeLog (Ctx, ActivityData)]
+applyFilters filters = filterAndSeparate $ \tl ->
+       all (\flag -> case flag of 
+                Exclude act  -> excludeTag act tl
+                Only act     -> onlyTag act tl
+                GeneralCond s-> applyCond s tl) filters
 
-
-excludeTag act = filter (notElem act . snd . tlData)
-onlyTag act = filter (elem act . snd . tlData)
+filterAndSeparate :: (a -> Bool) -> [a] -> [[a]]
+filterAndSeparate pred = fst . go
+  where go [] = ([],True)
+        go (x:xs) = case (go xs,pred x) of
+                    ((rs,     True) , True)  -> ([x]:rs,   False)
+                    (((r:rs), False), True)  -> ((x:r):rs, False)
+                    ((rs,     _)    , False) -> (rs,       True)
+                                
+excludeTag act = notElem act . snd . tlData
+onlyTag act = elem act . snd . tlData
 defaultFilter = Exclude inactiveActivity
 
 -- | to be used lazily, to re-use computation when generating more than one
@@ -79,21 +87,22 @@ data Calculations = Calculations
         , fractionSelRec :: Double
         , sums :: M.Map Activity NominalDiffTime
         , allTags :: TimeLog (Ctx, ActivityData)
-        , tags :: TimeLog (Ctx, ActivityData)
+        -- tags is a list of uninterrupted entries
+        , tags :: [TimeLog (Ctx, ActivityData)]
         }
 
-prepareCalculations :: TimeLog (Ctx, ActivityData) -> TimeLog (Ctx, ActivityData) -> Calculations
+prepareCalculations :: TimeLog (Ctx, ActivityData) -> [TimeLog (Ctx, ActivityData)] -> Calculations
 prepareCalculations allTags tags =
   let c = Calculations
           { firstDate = tlTime (head allTags)
           , lastDate = tlTime (last allTags)
           , timeDiff = diffUTCTime (lastDate c) (firstDate c)
           , totalTimeRec = fromInteger (sum (map tlRate allTags))/1000
-          , totalTimeSel = fromInteger (sum (map tlRate tags))/1000
+          , totalTimeSel = fromInteger (sum (map tlRate (concat tags)))/1000
           , fractionRec = realToFrac (totalTimeRec c) / (realToFrac (timeDiff c))
           , fractionSel = realToFrac (totalTimeSel c) / (realToFrac (timeDiff c))
           , fractionSelRec = realToFrac (totalTimeSel c) / realToFrac (totalTimeRec c)
-          , sums = sumUp tags
+          , sums = sumUp (concat tags)
           , allTags
           , tags
           } in c
@@ -115,7 +124,7 @@ putReports :: ReportOptions -> Calculations -> [Report] -> IO ()
 putReports opts c = sequence_ . intersperse (putStrLn "") . map (putReport opts c) 
 
 putReport :: ReportOptions -> Calculations -> Report -> IO ()
-putReport opts c EachCategory = putReports opts c (map Category (listCategories (tags c)))
+putReport opts c EachCategory = putReports opts c (map Category (listCategories (concat (tags c))))
 putReport opts c r = renderReport opts $ reportToTable opts c r
 
 reportToTable :: ReportOptions -> Calculations -> Report -> ReportResults
@@ -201,8 +210,9 @@ reportToTable opts (Calculations {..}) r = case r of
                         fromIntegral (tlRate (last tles))/1000
                 in (str, firstE, lastE, timeLength)) $
             filter (isJust . tlData . head ) $
-            groupBy ((==) `on` tlData) $
-            (fmap.fmap) (extr . snd) $
+            concat $
+            fmap (groupBy ((==) `on` tlData) .
+                 (fmap.fmap) (extr . snd)) $
             tags
             
             
