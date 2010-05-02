@@ -646,6 +646,16 @@ $ runhaskell Setup.hs install</screen>
             the data.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term><option>--intervals</option> [<replaceable>TAG</replaceable>|<replaceable>CATEGORY</replaceable>:] </term>
+            <listitem><para>This report lists all periods of consecutive time
+            intervals where the given tag has been applied to, or where the
+            given category has the same value.
+            </para>
+            
+            <para>To distinguish tags and categories, the latter have to be
+            entered followed by a colon.</para></listitem>
+          </varlistentry>
         </variablelist>
       </refsect2>
     </refsect1>
@@ -999,11 +1009,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   </para>
   
   <sect2>
-    <title>Version 0.5.1 (UNRELEASED)</title>
+    <title>Version 0.6 (UNRELEASED)</title>
     <itemizedlist>
       <listitem>
         <para>The command <command>arbtt-capture</command> now supports the
         <option>--logfile</option>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>New report “intervals”, available using <command>arbtt-stats</command> <option>--intervals</option>.
         </para>
       </listitem>
     </itemizedlist>
