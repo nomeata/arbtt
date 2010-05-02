@@ -97,6 +97,13 @@ options =
               (NoArg (\opt ->      let reports = EachCategory : optReports opt
                                    in  return opt { optReports = reports }))
               "show statistics about each category found"
+     , Option ""        ["intervals"]
+              (ReqArg (\arg opt -> let report = if last arg == ':'
+                                                then IntervalCategory (T.pack (init arg))
+                                                else IntervalTag (read arg)
+                                       reports = report : optReports opt
+                                   in  return opt { optReports = reports }) "TAG")
+              "list intervals of tag or category TAG"
      , Option ""       ["output-format"]
               (ReqArg (\arg opt -> let ro = (optReportOptions opt) { roReportFormat = readReportFormat arg }
                                    in  return opt { optReportOptions = ro }) "FORMAT")

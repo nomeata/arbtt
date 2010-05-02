@@ -8,13 +8,21 @@ import Data.Ord
 import Text.Printf
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Data.MyText (Text)
+import Data.MyText (Text,unpack)
+import Data.Function (on)
+import System.Locale (defaultTimeLocale)
+
 
 import Data
 import Categorize
 
 
-data Report = GeneralInfos | TotalTime | Category Text | EachCategory
+data Report = GeneralInfos
+    | TotalTime
+    | Category Category
+    | EachCategory
+    | IntervalCategory Category
+    | IntervalTag Activity
         deriving (Show, Eq)
 
 data Filter = Exclude Activity | Only Activity | GeneralCond String
@@ -42,6 +50,7 @@ data ReportResults =
         ListOfFields String [(String, String)]
         | ListOfTimePercValues String [(String, String, Double)]
         | PieChartOfTimePercValues  String [(String, String, Double)]
+        | ListOfIntervals String [(String,String,String,String)]
 
 
 applyFilters :: [Filter] -> TimeLog (Ctx, ActivityData) -> TimeLog (Ctx, ActivityData)
@@ -168,6 +177,35 @@ reportToTable opts (Calculations {..}) r = case r of
                       )]
                 else []
                 )
+        
+        IntervalCategory cat -> intervalReportToTable ("Intervals for category " ++ show cat)
+                                                      (extractCat cat) 
+        IntervalTag tag -> intervalReportToTable ("Intervals for category " ++ show tag)
+                                                 (extractTag tag) 
+
+    where
+        extractCat :: Category -> ActivityData -> Maybe String
+        extractCat cat = fmap (unpack . activityName) . listToMaybe . filter ( (==Just cat) . activityCategory )
+
+        extractTag :: Activity -> ActivityData -> Maybe String
+        extractTag tag = fmap show . listToMaybe . filter ( (==tag) )
+
+        intervalReportToTable :: String -> (ActivityData -> Maybe String) -> ReportResults
+        intervalReportToTable title extr = ListOfIntervals title $
+            map (\tles ->
+                let str = fromJust (tlData (head tles))
+                    firstE = showUtcTime (tlTime (head tles))
+                    lastE = showUtcTime (tlTime (last tles))
+                    timeLength = showTimeDiff $
+                        tlTime (last tles) `diffUTCTime` tlTime (head tles) +
+                        fromIntegral (tlRate (last tles))/1000
+                in (str, firstE, lastE, timeLength)) $
+            filter (isJust . tlData . head ) $
+            groupBy ((==) `on` tlData) $
+            (fmap.fmap) (extr . snd) $
+            tags
+            
+            
 
 renderReport opts reportdata = do
     let results = doRender opts reportdata
@@ -188,6 +226,9 @@ renderReportText (ListOfTimePercValues title dats) =
 renderReportText (PieChartOfTimePercValues title dats) = 
     underline title ++ (tabulate True $ piechartOfValues dats)
 
+renderReportText (ListOfIntervals title dats) = 
+    underline title ++ (tabulate True $ listOfIntervals dats)
+
 listOfValues dats =
     ["Tag","Time","Percentage"] :
     map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
@@ -195,6 +236,10 @@ listOfValues dats =
 piechartOfValues dats =
     ["Tag","Time","Percentage"] :
     map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
+
+listOfIntervals dats =
+    ["Tag","From","Until","Duration"] :
+    map (\(t,f,u,d) -> [t,f,u,d]) dats
 
 -- The reporting of "General Information" is not supported for the
 -- comma-separated output format.
@@ -207,6 +252,9 @@ renderReportCSV (ListOfTimePercValues _ dats) =
 renderReportCSV (PieChartOfTimePercValues _ dats) = 
     renderWithDelimiter "," (piechartOfValues dats)
 
+renderReportCSV (ListOfIntervals title dats) = 
+    renderWithDelimiter "," (listOfIntervals dats)
+
 -- The reporting of "General Information" is not supported for the
 -- TAB-separated output format.
 renderReportTSV (ListOfFields title dats) = 
@@ -217,6 +265,9 @@ renderReportTSV (ListOfTimePercValues _ dats) =
 
 renderReportTSV (PieChartOfTimePercValues _ dats) = 
     renderWithDelimiter "\t" (piechartOfValues dats)
+
+renderReportTSV (ListOfIntervals title dats) = 
+    renderWithDelimiter "\t" (listOfIntervals dats)
 
 renderWithDelimiter delim datasource =
     unlines $ map (injectDelimiter delim) datasource
@@ -245,6 +296,9 @@ showTimeDiff t = go False $ zip [days,hours,mins,secs] ["d","h","m","s"]
         go True  ((a,u):vs)             = printf "%02d%s" a u ++ go True vs
         go False ((a,u):vs) | a > 0     = printf "%2d%s" a u ++ go True vs
                             | otherwise =                       go False vs
+
+showUtcTime :: UTCTime -> String
+showUtcTime = formatTime defaultTimeLocale "%x %X"
 
 underline str = unlines 
     [ str
