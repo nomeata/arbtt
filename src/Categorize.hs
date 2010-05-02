@@ -72,11 +72,11 @@ readCategorizer filename = do
           Right cat -> return $
                 ((fmap . fmap) (mkSecond (postpare . cat)) . prepare time tz)
 
-applyCond :: String -> TimeLog (Ctx, ActivityData) -> TimeLog (Ctx, ActivityData)
+applyCond :: String -> TimeLogEntry (Ctx, ActivityData) -> Bool
 applyCond s = 
         case parse (do {c <- parseCond; eof ; return c}) "commad line parameter" s of
           Left err -> error (show err)
-          Right c    -> filter (isJust . c . fst . tlData)
+          Right c    -> isJust . c . fst . tlData
 
 prepare :: UTCTime -> TimeZone -> TimeLog CaptureData -> TimeLog Ctx
 prepare time tz tl = go' [] tl tl
