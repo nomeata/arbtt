@@ -654,7 +654,15 @@ $ runhaskell Setup.hs install</screen>
             </para>
             
             <para>To distinguish tags and categories, the latter have to be
-            entered followed by a colon.</para></listitem>
+            entered followed by a colon.</para>
+            
+            <para>This report will give wrong results if an activity has been
+            carried out at the end of a session and right at the beginning, as
+            the intermediate time is thought to be part of the interval.
+            Inactive times while <command>arbtt-capture</command> is running
+            will separate the results as expected.</para>
+            
+            </listitem>
           </varlistentry>
         </variablelist>
       </refsect2>
