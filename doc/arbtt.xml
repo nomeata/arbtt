@@ -627,7 +627,7 @@ $ runhaskell Setup.hs install</screen>
           <varlistentry>
             <term><option>-t</option></term>
             <term><option>--total-time</option></term>
-            <listitem><para>For all tag, print the part of the selected time
+            <listitem><para>For all tags, print the part of the selected time
             with this tag applied to, both as an absolute value and a percentage
             of the selected time.
             </para></listitem>
