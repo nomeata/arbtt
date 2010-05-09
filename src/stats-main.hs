@@ -63,13 +63,13 @@ options =
               (ReqArg (\arg opt -> return opt { optCategorizeFile = arg }) "FILE")
                "use this file instead of ~/.arbtt/categorize.cfg"
      , Option "x"       ["exclude"]
-              (ReqArg (\arg opt -> let filters = Exclude (read arg) : optFilters opt
+              (ReqArg (\arg opt -> let filters = Exclude (parseActivityMatcher arg) : optFilters opt
                                    in  return opt { optFilters = filters }) "TAG")
-              "ignore samples containing this tag"
+              "ignore samples containing this tag or category"
      , Option "o"       ["only"]
-              (ReqArg (\arg opt -> let filters = Only (read arg) : optFilters opt
+              (ReqArg (\arg opt -> let filters = Only (parseActivityMatcher arg) : optFilters opt
                                    in  return opt { optFilters = filters }) "TAG")
-              "only consider samples containing this tag"
+              "only consider samples containing this tag or category"
      , Option ""        ["also-inactive"]
               (NoArg (\opt ->      return opt { optAlsoInactive = True }))
               "include samples with the tag \"inactive\""
