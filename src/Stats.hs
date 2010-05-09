@@ -8,7 +8,7 @@ import Data.Ord
 import Text.Printf
 import qualified Data.Map as M
 import qualified Data.Set as S
-import Data.MyText (Text,unpack)
+import Data.MyText (Text,pack,unpack)
 import Data.Function (on)
 import System.Locale (defaultTimeLocale)
 
@@ -25,7 +25,10 @@ data Report = GeneralInfos
     | IntervalTag Activity
         deriving (Show, Eq)
 
-data Filter = Exclude Activity | Only Activity | GeneralCond String
+data Filter = Exclude ActivityMatcher | Only ActivityMatcher | GeneralCond String
+        deriving (Show, Eq)
+
+data ActivityMatcher = MatchActivity Activity | MatchCategory Category
         deriving (Show, Eq)
 
 -- Supported report output formats: text, comma-separated values and
@@ -70,9 +73,17 @@ filterAndSeparate pred = fst . go
                     (((r:rs), False), True)  -> ((x:r):rs, False)
                     ((rs,     _)    , False) -> (rs,       True)
                                 
-excludeTag act = notElem act . snd . tlData
-onlyTag act = elem act . snd . tlData
-defaultFilter = Exclude inactiveActivity
+excludeTag matcher = not . any (matchActivityMatcher matcher) . snd . tlData
+onlyTag matcher = any (matchActivityMatcher matcher) . snd . tlData
+defaultFilter = Exclude (MatchActivity inactiveActivity)
+
+matchActivityMatcher :: ActivityMatcher -> Activity -> Bool
+matchActivityMatcher (MatchActivity act1) act2 = act1 == act2
+matchActivityMatcher (MatchCategory cat) act2 = Just cat == activityCategory act2
+
+parseActivityMatcher :: String -> ActivityMatcher 
+parseActivityMatcher str | last str == ':' = MatchCategory (pack (init str))
+                         | otherwise       = MatchActivity (read str)
 
 -- | to be used lazily, to re-use computation when generating more than one
 -- report at a time

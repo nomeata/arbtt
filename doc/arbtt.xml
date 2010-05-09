@@ -564,13 +564,15 @@ $ runhaskell Setup.hs install</screen>
             <term><option>-x</option> <replaceable>TAG</replaceable></term>
             <term><option>--exclude</option> <replaceable>TAG</replaceable></term>
             <listitem><simpara>Ignore any data samples that have
-            been assigned this tag. Can be given more than once.</simpara></listitem>
+            been assigned this tag or category. To distinguish tags and categories, the latter have to be
+            entered followed by a colon. Can be given more than once.</simpara></listitem>
           </varlistentry>
           <varlistentry>
             <term><option>-o</option> <replaceable>TAG</replaceable></term>
             <term><option>--only</option> <replaceable>TAB</replaceable></term>
             <listitem><simpara>Ignore any data samples that have
-            not been assigned this tag. Can be given more than once.</simpara></listitem>
+            not been assigned this tag. To distinguish tags and categories, the latter have to be
+            entered followed by a colon. Can be given more than once.</simpara></listitem>
           </varlistentry>
           <varlistentry>
             <term><option>--also-inactive</option></term>
@@ -1026,6 +1028,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       </listitem>
       <listitem>
         <para>New report “intervals”, available using <command>arbtt-stats</command> <option>--intervals</option>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>The paramters <option>--exclude</option> and
+        <option>--include</option> of <command>arbtt-stats</command> can match
+        categories as well as tags.
         </para>
       </listitem>
     </itemizedlist>
