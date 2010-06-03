@@ -601,6 +601,26 @@ $ runhaskell Setup.hs install</screen>
             </para></listitem>
           </varlistentry>
           <varlistentry>
+            <term><option>--output-exclude</option> <replaceable>TAG</replaceable></term>
+            <listitem><para>
+              Skip this tag or category when printing statistics. Only affects
+              the reports <option>--total-time</option> and
+              <option>--category</option>. To distinguish tags and categories,
+              the latter have to be entered followed by a colon. Can be given
+              more than once.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--output-only</option> <replaceable>TAG</replaceable></term>
+            <listitem><para>
+              Prints statistics only for the specified tag or category. Only
+              affects the reports <option>--total-time</option> and
+              <option>--category</option>. To distinguish tags and categories,
+              the latter have to be entered followed by a colon. Can be given
+              more than once.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
             <term><option>--output-format</option> <replaceable>FORMAT</replaceable></term>
             <listitem><para>
               Specify the report output format, may be one of: text, csv
@@ -1038,6 +1058,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       </listitem>
       <listitem>
         <para>Bugfix: Numbers in tag names are no longer replaced by an underscore.</para>
+      </listitem>
+      <listitem>
+        <para>New paramters <option>--output-exclude</option> and
+        <option>--output-include</option> of <command>arbtt-stats</command>.
+        </para>
       </listitem>
     </itemizedlist>
   </sect2>
