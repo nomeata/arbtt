@@ -1039,7 +1039,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   </para>
   
   <sect2>
-    <title>Version 0.6 (UNRELEASED)</title>
+    <title>Version 0.6</title>
     <itemizedlist>
       <listitem>
         <para>The command <command>arbtt-capture</command> now supports the
