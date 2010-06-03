@@ -31,6 +31,9 @@ data Filter = Exclude ActivityMatcher | Only ActivityMatcher | GeneralCond Strin
 data ActivityMatcher = MatchActivity Activity | MatchCategory Category
         deriving (Show, Eq)
 
+data ActivityFilter = ExcludeActivity ActivityMatcher | OnlyActivity ActivityMatcher
+        deriving (Show, Eq)
+
 -- Supported report output formats: text, comma-separated values and
 -- tab-separated values
 data ReportFormat = RFText | RFCSV | RFTSV
@@ -39,12 +42,14 @@ data ReportFormat = RFText | RFCSV | RFTSV
 data ReportOptions = ReportOptions
     { roMinPercentage :: Double
     , roReportFormat :: ReportFormat
+    , roActivityFilter :: [ActivityFilter]
     }
         deriving (Show, Eq)
 
 defaultReportOptions = ReportOptions
     { roMinPercentage = 1
     , roReportFormat = RFText
+    , roActivityFilter = []
     }
 
 -- Data format semantically representing the result of a report, including the
@@ -64,6 +69,11 @@ applyFilters filters = filterAndSeparate $ \tl ->
                 Exclude act  -> excludeTag act tl
                 Only act     -> onlyTag act tl
                 GeneralCond s-> applyCond s tl) filters
+
+applyActivityFilter :: [ActivityFilter] -> Activity -> Bool
+applyActivityFilter fs act = all go fs
+    where go (ExcludeActivity matcher) = not (matchActivityMatcher matcher act)
+          go (OnlyActivity matcher)    =      matchActivityMatcher matcher act 
 
 filterAndSeparate :: (a -> Bool) -> [a] -> [[a]]
 filterAndSeparate pred = fst . go
@@ -153,8 +163,9 @@ reportToTable opts (Calculations {..}) r = case r of
 
         TotalTime -> ListOfTimePercValues "Total time per tag" $
                 mapMaybe (\(tag,time) ->
-                      let perc = realToFrac time/realToFrac totalTimeSel in
-                      if perc*100 >= roMinPercentage opts
+                      let perc = realToFrac time/realToFrac totalTimeSel
+                          pick = applyActivityFilter (roActivityFilter opts) tag
+                      in if pick && perc*100 >= roMinPercentage opts
                       then Just $ ( show tag
                                   , showTimeDiff time
                                   , perc)
@@ -172,8 +183,9 @@ reportToTable opts (Calculations {..}) r = case r of
                 in
 
                 mapMaybe (\(tag,time) ->
-                      let perc = realToFrac time/realToFrac totalTimeSel in
-                      if perc*100 >= roMinPercentage opts
+                      let perc = realToFrac time/realToFrac totalTimeSel
+                          pick = applyActivityFilter (roActivityFilter opts) tag
+                      in if pick && perc*100 >= roMinPercentage opts
                       then Just ( show tag
                                 , showTimeDiff time
                                 , perc)

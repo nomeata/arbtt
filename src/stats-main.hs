@@ -81,6 +81,14 @@ options =
               (ReqArg (\arg opt -> let ro = (optReportOptions opt) { roMinPercentage = read arg}
                                    in  return opt { optReportOptions = ro }) "COND")
               "do not show tags with a percentage lower than PERC% (default: 1)"
+     , Option ""        ["output-exclude"]
+              (ReqArg (\arg opt -> let filters = ExcludeActivity (parseActivityMatcher arg) : roActivityFilter (optReportOptions opt)
+                                   in  return opt { optReportOptions = (optReportOptions opt) { roActivityFilter = filters }}) "TAG")
+              "remove these tags from the output"
+     , Option ""        ["output-only"]
+              (ReqArg (\arg opt -> let filters = OnlyActivity (parseActivityMatcher arg) : roActivityFilter (optReportOptions opt)
+                                   in  return opt { optReportOptions = (optReportOptions opt) { roActivityFilter = filters }}) "TAG")
+              "only include these tags in the output"
      , Option "i"       ["information"]
               (NoArg (\opt ->      let reports = GeneralInfos : optReports opt
                                    in  return opt { optReports = reports }))
