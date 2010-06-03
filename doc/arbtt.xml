@@ -1036,6 +1036,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         categories as well as tags.
         </para>
       </listitem>
+      <listitem>
+        <para>Bugfix: Numbers in tag names are no longer replaced by an underscore.</para>
+      </listitem>
     </itemizedlist>
   </sect2>
 

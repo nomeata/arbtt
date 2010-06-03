@@ -412,7 +412,7 @@ parseSetTag = lexeme lang $ do
 replaceForbidden :: Maybe Text -> Maybe Text
 replaceForbidden = liftM $ T.map go
   where
-    go c | isLetter c    = c
+    go c | isAlphaNum c  = c
          | c `elem` "-_" = c
          | otherwise     = '_'
 
