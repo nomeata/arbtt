@@ -8,6 +8,7 @@ import Control.Arrow (first)
 import Prelude hiding (length, map)
 import qualified Prelude
 import GHC.Exts( IsString(..) )
+import Control.DeepSeq
 
 newtype Text = Text { toBytestring :: BSU.ByteString } deriving (Eq, Ord)
 
@@ -24,6 +25,9 @@ instance IsString Text where
 instance Binary Text where
     put = put . unpack
     get = pack <$> get
+
+instance NFData Text where
+    rnf (Text a) = a `seq` ()
 
 length :: Text -> Int
 length (Text bs) = BSU.length bs

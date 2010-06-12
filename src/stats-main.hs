@@ -10,6 +10,7 @@ import qualified Data.MyText as T
 import Data.Char (toLower)
 import Text.Printf
 import Data.Version (showVersion)
+import Control.DeepSeq
 
 import TimeLog
 import Categorize
@@ -149,6 +150,7 @@ main = do
   categorizer <- readCategorizer (optCategorizeFile flags)
 
   captures <- readTimeLog (optLogFile flags)
+  captures `deepseq` return ()
   let allTags = categorizer captures
   when (null allTags) $ do
      putStrLn "Nothing recorded yet"

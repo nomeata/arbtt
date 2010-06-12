@@ -14,6 +14,7 @@ import qualified Data.MyText as T
 import Data.MyText (Text)
 import Control.Applicative
 import Control.Monad
+import Control.DeepSeq
 
 type TimeLog a = [TimeLogEntry a]
 
@@ -25,6 +26,19 @@ data TimeLogEntry a = TimeLogEntry
 
 instance Functor TimeLogEntry where
         fmap f tl = tl { tlData = f (tlData tl) }
+
+instance NFData a => NFData (TimeLogEntry a) where
+    rnf (TimeLogEntry a b c) = a `deepseq` b `deepseq` c `deepseq` ()
+
+instance NFData UTCTime where
+    rnf (UTCTime a b) = a `deepseq` b `deepseq` ()
+    
+instance NFData Day where
+    rnf d = rnf (toModifiedJulianDay d)
+
+instance NFData DiffTime where
+    rnf d = rnf (toRational d)
+    
         
 data CaptureData = CaptureData
         { cWindows :: [ (Bool, Text, Text) ]
@@ -32,6 +46,9 @@ data CaptureData = CaptureData
         , cLastActivity :: Integer -- ^ in milli-seconds
         }
   deriving (Show, Read)
+
+instance NFData CaptureData where
+    rnf (CaptureData a b) = a `deepseq` b `deepseq` ()
 
 type ActivityData = [Activity]
 
