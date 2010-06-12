@@ -31,7 +31,7 @@ executable arbtt-capture
     hs-source-dirs:     src
     build-depends:
         base == 4.*, filepath, directory, mtl, time, utf8-string, 
-        bytestring, binary
+        bytestring, binary, deepseq
     other-modules:
         Data
         Data.MyText
