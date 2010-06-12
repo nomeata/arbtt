@@ -64,7 +64,7 @@ readCategorizer filename = do
         content <- readFile filename
         time <- getCurrentTime
         tz <- getCurrentTimeZone
-        case parse (do {r <- parseRules; eof ; return r}) filename content of
+        case parse (between (return ()) eof parseRules) filename content of
           Left err -> do
                 putStrLn "Parser error:"
                 print err
