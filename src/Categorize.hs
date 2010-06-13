@@ -184,7 +184,7 @@ checkRegex :: CondPrim -> CondPrim -> Erring CondPrim
 checkRegex (CondString getStr) (CondRegex getRegex) = Right $ CondCond $ \ctx -> do
         str <- getStr ctx
         regex <- getRegex ctx
-        tail <$> RE.match regex str []
+        tail <$> RE.match regex str [RE.exec_no_utf8_check]
 checkRegex cp1 cp2 = Left $
         printf "Cannot apply =~ to an expression of type %s and type %s"
                (cpType cp1) (cpType cp2)
