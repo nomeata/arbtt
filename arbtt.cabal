@@ -64,7 +64,7 @@ executable arbtt-stats
     main-is:            stats-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, parsec == 2.*, containers, pcre-light, old-locale
+        base == 4.*, parsec == 3.*, containers, pcre-light, old-locale
     other-modules:
         Data
         Data.MyText
@@ -85,7 +85,7 @@ executable arbtt-dump
     main-is:            dump-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, parsec == 2.*, containers
+        base == 4.*, parsec == 3.*, containers
     other-modules:
         Data
         Data.MyText
@@ -102,7 +102,7 @@ executable arbtt-import
     main-is:            import-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, parsec == 2.*, containers
+        base == 4.*, parsec == 3.*, containers
     other-modules:
         Data
         Data.MyText
@@ -119,7 +119,7 @@ executable arbtt-recover
     main-is:            recover-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, parsec == 2.*, containers
+        base == 4.*, parsec == 3.*, containers
     other-modules:
         Data
         Data.MyText
