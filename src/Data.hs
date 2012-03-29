@@ -30,16 +30,6 @@ instance Functor TimeLogEntry where
 instance NFData a => NFData (TimeLogEntry a) where
     rnf (TimeLogEntry a b c) = a `deepseq` b `deepseq` c `deepseq` ()
 
-instance NFData UTCTime where
-    rnf (UTCTime a b) = a `deepseq` b `deepseq` ()
-    
-instance NFData Day where
-    rnf d = rnf (toModifiedJulianDay d)
-
-instance NFData DiffTime where
-    rnf d = rnf (toRational d)
-    
-        
 data CaptureData = CaptureData
         { cWindows :: [ (Bool, Text, Text) ]
                 -- ^ Active window, window title, programm name
