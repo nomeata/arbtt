@@ -267,7 +267,11 @@ $ runhaskell Setup.hs install</screen>
       <literal>&lt;=</literal>, <literal>&gt;=</literal>,
       <literal>&gt;</literal> operators. String expressions
       (<literal>$program</literal>, <literal>$title</literal>) can be matched
-      against regular expressions with <literal>=~</literal> operator.
+      against regular expressions with <literal>=~</literal> operator. With these
+      operatorions, the right hand side can be a comma-separated list of
+      literals enclosed in square brackets (<literal>[</literal>
+      <emphasis>...</emphasis>, <emphasis>...</emphasis>, <literal>]</literal>), which
+      succeeds if any of them succeeds.
     </para>
 
     <para>Regular expressions are written either between slashes
@@ -350,8 +354,16 @@ $ runhaskell Setup.hs install</screen>
 	    <rhs> <quote>$active</quote> </rhs>
             <rhs> <nonterminal def="#g-string"/> <nonterminal def="#g-cmpop"/>
 	   	 <nonterminal def="#g-string"/> </rhs>
+            <rhs> <nonterminal def="#g-string"/> <nonterminal def="#g-cmpop"/>
+	   	 <quote>[</quote> <nonterminal def="#g-listofstring"/> 
+                 <quote>]</quote>
+                 </rhs> 
             <rhs> <nonterminal def="#g-string"/> <quote>=~</quote>
 	    	 <nonterminal def="#g-regex"/></rhs>
+            <rhs> <nonterminal def="#g-string"/> <quote>=~</quote>
+	   	 <quote>[</quote> <nonterminal def="#g-listofregex"/> 
+                 <quote>]</quote>
+                 </rhs>
             <rhs> <nonterminal def="#g-number"/> <nonterminal def="#g-cmpop"/>
 	   	 <nonterminal def="#g-number"/> </rhs>
             <rhs> <nonterminal def="#g-timediff"/> <nonterminal def="#g-cmpop"/>
@@ -366,6 +378,12 @@ $ runhaskell Setup.hs install</screen>
 	    <rhs> <quote>$program</quote> </rhs>
 	    <rhs> <quote>format</quote> <nonterminal def="#g-date" /> </rhs>
 	    <rhs> <quote>"</quote> string literal <quote>"</quote> </rhs>
+	  </production>
+
+	  <production id="g-listofstring">
+	    <lhs>ListOfString</lhs>
+	    <rhs> <quote>"</quote> string literal <quote>"</quote> </rhs>
+	    <rhs> <quote>"</quote> string literal <quote>"</quote> , <nonterminal def="#g-listofstring"/> </rhs>
 	  </production>
 
 	  <production id="g-number">
@@ -405,6 +423,12 @@ $ runhaskell Setup.hs install</screen>
               <replaceable>c</replaceable> can be any
               character.</lineannotation> </rhs>
           </production>
+
+	  <production id="g-listofregex">
+	    <lhs>ListOfRegex</lhs>
+	    <rhs> <quote>"</quote> <nonterminal def="#g-regex"/> <quote>"</quote> </rhs>
+	    <rhs> <quote>"</quote> <nonterminal def="#g-regex"/> <quote>"</quote> , <nonterminal def="#g-listofregex"/> </rhs>
+	  </production>
 
           <production id="g-cmpop">
             <lhs>CmpOp</lhs>
