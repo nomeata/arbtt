@@ -15,6 +15,7 @@ import Data.Char
 import System.Directory
 import Control.Exception
 import Prelude hiding (catch)
+import Control.DeepSeq
 
 import qualified Data.ByteString.Lazy as BS
 import Data.Maybe
@@ -86,7 +87,7 @@ recoverTimeLog filename = do
                         )
           where strs = maybe [] listOfStrings prev
 
-readTimeLog :: ListOfStringable a => FilePath -> IO (TimeLog a)
+readTimeLog :: (NFData a, ListOfStringable a) => FilePath -> IO (TimeLog a)
 readTimeLog filename = do
         content <- BS.readFile filename
         return $ runGet start content
@@ -98,6 +99,7 @@ readTimeLog filename = do
                         "Timelog starts with unknown marker " ++
                         show (map (chr.fromIntegral) (BS.unpack startString))
         go prev = do v <- ls_get strs
+                     v `deepseq` return ()
                      m <- isEmpty
                      if m then return [v]
                           else (v :) <$> go (Just (tlData v))
