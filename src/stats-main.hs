@@ -151,6 +151,7 @@ main = do
 
   captures <- readTimeLog (optLogFile flags)
   let allTags = categorizer captures
+  -- allTags `deepseq` return ()
   when (null allTags) $ do
      putStrLn "Nothing recorded yet"
      exitFailure
