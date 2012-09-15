@@ -54,6 +54,7 @@ data CondPrim
         | CondTime (CtxFun NominalDiffTime)
         | CondDate (CtxFun UTCTime)
         | CondCond (CtxFun [Text])
+        | CondStringList (CtxFun [Text])
 
 newtype Cmp = Cmp (forall a. Ord a => a -> a -> Bool)
 
@@ -173,6 +174,7 @@ cpType (CondInteger _) = "Integer"
 cpType (CondTime _) = "Time"
 cpType (CondDate _) = "Date"
 cpType (CondCond _) = "Condition"
+cpType (CondStringList _) = "List of Strings"
 
 checkRegex :: CondPrim -> CondPrim -> Erring CondPrim
 checkRegex (CondString getStr) (CondRegex getRegex) = Right $ CondCond $ \ctx -> do
@@ -223,6 +225,11 @@ checkCmp (Cmp (?)) (CondString getS1) (CondString getS2) = Right $ CondCond $ \c
         s1 <- getS1 ctx
         s2 <- getS2 ctx
         guard (s1 ? s2)
+        return []
+checkCmp (Cmp (?)) (CondString getS1) (CondStringList getS2) = Right $ CondCond $ \ctx -> do
+        s1 <- getS1 ctx
+        sl <- getS2 ctx
+        guard (any (s1 ?) sl)
         return []
 checkCmp _ cp1 cp2 = Left $
         printf "Cannot compare expressions of type %s and type %s"
@@ -303,6 +310,9 @@ parseCmp = choice $ map (\(s,o) -> reservedOp lang s >> return o)
 parseCondPrim :: Parser CondPrim
 parseCondPrim = choice
         [ parens lang parseCondExpr
+        , brackets lang (do list <- commaSep1 lang (stringLiteral lang)
+                            return $ CondStringList (const (Just (map T.pack list)))
+            ) <?> "list of strings"
         , char '$' >> choice 
              [ do backref <- natural lang
                   return $ CondString (getBackref backref)
