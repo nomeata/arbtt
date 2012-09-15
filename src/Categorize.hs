@@ -55,6 +55,7 @@ data CondPrim
         | CondDate (CtxFun UTCTime)
         | CondCond (CtxFun [Text])
         | CondStringList (CtxFun [Text])
+        | CondRegexList (CtxFun [RE.Regex])
 
 newtype Cmp = Cmp (forall a. Ord a => a -> a -> Bool)
 
@@ -175,12 +176,17 @@ cpType (CondTime _) = "Time"
 cpType (CondDate _) = "Date"
 cpType (CondCond _) = "Condition"
 cpType (CondStringList _) = "List of Strings"
+cpType (CondRegexList _) = "List of regular expressions"
 
 checkRegex :: CondPrim -> CondPrim -> Erring CondPrim
 checkRegex (CondString getStr) (CondRegex getRegex) = Right $ CondCond $ \ctx -> do
         str <- getStr ctx
         regex <- getRegex ctx
         tail <$> RE.match regex str [RE.exec_no_utf8_check]
+checkRegex (CondString getStr) (CondRegexList getRegexList) = Right $ CondCond $ \ctx -> do
+        str <- getStr ctx
+        regexes <- getRegexList ctx
+        tail <$> msum (map (\regex -> RE.match regex str [RE.exec_no_utf8_check]) regexes)
 checkRegex cp1 cp2 = Left $
         printf "Cannot apply =~ to an expression of type %s and type %s"
                (cpType cp1) (cpType cp2)
@@ -310,9 +316,14 @@ parseCmp = choice $ map (\(s,o) -> reservedOp lang s >> return o)
 parseCondPrim :: Parser CondPrim
 parseCondPrim = choice
         [ parens lang parseCondExpr
-        , brackets lang (do list <- commaSep1 lang (stringLiteral lang)
-                            return $ CondStringList (const (Just (map T.pack list)))
-            ) <?> "list of strings"
+        , brackets lang (choice [
+            (do list <- commaSep1 lang (stringLiteral lang)
+                return $ CondStringList (const (Just (map T.pack list)))
+            ) <?> "list of strings",
+            (do list <- commaSep1 lang parseRegex
+                return $ CondRegexList (const (Just list))
+            ) <?> "list of regular expressions"
+            ])
         , char '$' >> choice 
              [ do backref <- natural lang
                   return $ CondString (getBackref backref)
