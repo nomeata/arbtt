@@ -150,7 +150,6 @@ main = do
   categorizer <- readCategorizer (optCategorizeFile flags)
 
   captures <- readTimeLog (optLogFile flags)
-  captures `deepseq` return ()
   let allTags = categorizer captures
   when (null allTags) $ do
      putStrLn "Nothing recorded yet"
