@@ -70,7 +70,7 @@ readCategorizer filename = do
                 print err
                 exitFailure
           Right cat -> return $
-                ((fmap . fmap) (mkSecond (postpare . cat)) . prepare time tz)
+                (map (fmap (mkSecond (postpare . cat))) . prepare time tz)
 
 applyCond :: String -> TimeLogEntry (Ctx, ActivityData) -> Bool
 applyCond s = 
