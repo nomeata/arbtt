@@ -48,6 +48,9 @@ data Activity = Activity
         }
   deriving (Ord, Eq)
 
+instance NFData Activity where
+    rnf (Activity a b) = a `deepseq` b `deepseq` ()
+
 -- | An activity with special meaning: ignored by default (i.e. for idle times)
 inactiveActivity = Activity Nothing "inactive"
 

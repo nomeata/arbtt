@@ -16,6 +16,7 @@ import Text.ParserCombinators.Parsec.Language
 import Text.ParserCombinators.Parsec.ExprFail
 import System.Exit
 import Control.Applicative ((<*>),(<$>))
+import Control.DeepSeq
 import Data.List
 import Data.Maybe
 import Data.Char
@@ -42,6 +43,9 @@ data Ctx = Ctx
         , cTimeZone :: TimeZone
         }
   deriving (Show)
+
+instance NFData Ctx where
+    rnf (Ctx a b c d e) = a `deepseq` b `deepseq` c `deepseq` e `deepseq` e `deepseq` ()
 
 type Cond = CtxFun [Text]
 
