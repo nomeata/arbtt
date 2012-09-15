@@ -109,8 +109,8 @@ parseAliasSpecs = do as <- sepEndBy1 parseAliasSpec (comma lang)
 
 doAlias :: (Text, Text) -> ActivityData -> ActivityData
 doAlias (s1,s2) = map go
-  where go (Activity cat tag) = Activity (if cat == Just s1 then Just s2 else cat)
-                                         (if tag == s1 then s2 else tag)
+  where go (Activity cat tag) = (Activity $! (if cat == Just s1 then Just s2 else cat))
+                                         $! (if tag == s1 then s2 else tag)
 
 parseAliasSpec :: Parser (Text, Text)
 parseAliasSpec = do s1 <- T.pack <$> stringLiteral lang
