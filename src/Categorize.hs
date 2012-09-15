@@ -36,8 +36,6 @@ type Parser a = CharParser () a
 
 data Ctx = Ctx
         { cNow :: TimeLogEntry CaptureData
-        , cPast :: [TimeLogEntry CaptureData]
-        , cFuture :: [TimeLogEntry CaptureData]
         , cWindowInScope :: Maybe (Bool, Text, Text)
         , cSubsts :: [Text]
         , cCurrentTime :: UTCTime
@@ -79,12 +77,8 @@ applyCond s =
           Right c    -> isJust . c . fst . tlData
 
 prepare :: UTCTime -> TimeZone -> TimeLog CaptureData -> TimeLog Ctx
-prepare time tz tl = go' [] tl tl
-  where go' past [] []
-                = []
-        go' past (this:future) (now:rest)
-                = now {tlData = Ctx now past future Nothing [] time tz } :
-                  go' (this:past) future rest
+prepare time tz = map go
+  where go now  = now {tlData = Ctx now Nothing [] time tz }
 
 -- | Here, we filter out tags appearing twice, and make sure that only one of
 --   each category survives
