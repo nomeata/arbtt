@@ -1039,6 +1039,42 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   </para>
   
   <sect2>
+    <title>Version 0.6.3</title>
+    <itemizedlist>
+      <listitem>
+        <para>Performance improvements.</para>
+      </listitem>
+      <listitem>
+        <para>Support comparing a string to a list of strings, or matching it against a list ofregular expressions.</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
+    <title>Version 0.6.2</title>
+    <itemizedlist>
+      <listitem>
+        <para>Add a warning whtn the system locale is not supported.</para>
+      </listitem>
+      <listitem>
+        <para>Allwo RTS options to be passed to the arbtt binaries.</para>
+      </listitem>
+      <listitem>
+        <para>GHC 7.4 compatibility.</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
+    <title>Version 0.6.1</title>
+    <itemizedlist>
+      <listitem>
+        <para>Performance improvements.</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
     <title>Version 0.6</title>
     <itemizedlist>
       <listitem>
