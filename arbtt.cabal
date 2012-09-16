@@ -30,7 +30,7 @@ executable arbtt-capture
     main-is:            capture-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.5.*, filepath, directory, mtl, time, utf8-string, 
+        base == 4.5.*, filepath, directory, mtl, time >= 1.4, utf8-string, 
         bytestring, binary, deepseq
     other-modules:
         Data
