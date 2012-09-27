@@ -1,5 +1,19 @@
-{-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
-module Stats where
+{-# LANGUAGE RecordWildCards, NamedFieldPuns, TypeOperators, TupleSections #-}
+module Stats (
+    Report(..),
+    ReportOptions(..),
+    ReportFormat(..),
+    ReportResults(..),
+    ActivityFilter(..),
+    Filter(..),
+    defaultFilter,
+    defaultReportOptions,
+    parseActivityMatcher,
+    filterPredicate,
+    prepareCalculations,
+    processReports,
+    renderReport
+    ) where
 
 import Data.Time
 import Data.Maybe
@@ -11,10 +25,13 @@ import qualified Data.Set as S
 import Data.MyText (Text,pack,unpack)
 import Data.Function (on)
 import System.Locale (defaultTimeLocale)
-
+import Control.Applicative
+import Data.Strict ((:!:))
+import Data.Traversable (sequenceA)
 
 import Data
 import Categorize
+import LeftFold
 
 
 data Report = GeneralInfos
@@ -46,6 +63,7 @@ data ReportOptions = ReportOptions
     }
         deriving (Show, Eq)
 
+defaultReportOptions :: ReportOptions
 defaultReportOptions = ReportOptions
     { roMinPercentage = 1
     , roReportFormat = RFText
@@ -54,17 +72,17 @@ defaultReportOptions = ReportOptions
 
 -- Data format semantically representing the result of a report, including the
 -- title
+type Interval = (String,String,String,String) 
 data ReportResults =
         ListOfFields String [(String, String)]
         | ListOfTimePercValues String [(String, String, Double)]
         | PieChartOfTimePercValues  String [(String, String, Double)]
-        | ListOfIntervals String [(String,String,String,String)]
+        | ListOfIntervals String [Interval]
+        | MultpleReportResults [ReportResults]
 
 
--- We apply the filters in a way such that consecutive runs of selected samples
--- are in the same sublist, and sublists are separated by non-selected samples
-applyFilters :: [Filter] -> TimeLog (Ctx, ActivityData) -> [TimeLog (Ctx, ActivityData)]
-applyFilters filters = filterAndSeparate $ \tl ->
+filterPredicate :: [Filter] -> TimeLogEntry (Ctx, ActivityData) -> Bool
+filterPredicate filters tl = 
        all (\flag -> case flag of 
                 Exclude act  -> excludeTag act tl
                 Only act     -> onlyTag act tl
@@ -74,17 +92,11 @@ applyActivityFilter :: [ActivityFilter] -> Activity -> Bool
 applyActivityFilter fs act = all go fs
     where go (ExcludeActivity matcher) = not (matchActivityMatcher matcher act)
           go (OnlyActivity matcher)    =      matchActivityMatcher matcher act 
-
-filterAndSeparate :: (a -> Bool) -> [a] -> [[a]]
-filterAndSeparate pred = fst . go
-  where go [] = ([],True)
-        go (x:xs) = case (go xs,pred x) of
-                    ((rs,     True) , True)  -> ([x]:rs,   False)
-                    (((r:rs), False), True)  -> ((x:r):rs, False)
-                    ((rs,     _)    , False) -> (rs,       True)
                                 
 excludeTag matcher = not . any (matchActivityMatcher matcher) . snd . tlData
 onlyTag matcher = any (matchActivityMatcher matcher) . snd . tlData
+
+defaultFilter :: Filter
 defaultFilter = Exclude (MatchActivity inactiveActivity)
 
 matchActivityMatcher :: ActivityMatcher -> Activity -> Bool
@@ -107,75 +119,108 @@ data Calculations = Calculations
         , fractionSel :: Double
         , fractionSelRec :: Double
         , sums :: M.Map Activity NominalDiffTime
-        , allTags :: TimeLog (Ctx, ActivityData)
+        -- , allTags :: TimeLog (Ctx, ActivityData)
         -- tags is a list of uninterrupted entries
-        , tags :: [TimeLog (Ctx, ActivityData)]
+        -- , tags :: [TimeLog (Ctx, ActivityData)]
         }
 
-prepareCalculations :: TimeLog (Ctx, ActivityData) -> [TimeLog (Ctx, ActivityData)] -> Calculations
-prepareCalculations allTags tags =
-  let c = Calculations
-          { firstDate = tlTime (head allTags)
-          , lastDate = tlTime (last allTags)
-          , timeDiff = diffUTCTime (lastDate c) (firstDate c)
-          , totalTimeRec = fromInteger (sum (map tlRate allTags))/1000
-          , totalTimeSel = fromInteger (sum (map tlRate (concat tags)))/1000
-          , fractionRec = realToFrac (totalTimeRec c) / (realToFrac (timeDiff c))
-          , fractionSel = realToFrac (totalTimeSel c) / (realToFrac (timeDiff c))
-          , fractionSelRec = realToFrac (totalTimeSel c) / realToFrac (totalTimeRec c)
-          , sums = sumUp (concat tags)
-          , allTags
-          , tags
-          } in c
+prepareCalculations :: LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) Calculations
+prepareCalculations =
+    pure (\fd ld ttr tts s -> 
+        let c = Calculations
+                  { firstDate = fd
+                  , lastDate = ld
+                  , timeDiff = diffUTCTime (lastDate c) (firstDate c)
+                  , totalTimeRec = ttr
+                  , totalTimeSel = tts
+                  , fractionRec = realToFrac (totalTimeRec c) / (realToFrac (timeDiff c))
+                  , fractionSel = realToFrac (totalTimeSel c) / (realToFrac (timeDiff c))
+                  , fractionSelRec = realToFrac (totalTimeSel c) / realToFrac (totalTimeRec c)
+                  , sums = s
+                  } in c) <*>
+    onAll calcFirstDate <*>
+    onAll calcLastDate <*>
+    onAll calcTotalTime <*>
+    onSelected calcTotalTime <*>
+    onSelected calcSums 
+  where
 
--- | Sums up each occurence of an 'Activity', weighted by the sampling rate
-sumUp :: TimeLog (Ctx, ActivityData) -> M.Map Activity NominalDiffTime
-sumUp = foldr go M.empty
-  where go tl m = foldr go' m (snd (tlData tl))
-          where go' act = M.insertWith (+) act (fromInteger (tlRate tl)/1000)
+calcFirstDate :: LeftFold (TimeLogEntry a) UTCTime
+calcFirstDate = fromJust <$> lfFirst `mapElems` tlTime
 
+calcLastDate :: LeftFold (TimeLogEntry a) UTCTime
+calcLastDate = fromJust <$> lfLast `mapElems` tlTime
 
-listCategories :: TimeLog (Ctx, ActivityData) -> [Category]
-listCategories = S.toList . foldr go S.empty
-  where go tl m = foldr go' m (snd (tlData tl))
-          where go' (Activity (Just cat) _) = S.insert cat
-                go' _                       = id
+calcTotalTime :: LeftFold (TimeLogEntry a) NominalDiffTime
+calcTotalTime = (/1000) <$> LeftFold 0 (+) fromInteger `mapElems` tlRate
 
-putReports :: ReportOptions -> Calculations -> [Report] -> IO ()
-putReports opts c = sequence_ . intersperse (putStrLn "") . map (putReport opts c) 
+calcSums :: LeftFold (TimeLogEntry (a, [Activity])) (M.Map Activity NominalDiffTime)
+calcSums = LeftFold M.empty
+            (\m tl ->
+                let go' m act = M.insertWith' (+) act (fromInteger (tlRate tl)/1000) m
+                in foldl' go' m (snd (tlData tl))) id
 
-putReport :: ReportOptions -> Calculations -> Report -> IO ()
-putReport opts c EachCategory = putReports opts c (map Category (listCategories (concat (tags c))))
-putReport opts c r = renderReport opts $ reportToTable opts c r
+processReports :: ReportOptions -> Calculations -> [Report] ->  LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) [ReportResults]
+processReports opts c = sequenceA . map (processReport opts c)
 
-reportToTable :: ReportOptions -> Calculations -> Report -> ReportResults
-reportToTable opts (Calculations {..}) r = case r of
-        GeneralInfos -> ListOfFields "General Information" $
-                [ ("FirstRecord", show firstDate)
-                , ("LastRecord",  show lastDate)
-                , ("Number of records", show (length allTags))
-                , ("Total time recorded",  showTimeDiff totalTimeRec)
-                , ("Total time selected",  showTimeDiff totalTimeSel)
-                , ("Fraction of total time recorded", printf "%3.0f%%" (fractionRec * 100))
-                , ("Fraction of total time selected", printf "%3.0f%%" (fractionSel * 100))
-                , ("Fraction of recorded time selected", printf "%3.0f%%" (fractionSelRec * 100))
-                ]
+processReport :: ReportOptions -> Calculations ->  Report -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
+processReport opts ~(Calculations {..}) GeneralInfos =
+   pure (\n ->
+    ListOfFields "General Information"
+        [ ("FirstRecord", show firstDate)
+        , ("LastRecord",  show lastDate)
+        , ("Number of records", show n)
+        , ("Total time recorded",  showTimeDiff totalTimeRec)
+        , ("Total time selected",  showTimeDiff totalTimeSel)
+        , ("Fraction of total time recorded", printf "%3.0f%%" (fractionRec * 100))
+        , ("Fraction of total time selected", printf "%3.0f%%" (fractionSel * 100))
+        , ("Fraction of recorded time selected", printf "%3.0f%%" (fractionSelRec * 100))
+        ]) <*>
+    onAll lfLength
 
-        TotalTime -> ListOfTimePercValues "Total time per tag" $
-                mapMaybe (\(tag,time) ->
-                      let perc = realToFrac time/realToFrac totalTimeSel
-                          pick = applyActivityFilter (roActivityFilter opts) tag
-                      in if pick && perc*100 >= roMinPercentage opts
-                      then Just $ ( show tag
-                                  , showTimeDiff time
-                                  , perc)
-                      else Nothing
-                      ) $
-                reverse $
-                sortBy (comparing snd) $
-                M.toList sums
-        
-        Category cat -> PieChartOfTimePercValues ("Statistics for category " ++ show cat) $
+processReport opts ~(Calculations {..}) TotalTime =
+        pure $ 
+            ListOfTimePercValues "Total time per tag" .
+            mapMaybe (\(tag,time) ->
+                  let perc = realToFrac time/realToFrac totalTimeSel
+                      pick = applyActivityFilter (roActivityFilter opts) tag
+                  in if pick && perc*100 >= roMinPercentage opts
+                  then Just $ ( show tag
+                              , showTimeDiff time
+                              , perc)
+                  else Nothing
+                  ) .
+            reverse .
+            sortBy (comparing snd) $
+            M.toList $
+            sums
+
+processReport opts c (Category cat) = pure (processCategoryReport opts c cat)
+
+processReport opts c EachCategory = 
+    pure (\cats -> MultpleReportResults $ map (processCategoryReport opts c) cats) <*>
+    onSelected calcCategories
+
+processReport opts c (IntervalCategory cat) =
+    processIntervalReport opts c ("Intervals for category " ++ show cat) (extractCat cat) 
+    where
+        extractCat :: Category -> ActivityData -> Maybe String
+        extractCat cat = fmap (unpack . activityName) . listToMaybe . filter ( (==Just cat) . activityCategory )
+
+processReport opts c (IntervalTag tag) =
+    processIntervalReport opts c ("Intervals for category " ++ show tag) (extractTag tag) 
+    where
+        extractTag :: Activity -> ActivityData -> Maybe String
+        extractTag tag = fmap show . listToMaybe . filter ( (==tag) )
+
+calcCategories :: LeftFold (TimeLogEntry (Ctx, ActivityData)) [Category]
+calcCategories = fmap S.toList $ leftFold S.empty $ \s tl ->
+    foldl' go' s (snd (tlData tl))
+          where go' s (Activity (Just cat) _) = S.insert cat s
+                go' s _                       = s
+
+processCategoryReport opts ~(Calculations {..}) cat =
+        PieChartOfTimePercValues ("Statistics for category " ++ show cat) $
                 let filteredSums = M.filterWithKey (\a _ -> isCategory cat a) sums
                     uncategorizedTime = totalTimeSel - M.fold (+) 0 filteredSums
                     tooSmallSums = M.filter (\t -> realToFrac t / realToFrac totalTimeSel * 100 < roMinPercentage opts) filteredSums
@@ -209,41 +254,63 @@ reportToTable opts (Calculations {..}) r = case r of
                       )]
                 else []
                 )
+
+processIntervalReport :: ReportOptions -> Calculations -> String -> (ActivityData -> Maybe String) -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
+processIntervalReport _opts _c title extr = runOnIntervals  go1 go2
+  where
+    go1 :: LeftFold (TimeLogEntry (Ctx, ActivityData)) [Interval]
+    go1 = go3 `mapElems` fmap (extr . snd) 
+    go3 :: LeftFold (TimeLogEntry (Maybe String)) [Interval]
+    go3 = runOnGroups ((==) `on` tlData) go4 (onJusts toList)
+    go4 :: LeftFold (TimeLogEntry (Maybe String)) (Maybe Interval)
+    go4 = pure (\fe le ->
+        case tlData fe of
+            Just str -> Just
+                ( str
+                , showUtcTime (tlTime fe)
+                , showUtcTime (tlTime le)
+                , showTimeDiff $
+                    tlTime le `diffUTCTime` tlTime fe + fromIntegral (tlRate fe)/1000
+                )
+            Nothing -> Nothing) <*>
+        (fromJust <$> lfFirst) <*>
+        (fromJust <$> lfLast)
+    go2 :: LeftFold [Interval] ReportResults
+    go2 = ListOfIntervals title <$> concatFold
         
-        IntervalCategory cat -> intervalReportToTable ("Intervals for category " ++ show cat)
-                                                      (extractCat cat) 
-        IntervalTag tag -> intervalReportToTable ("Intervals for category " ++ show tag)
-                                                 (extractTag tag) 
 
-    where
-        extractCat :: Category -> ActivityData -> Maybe String
-        extractCat cat = fmap (unpack . activityName) . listToMaybe . filter ( (==Just cat) . activityCategory )
+{-
+        ((extr. snd) `filterWith` 
+            runOnIntervals
+                (runOnGroups ((==) `on` tlData)
+-}
 
-        extractTag :: Activity -> ActivityData -> Maybe String
-        extractTag tag = fmap show . listToMaybe . filter ( (==tag) )
 
-        intervalReportToTable :: String -> (ActivityData -> Maybe String) -> ReportResults
-        intervalReportToTable title extr = ListOfIntervals title $
-            map (\tles ->
-                let str = fromJust (tlData (head tles))
-                    firstE = showUtcTime (tlTime (head tles))
-                    lastE = showUtcTime (tlTime (last tles))
-                    timeLength = showTimeDiff $
-                        tlTime (last tles) `diffUTCTime` tlTime (head tles) +
-                        fromIntegral (tlRate (last tles))/1000
-                in (str, firstE, lastE, timeLength)) $
-            filter (isJust . tlData . head ) $
-            concat $
-            fmap (groupBy ((==) `on` tlData) .
-                 (fmap.fmap) (extr . snd)) $
-            tags
+{-
+intervalReportToTable :: String -> (ActivityData -> Maybe String) -> ReportResults
+intervalReportToTable title extr = ListOfIntervals title $
+    map (\tles ->
+        let str = fromJust (tlData (head tles))
+            firstE = showUtcTime (tlTime (head tles))
+            lastE = showUtcTime (tlTime (last tles))
+            timeLength = showTimeDiff $
+                tlTime (last tles) `diffUTCTime` tlTime (head tles) +
+                fromIntegral (tlRate (last tles))/1000
+        in (str, firstE, lastE, timeLength)) $
+    filter (isJust . tlData . head ) $
+    concat $
+    fmap (groupBy ((==) `on` tlData) .
+         (fmap.fmap) (extr . snd)) $
+    tags
+-}           
             
-            
+renderReport :: ReportOptions -> ReportResults -> IO ()
+renderReport opts (MultpleReportResults reports) =
+    sequence_ . intersperse (putStrLn "") . map (renderReport opts) $ reports
+renderReport opts reportdata =
+    putStr $ doRender opts reportdata
 
-renderReport opts reportdata = do
-    let results = doRender opts reportdata
-    putStr results
-
+doRender :: ReportOptions -> ReportResults -> String
 doRender opts reportdata = case roReportFormat opts of
                 RFText -> renderReportText reportdata
                 RFCSV -> renderReportCSV reportdata
@@ -302,9 +369,11 @@ renderReportTSV (PieChartOfTimePercValues _ dats) =
 renderReportTSV (ListOfIntervals title dats) = 
     renderWithDelimiter "\t" (listOfIntervals dats)
 
+renderWithDelimiter :: String -> [[String]] -> String
 renderWithDelimiter delim datasource =
     unlines $ map (injectDelimiter delim) datasource
 
+injectDelimiter :: [a] -> [[a]] -> [a]
 injectDelimiter d = concat . intersperse d
 
 tabulate :: Bool -> [[String]] -> String
@@ -333,6 +402,7 @@ showTimeDiff t = go False $ zip [days,hours,mins,secs] ["d","h","m","s"]
 showUtcTime :: UTCTime -> String
 showUtcTime = formatTime defaultTimeLocale "%x %X"
 
+underline :: String -> String
 underline str = unlines 
     [ str
     , map (const '=') str

@@ -11,11 +11,13 @@ import Data.Char (toLower)
 import Text.Printf
 import Data.Version (showVersion)
 import Control.DeepSeq
+import Control.Applicative
 
 import TimeLog
 import Categorize
 import Stats
 import CommonStartup
+import LeftFold
 
 import Paths_arbtt (version)
 
@@ -157,15 +159,18 @@ main = do
      exitFailure
       
   let filters = (if optAlsoInactive flags then id else (defaultFilter:)) $ optFilters flags
-  let tags = applyFilters filters allTags
+  -- let tags = applyFilters filters allTags
   let reps = case optReports flags of {[] -> [TotalTime]; reps -> reverse reps }
 
   -- These are defined here, but of course only evaluated when any report
   -- refers to them. Some are needed by more than one report, which is then
   -- advantageous.
-  let c = prepareCalculations allTags tags
+  let opts = optReportOptions flags
+  let (c,results) = runLeftFold (filterPredicate filters `filterWith` 
+        (pure (,) <*> prepareCalculations <*> processReports opts c reps)) allTags
   
-  putReports (optReportOptions flags) c reps
+  --let results = runLeftFold (filterPredicate filters `filterWith` processReports opts reps) allTags
+  renderReport opts (MultpleReportResults results)
 
 {-
 import Data.Accessor
