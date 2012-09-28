@@ -1,5 +1,5 @@
 name:               arbtt
-version:            0.6.4
+version:            0.7
 license:            GPL
 license-file:       LICENSE
 category:           Desktop
@@ -31,7 +31,8 @@ executable arbtt-capture
     hs-source-dirs:     src
     build-depends:
         base == 4.5.*, filepath, directory, mtl, time >= 1.4, utf8-string, 
-        bytestring, binary, deepseq, strict
+        bytestring, binary, deepseq, strict,
+        terminal-progress-bar, bytestring-progress
     other-modules:
         Data
         Data.MyText

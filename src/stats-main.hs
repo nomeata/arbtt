@@ -12,6 +12,10 @@ import Text.Printf
 import Data.Version (showVersion)
 import Control.DeepSeq
 import Control.Applicative
+import qualified Data.ByteString.Lazy as BS
+import Data.ByteString.Lazy.Progress
+import System.Posix.Files
+import System.ProgressBar
 
 import TimeLog
 import Categorize
@@ -151,7 +155,21 @@ main = do
      exitFailure
   categorizer <- readCategorizer (optCategorizeFile flags)
 
-  captures <- readTimeLog (optLogFile flags)
+  timelog <- BS.readFile (optLogFile flags)
+  size <- fileSize <$> getFileStatus (optLogFile flags)
+
+  hSetBuffering stderr NoBuffering
+  trackedTimelog <- trackProgressWithChunkSize (fromIntegral size `div` 100) (\_ b -> do
+    hPutChar stderr '\r'
+    hPutStr stderr $
+        mkProgressBar (msg "Processing data") percentage 80 (fromIntegral b) (fromIntegral size)
+    when  (fromIntegral b >= fromIntegral size) $ do
+        hPutChar stderr '\r'
+        hPutStr stderr (replicate 80 ' ')
+        hPutChar stderr '\r'
+    ) timelog
+
+  let captures = parseTimeLog trackedTimelog
   let allTags = categorizer captures
   -- allTags `deepseq` return ()
   when (null allTags) $ do
