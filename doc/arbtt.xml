@@ -1063,6 +1063,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   </para>
   
   <sect2>
+    <title>Version 0.6.4</title>
+    <itemizedlist>
+      <listitem>
+        <para>Massive memory footprint reduction, due to processing the data in one run. See <ulink url="http://www.joachim-breitner.de/blog/archives/560-The-might-applicative-left-fold.html">my blog post for technical information</ulink>.</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2>
     <title>Version 0.6.3</title>
     <itemizedlist>
       <listitem>
