@@ -90,19 +90,22 @@ recoverTimeLog filename = do
 readTimeLog :: (NFData a, ListOfStringable a) => FilePath -> IO (TimeLog a)
 readTimeLog filename = do
         content <- BS.readFile filename
-        return $ start content
-  where start input =
-                let (startString, rest, off) = runGetState (getLazyByteString (BS.length magic)) input 0
-                in if startString == magic
-                   then go Nothing rest off
-                   else error $
-                        "Timelog starts with unknown marker " ++
-                        show (map (chr.fromIntegral) (BS.unpack startString))
-        go prev input off =
-            let (v, rest, off') = runGetState (ls_get strs) input off
-            in v `deepseq`
-               if (BS.null rest)
-               then [v]
-               else v : go (Just (tlData v)) rest off'
-          where strs = maybe [] listOfStrings prev
+        return $ parseTimeLog content
+
+parseTimeLog :: (NFData a, ListOfStringable a) => BS.ByteString -> TimeLog a
+parseTimeLog input = 
+    if startString == magic
+       then go Nothing rest off
+       else error $
+            "Timelog starts with unknown marker " ++
+            show (map (chr.fromIntegral) (BS.unpack startString))
+  where                
+    (startString, rest, off) = runGetState (getLazyByteString (BS.length magic)) input 0
+    go prev input off =
+        let (v, rest, off') = runGetState (ls_get strs) input off
+        in v `deepseq`
+           if (BS.null rest)
+           then [v]
+           else v : go (Just (tlData v)) rest off'
+      where strs = maybe [] listOfStrings prev
 
