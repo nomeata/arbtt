@@ -1066,6 +1066,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <title>Version 0.7</title>
     <itemizedlist>
       <listitem>
+        <para>Make sure that the log file is only readable by the current user. Thanks to Joey Hess for pointing that out.</para>
+      </listitem>
+      <listitem>
         <para>Show a progress bar in <command>arbtt-stats</command>.</para>
       </listitem>
     </itemizedlist>
