@@ -16,6 +16,7 @@ import System.Directory
 import Control.Exception
 import Prelude hiding (catch)
 import Control.DeepSeq
+import System.Posix.Files
 
 import qualified Data.ByteString.Lazy as BS
 import Data.Maybe
@@ -29,6 +30,7 @@ runLogger filename delay action = flip fix Nothing $ \loop prev -> do
         entry <- action
         date <- getCurrentTime
         createTimeLog False filename
+        setFileMode filename (ownerReadMode `unionFileModes` ownerWriteMode)
         appendTimeLog filename prev (TimeLogEntry date delay entry)
         threadDelay (fromIntegral delay * 1000)
         loop (Just entry)
