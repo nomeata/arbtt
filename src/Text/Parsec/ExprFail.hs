@@ -13,13 +13,16 @@
 -- 
 -----------------------------------------------------------------------------
 
-module Text.Parsec.Expr
+module Text.Parsec.ExprFail
     ( Assoc(..), Operator(..), OperatorTable
+    , Erring
     , buildExpressionParser
     ) where
 
 import Text.Parsec.Prim
 import Text.Parsec.Combinator
+import Control.Applicative ((<*>),(<$>))
+
 
 -----------------------------------------------------------
 -- Assoc and OperatorTable
@@ -32,13 +35,18 @@ data Assoc                = AssocNone
                           | AssocLeft
                           | AssocRight
 
+type Erring a = Either String a
+
 -- | This data type specifies operators that work on values of type @a@.
 -- An operator is either binary infix or unary prefix or postfix. A
 -- binary operator has also an associated associativity.
 
-data Operator s u m a   = Infix (ParsecT s u m (a -> a -> a)) Assoc
-                        | Prefix (ParsecT s u m (a -> a))
-                        | Postfix (ParsecT s u m (a -> a))
+data Operator s u m a   = Infix (ParsecT s u m (a -> a -> Erring a)) Assoc
+                        | Prefix (ParsecT s u m (a -> Erring a))
+                        | Postfix (ParsecT s u m (a -> Erring a))
+
+erringToParsec :: Erring a -> ParsecT s u m a
+erringToParsec = either fail return
 
 -- | An @OperatorTable s u m a@ is a list of @Operator s u m a@
 -- lists. The list is ordered in descending
@@ -111,16 +119,16 @@ buildExpressionParser operators simpleExpr
               termP      = do{ pre  <- prefixP
                              ; x    <- term
                              ; post <- postfixP
-                             ; return (post (pre x))
+                             ; erringToParsec (pre x) >>= erringToParsec . post
                              }
 
-              postfixP   = postfixOp <|> return id
+              postfixP   = postfixOp <|> return Right
 
-              prefixP    = prefixOp <|> return id
+              prefixP    = prefixOp <|> return Right
 
               rassocP x  = do{ f <- rassocOp
                              ; y  <- do{ z <- termP; rassocP1 z }
-                             ; return (f x y)
+                             ; erringToParsec (f x y)
                              }
                            <|> ambigiousLeft
                            <|> ambigiousNon
@@ -130,7 +138,7 @@ buildExpressionParser operators simpleExpr
 
               lassocP x  = do{ f <- lassocOp
                              ; y <- termP
-                             ; lassocP1 (f x y)
+                             ; erringToParsec (f x y) >>= lassocP1
                              }
                            <|> ambigiousRight
                            <|> ambigiousNon
@@ -143,7 +151,7 @@ buildExpressionParser operators simpleExpr
                              ;    ambigiousRight
                               <|> ambigiousLeft
                               <|> ambigiousNon
-                              <|> return (f x y)
+                              <|> erringToParsec (f x y)
                              }
                            -- <|> return x
 
