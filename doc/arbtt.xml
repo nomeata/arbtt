@@ -248,7 +248,9 @@ $ runhaskell Setup.hs install</screen>
       Expression <literal>format $date</literal> evaluates to a string with
       a date formatted according to ISO 8601, i.e. like "YYYY-MM-DD". The 19th
       of March 2010 is formatted as "2010-03-19". Formatted date can be compared
-      to strings. Formatted dates may be useful to tag particular date ranges.
+      to strings. Formatted dates may be useful to tag particular date ranges. But
+      also note that this is a rather expensive operation that can slow down your
+      data processing.
     </para>
     <para>
       Expression <literal>month $date</literal> evaluates to an integer, from 1
