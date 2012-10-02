@@ -9,11 +9,17 @@ import qualified Data.MyText as T
 import Data.MyText (Text)
 import Control.Monad
 import Control.Monad.Instances
+import Control.Monad.Trans.Reader
+import Control.Monad.Trans.Class
+import Data.Functor.Identity
 
-import Text.ParserCombinators.Parsec hiding (Parser)
-import Text.ParserCombinators.Parsec.Token
-import Text.ParserCombinators.Parsec.Language
-import Text.ParserCombinators.Parsec.ExprFail
+
+import Text.Parsec
+import Text.Parsec.Char
+import Text.Parsec.Token
+import Text.Parsec.Combinator
+import Text.Parsec.Language
+import Text.Parsec.ExprFail
 import System.Exit
 import Control.Applicative ((<*>),(<$>))
 import Control.DeepSeq
@@ -33,7 +39,8 @@ import Text.Printf
 type Categorizer = TimeLog CaptureData -> TimeLog (Ctx, ActivityData)
 type Rule = Ctx -> ActivityData
 
-type Parser a = CharParser () a
+type Parser = ParsecT String () (ReaderT TimeZone Identity)
+
 
 data Ctx = Ctx
         { cNow :: TimeLogEntry CaptureData
@@ -68,7 +75,8 @@ readCategorizer filename = do
         content <- readFile filename
         time <- getCurrentTime
         tz <- getCurrentTimeZone
-        case parse (between (return ()) eof parseRules) filename content of
+        case flip runReader tz $
+            runParserT (between (return ()) eof parseRules) () filename content of
           Left err -> do
                 putStrLn "Parser error:"
                 print err
@@ -76,11 +84,11 @@ readCategorizer filename = do
           Right cat -> return $
                 (map (fmap (mkSecond (postpare . cat))) . prepare time tz)
 
-applyCond :: String -> TimeLogEntry (Ctx, ActivityData) -> Bool
-applyCond s = 
-        case parse (do {c <- parseCond; eof ; return c}) "commad line parameter" s of
+applyCond :: String -> TimeZone -> TimeLogEntry (Ctx, ActivityData) -> Bool
+applyCond s tz = 
+        case flip runReader tz $ runParserT (do {c <- parseCond; eof ; return c}) () "commad line parameter" s of
           Left err -> error (show err)
-          Right c    -> isJust . c . fst . tlData
+          Right c  -> isJust . c . fst . tlData
 
 prepare :: UTCTime -> TimeZone -> TimeLog CaptureData -> TimeLog Ctx
 prepare time tz = map go
@@ -93,8 +101,20 @@ postpare = nubBy go
   where go (Activity (Just c1) _) (Activity (Just c2) _) = c1 == c2
         go a1                     a2                     = a1 == a2
 
-lang :: TokenParser ()
-lang = haskell
+lang :: GenTokenParser String () (ReaderT TimeZone Identity)
+lang = makeTokenParser $ LanguageDef
+                { commentStart   = "{-"
+                , commentEnd     = "-}"
+                , commentLine    = "--"
+                , nestedComments = True
+                , identStart     = letter
+                , identLetter	 = alphaNum <|> oneOf "_'"
+                , opStart	 = oneOf ":!#$%&*+./<=>?@\\^|-~"
+                , opLetter	 = oneOf ":!#$%&*+./<=>?@\\^|-~"
+                , reservedOpNames= []
+                , reservedNames  = []
+                , caseSensitive  = True
+                }
 
 parseRules :: Parser Rule
 parseRules = do 
@@ -155,7 +175,7 @@ parseCond = do cp <- parseCondExpr
                 cp         -> fail $ printf "Expression of type %s" (cpType cp)
 
 parseCondExpr :: Parser CondPrim
-parseCondExpr  = buildExpressionParser [
+parseCondExpr = buildExpressionParser [
                 [ Prefix (reservedOp lang "!" >> return checkNot) ],
                 [ Prefix (reserved lang "day of week" >> return evalDayOfWeek)
                 , Prefix (reserved lang "day of month" >> return evalDayOfMonth)

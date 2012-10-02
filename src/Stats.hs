@@ -86,7 +86,7 @@ filterPredicate filters tl =
        all (\flag -> case flag of 
                 Exclude act  -> excludeTag act tl
                 Only act     -> onlyTag act tl
-                GeneralCond s-> applyCond s tl) filters
+                GeneralCond s-> applyCond s (cTimeZone (fst (tlData tl))) tl) filters
 
 applyActivityFilter :: [ActivityFilter] -> Activity -> Bool
 applyActivityFilter fs act = all go fs

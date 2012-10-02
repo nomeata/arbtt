@@ -30,7 +30,7 @@ executable arbtt-capture
     main-is:            capture-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.5.*, filepath, directory, mtl, time >= 1.4, utf8-string, 
+        base == 4.5.*, filepath, directory, transformers, time >= 1.4, utf8-string, 
         bytestring, binary, deepseq, strict,
         terminal-progress-bar, bytestring-progress
     other-modules:
@@ -76,6 +76,7 @@ executable arbtt-stats
         Categorize
         TimeLog
         Stats
+        Text.Parsec.ExprFail
         Text.ParserCombinators.Parsec.ExprFail
         Text.Regex.PCRE.Light.Text
     ghc-options: -rtsopts
