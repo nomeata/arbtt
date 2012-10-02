@@ -381,7 +381,7 @@ parseCondPrim = choice
         , try $ do time <- parseTime <?> "time" -- backtrack here, it might have been a number
                    return $ CondTime (const (Just time))
         , try $ do date <- parseDate <?> "date" -- backtrack here, it might have been a number
-                   return $ CondDate (Just . date. cTimeZone)
+                   return $ CondDate (const (Just date))
         , do num <- natural lang <?> "number"
              return $ CondInteger (const (Just num))
         ]
@@ -438,8 +438,9 @@ parseTime = fmap fromIntegral $ lexeme lang $ do
                let hour = maybe h ((10*h)+) mh
                return $ (hour * 60 + m1 * 10 + m2) * 60
 
-parseDate :: Parser (TimeZone -> UTCTime)
+parseDate :: Parser UTCTime
 parseDate = lexeme lang $ do
+    tz <- lift ask
     year <- read <$> count 4 digit
     char '-'
     month <- read <$> count 2 digit
@@ -447,7 +448,7 @@ parseDate = lexeme lang $ do
     day <- read <$> count 2 digit
     time <- option 0 parseTime
     let date = LocalTime (fromGregorian year month day) (TimeOfDay 0 0 0)
-    return $ \tz -> addUTCTime time $ localTimeToUTC tz date
+    return $ addUTCTime time $ localTimeToUTC tz date
 
 
 parseSetTag :: Parser Rule
