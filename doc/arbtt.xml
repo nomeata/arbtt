@@ -240,9 +240,11 @@ $ runhaskell Setup.hs install</screen>
 
     <para>
       The variable <literal>$date</literal> referes to the date and time of the
-      recorded sample. It cannot be compare to anything else directly, but
-      there are some helper functions to extract calendar information out of it.
-      All dates are evaluated in local time.
+      recorded sample. It can be compared with date literals in the form
+      YYYY-MM-DD (which stand for midnight, so <programlisting>$date ==
+      2001-01-01</programlisting> will not do what you want, but
+      <programlisting>$date >= 2001-01-01 &amp;&amp; $date &\lt;= 2001-01-02</programlisting>
+      would).  All dates are evaluated in local time.
     </para>
     <para>
       Expression <literal>format $date</literal> evaluates to a string with

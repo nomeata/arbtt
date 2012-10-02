@@ -22,7 +22,7 @@ import Data.Maybe
 import Data.Char
 import Data.Time.Clock
 import Data.Time.LocalTime
-import Data.Time.Calendar (toGregorian)
+import Data.Time.Calendar (toGregorian, fromGregorian)
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Data.Time.Format (formatTime)
 import System.Locale (defaultTimeLocale, iso8601DateFormat)
@@ -231,6 +231,11 @@ checkCmp (Cmp (?)) (CondTime getT1) (CondTime getT2) = Right $ CondCond $ \ctx -
         t2 <- getT2 ctx
         guard (t1 ? t2)
         return []
+checkCmp (Cmp (?)) (CondDate getT1) (CondDate getT2) = Right $ CondCond $ \ctx -> do
+        t1 <- getT1 ctx
+        t2 <- getT2 ctx
+        guard (t1 ? t2)
+        return []
 checkCmp (Cmp (?)) (CondString getS1) (CondString getS2) = Right $ CondCond $ \ctx -> do
         s1 <- getS1 ctx
         s2 <- getS2 ctx
@@ -355,6 +360,8 @@ parseCondPrim = choice
              return $ CondString (const (Just str))
         , try $ do time <- parseTime <?> "time" -- backtrack here, it might have been a number
                    return $ CondTime (const (Just time))
+        , try $ do date <- parseDate <?> "date" -- backtrack here, it might have been a number
+                   return $ CondDate (Just . date. cTimeZone)
         , do num <- natural lang <?> "number"
              return $ CondInteger (const (Just num))
         ]
@@ -410,6 +417,18 @@ parseTime = fmap fromIntegral $ lexeme lang $ do
                m2 <- digitToInt <$> digit
                let hour = maybe h ((10*h)+) mh
                return $ (hour * 60 + m1 * 10 + m2) * 60
+
+parseDate :: Parser (TimeZone -> UTCTime)
+parseDate = lexeme lang $ do
+    year <- read <$> count 4 digit
+    char '-'
+    month <- read <$> count 2 digit
+    char '-'
+    day <- read <$> count 2 digit
+    time <- option 0 parseTime
+    let date = LocalTime (fromGregorian year month day) (TimeOfDay 0 0 0)
+    return $ \tz -> addUTCTime time $ localTimeToUTC tz date
+
 
 parseSetTag :: Parser Rule
 parseSetTag = lexeme lang $ do
