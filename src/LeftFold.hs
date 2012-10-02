@@ -45,7 +45,7 @@ monoidFold = leftFold mempty mappend
 
 mapElems :: LeftFold y a -> (x -> y) -> LeftFold x a 
 mapElems (Pure x) _ = (Pure x)
-mapElems (LeftFold s p f) t = LeftFold s (\s x -> p s (t x)) f
+mapElems (LeftFold s p f) t = LeftFold s (\s x -> p s $! t x) f
 
 filterWith :: (x -> Bool) -> LeftFold (Bool :!: x) a -> LeftFold x a
 filterWith p f = f `mapElems` (\x -> (p x :!: x))
@@ -64,41 +64,41 @@ onAll lf = lf `mapElems` S.snd
 
 runOnGroups :: (x -> x -> Bool) -> LeftFold x y -> LeftFold y z -> LeftFold x z
 runOnGroups eq _ (Pure ox) = Pure ox
-runOnGroups eq (Pure ix) (LeftFold sto po fo) = LeftFold (Nothing :!: sto) go finish 
-    where go (Nothing :!: so) x             = (Just x :!: so)
-          go (Just x' :!: so) x | x `eq` x' = (Just x :!: so)
-                                | otherwise = (Just x :!: po so ix)
-          finish (Nothing :!: so) = fo so
-          finish (Just _  :!: so) = fo (po so ix)
-runOnGroups eq (LeftFold sti pi fi) (LeftFold sto po fo) = LeftFold (Nothing :!: sti :!: sto) go finish 
-    where go (Nothing :!: si :!: so) x             = (Just x :!: pi si x  :!: so)
-          go (Just x' :!: si :!: so) x | x `eq` x' = (Just x :!: pi si x  :!: so)
-                                       | otherwise = (Just x :!: pi sti x :!: po so (fi si))
-          finish (Nothing :!: si :!: so) = fo so
-          finish (Just _  :!: si :!: so) = fo (po so (fi si))
+runOnGroups eq (Pure ix) (LeftFold sto po fo) = LeftFold (S.Nothing :!: sto) go finish 
+    where go (S.Nothing :!: so) x             = (S.Just x :!: so)
+          go (S.Just x' :!: so) x | x `eq` x' = (S.Just x :!: so)
+                                  | otherwise = (S.Just x :!: po so ix)
+          finish (S.Nothing :!: so) = fo so
+          finish (S.Just _  :!: so) = fo (po so ix)
+runOnGroups eq (LeftFold sti pi fi) (LeftFold sto po fo) = LeftFold (S.Nothing :!: sti :!: sto) go finish 
+    where go (S.Nothing :!: si :!: so) x             = (S.Just x :!: pi si x  :!: so)
+          go (S.Just x' :!: si :!: so) x | x `eq` x' = (S.Just x :!: pi si x  :!: so)
+                                         | otherwise = (S.Just x :!: pi sti x :!: po so (fi si))
+          finish (S.Nothing :!: si :!: so) = fo so
+          finish (S.Just _  :!: si :!: so) = fo (po so (fi si))
 
 runOnIntervals :: LeftFold x y -> LeftFold y z -> LeftFold (Bool :!: x) z
 runOnIntervals _ (Pure ox) = (Pure ox)
-runOnIntervals (Pure ix) (LeftFold so po fo) = LeftFold (False :!: Nothing) go finish 
+runOnIntervals (Pure ix) (LeftFold so po fo) = LeftFold (False :!: S.Nothing) go finish 
     where go (True :!: so) (True :!: x)       = (True :!: so)
-          go (True :!: Just so) (False :!: x) = (False :!: Just (po so ix))
-          go (True :!: Nothing) (False :!: x) = (False :!: Just (po so ix))
+          go (True :!: S.Just so) (False :!: x) = (False :!: S.Just (po so ix))
+          go (True :!: S.Nothing) (False :!: x) = (False :!: S.Just (po so ix))
           go (False :!: so) (True :!: x)      = (True :!: so)
           go (False :!: so) (False :!: x)     = (False :!: so)
-          finish (False :!: Just so) = fo so
-          finish (False :!: Nothing) = fo so
-          finish (True  :!: Just so) = fo (po so ix)
-          finish (True  :!: Nothing) = fo (po so ix)
-runOnIntervals (LeftFold si pi fi) (LeftFold so po fo) = LeftFold (Nothing :!: Nothing) go finish 
-    where go (Just si :!: so) (True :!: x) = (Just (pi si x) :!: so)
-          go (Just si :!: Just so) (False :!: x) = (Nothing :!: Just (po so (fi si)))
-          go (Just si :!: Nothing) (False :!: x) = (Nothing :!: Just (po so (fi si)))
-          go (Nothing :!: so) (True :!: x) = (Just (pi si x) :!: so)
-          go (Nothing :!: so) (False :!: x) = (Nothing :!: so)
-          finish (Nothing :!: Just so) = fo so
-          finish (Nothing :!: Nothing) = fo so
-          finish (Just si :!: Just so) = fo (po so (fi si))
-          finish (Just si :!: Nothing) = fo (po so (fi si))
+          finish (False :!: S.Just so) = fo so
+          finish (False :!: S.Nothing) = fo so
+          finish (True  :!: S.Just so) = fo (po so ix)
+          finish (True  :!: S.Nothing) = fo (po so ix)
+runOnIntervals (LeftFold si pi fi) (LeftFold so po fo) = LeftFold (S.Nothing :!: S.Nothing) go finish 
+    where go (S.Just si :!: so) (True :!: x) = (S.Just (pi si x) :!: so)
+          go (S.Just si :!: S.Just so) (False :!: x) = (S.Nothing :!: S.Just (po so $! fi si))
+          go (S.Just si :!: S.Nothing) (False :!: x) = (S.Nothing :!: S.Just (po so $! fi si))
+          go (S.Nothing :!: so) (True :!: x) = (S.Just (pi si x) :!: so)
+          go (S.Nothing :!: so) (False :!: x) = (S.Nothing :!: so)
+          finish (S.Nothing :!: S.Just so) = fo so
+          finish (S.Nothing :!: S.Nothing) = fo so
+          finish (S.Just si :!: S.Just so) = fo (po so (fi si))
+          finish (S.Just si :!: S.Nothing) = fo (po so (fi si))
 
 lfLength :: LeftFold x Int
 lfLength = leftFold 0 (\c _ -> c + 1)
