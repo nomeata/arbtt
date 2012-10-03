@@ -171,13 +171,11 @@ main = do
 
   let captures = parseTimeLog trackedTimelog
   let allTags = categorizer captures
-  -- allTags `deepseq` return ()
   when (null allTags) $ do
      putStrLn "Nothing recorded yet"
      exitFailure
       
   let filters = (if optAlsoInactive flags then id else (defaultFilter:)) $ optFilters flags
-  -- let tags = applyFilters filters allTags
   let reps = case optReports flags of {[] -> [TotalTime]; reps -> reverse reps }
 
   -- These are defined here, but of course only evaluated when any report
@@ -186,8 +184,10 @@ main = do
   let opts = optReportOptions flags
   let (c,results) = runLeftFold (filterPredicate filters `filterWith` 
         (pure (,) <*> prepareCalculations <*> processReports opts c reps)) allTags
+
+  -- Force the results a bit, to ensure the progress bar to be shown before the titel
+  c `seq` return ()
   
-  --let results = runLeftFold (filterPredicate filters `filterWith` processReports opts reps) allTags
   renderReport opts (MultpleReportResults results)
 
 {-
