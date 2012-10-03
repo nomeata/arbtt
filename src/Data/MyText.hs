@@ -26,6 +26,22 @@ instance Binary Text where
     put = put . unpack
     get = pack <$> get
 
+{- Possible speedup with a version of binary that provides access to the
+   internals, as the Char instance is actually UTF8, but the length bit is
+   chars, not bytes.
+instance Binary Text where
+    put = put . unpack
+    get = do
+        n <- get :: Get Int
+        let go = do
+            s <- GI.get 
+            let utf8s = BSU.take n s
+            if BSU.length utf8s == n
+                then GI.skip (B.length utf8s) >> return utf8s
+                else GI.demandInput >> go
+        go
+-}
+
 instance NFData Text where
     rnf (Text a) = a `seq` ()
 
