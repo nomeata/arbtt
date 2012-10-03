@@ -44,6 +44,7 @@ type Parser = ParsecT String () (ReaderT TimeZone Identity)
 
 data Ctx = Ctx
         { cNow :: TimeLogEntry CaptureData
+        , cCurrentWindow :: Maybe (Bool, Text, Text)
         , cWindowInScope :: Maybe (Bool, Text, Text)
         , cSubsts :: [Text]
         , cCurrentTime :: UTCTime
@@ -52,7 +53,7 @@ data Ctx = Ctx
   deriving (Show)
 
 instance NFData Ctx where
-    rnf (Ctx a b c d e) = a `deepseq` b `deepseq` c `deepseq` e `deepseq` e `deepseq` ()
+    rnf (Ctx a b c d e f) = a `deepseq` b `deepseq` c `deepseq` e `deepseq` e `deepseq` f `deepseq` ()
 
 type Cond = CtxFun [Text]
 
@@ -92,7 +93,7 @@ applyCond s tz =
 
 prepare :: UTCTime -> TimeZone -> TimeLog CaptureData -> TimeLog Ctx
 prepare time tz = map go
-  where go now  = now {tlData = Ctx now Nothing [] time tz }
+  where go now  = now {tlData = Ctx now (findActive (cWindows (tlData now))) Nothing [] time tz }
 
 -- | Here, we filter out tags appearing twice, and make sure that only one of
 --   each category survives
@@ -272,7 +273,7 @@ checkCmp _ cp1 cp2 = Left $
 
 checkCurrentwindow :: CondPrim -> Erring CondPrim
 checkCurrentwindow (CondCond cond) = Right $ CondCond $ \ctx -> 
-        cond (ctx { cWindowInScope = findActive (cWindows (tlData (cNow ctx))) })
+        cond (ctx { cWindowInScope = cCurrentWindow ctx })
 checkCurrentwindow cp = Left $
         printf "Cannot apply current window to an expression of type %s"
                (cpType cp)
@@ -513,7 +514,7 @@ getBackref n ctx = listToMaybe (drop (fromIntegral n-1) (cSubsts ctx))
 getVar :: String -> CtxFun Text
 getVar v ctx | "current" `isPrefixOf` v = do
                 let var = drop (length "current.") v
-                win <- findActive $ cWindows (tlData (cNow ctx))
+                win <- cCurrentWindow ctx
                 getVar var (ctx { cWindowInScope = Just win })
 getVar "title"   ctx = do
                 (_,t,_) <- cWindowInScope ctx
