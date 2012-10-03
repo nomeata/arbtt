@@ -1,7 +1,9 @@
 module Data.MyText where
 
 import qualified Data.ByteString.UTF8 as BSU
+import qualified Data.ByteString.Lazy as LBS
 import qualified Data.ByteString as BS
+import Data.Binary.Get
 import Data.Binary
 import Control.Applicative ((<$>))
 import Control.Arrow (first)
@@ -9,6 +11,7 @@ import Prelude hiding (length, map)
 import qualified Prelude
 import GHC.Exts( IsString(..) )
 import Control.DeepSeq
+import Control.Monad
 
 newtype Text = Text { toBytestring :: BSU.ByteString } deriving (Eq, Ord)
 
@@ -24,7 +27,17 @@ instance IsString Text where
 -- Binary instance compatible with Binary String
 instance Binary Text where
     put = put . unpack
-    get = pack <$> get
+    -- The following code exploits that the Binary Char instance uses UTF8 as well
+    -- The downside is that it quietly suceeds for broken input
+    get = do
+        n <- get :: Get Int
+        lbs <- lookAhead (getLazyByteString (4*fromIntegral n)) -- safe approximation
+        let bs = BS.concat $ LBS.toChunks $ lbs
+        let utf8bs = BSU.take n bs
+        unless (BSU.length utf8bs == n) $
+            fail $ "Coult not parse the expected " ++ show n ++ " utf8 characters."
+        skip (BS.length utf8bs)
+        return $ Text utf8bs
 
 {- Possible speedup with a version of binary that provides access to the
    internals, as the Char instance is actually UTF8, but the length bit is
