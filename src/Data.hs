@@ -94,7 +94,7 @@ instance Binary UTCTime where
  get = do
         d <- get
         t <- get
-        return $ UTCTime (ModifiedJulianDay d) (fromRational t)
+        return $ UTCTime (ModifiedJulianDay d) ({-# SCC diffTimeFromRational #-} fromRational t)
 
 instance ListOfStringable CaptureData where
   listOfStrings = concatMap (\(b,t,p) -> [t,p]) . cWindows
