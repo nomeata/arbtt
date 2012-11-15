@@ -1,5 +1,5 @@
 name:               arbtt
-version:            0.7
+version:            0.6.4
 license:            GPL
 license-file:       LICENSE
 category:           Desktop
@@ -41,6 +41,7 @@ executable arbtt-capture
         Capture
         TimeLog
         UpgradeLog1
+        LeftFold
     
     ghc-options: -rtsopts
 
