@@ -70,7 +70,7 @@ lockFile filename = do
         hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for " ++ filename ++"!")
         exitFailure
 #else
-    flip catch (\e -> hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for " ++ filename ++"!") >> exitFailure) $ do
+    flip catchIOError (\e -> hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for " ++ filename ++"!") >> exitFailure) $ do
         fd <- openFd (filename  ++ ".lck") WriteOnly (Just 0o644) defaultFileFlags
         setLock fd (WriteLock, AbsoluteSeek, 0, 0)
 #endif       
