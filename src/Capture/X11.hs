@@ -5,6 +5,7 @@ import Graphics.X11
 import Graphics.X11.Xlib.Extras
 import Control.Monad
 import Control.Exception (bracket)
+import System.IO.Error (catchIOError)
 import Control.Applicative
 import Data.Maybe
 import Data.Time.Clock
@@ -77,11 +78,12 @@ myFetchName :: Display -> Window -> IO String
 myFetchName d w = do
         let getProp =
                 (internAtom d "_NET_WM_NAME" False >>= getTextProperty d w)
-                `catch`
+                `catchIOError`
                 (\_ -> getTextProperty d w wM_NAME)
 
             extract prop = do l <- wcTextPropertyToTextList d prop
                               return $ if null l then "" else head l
 
-        bracket getProp (xFree . tp_value) extract `catch` \_ -> return ""
+        bracket getProp (xFree . tp_value) extract
+            `catchIOError` \_ -> return ""
 
