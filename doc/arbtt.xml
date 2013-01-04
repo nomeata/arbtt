@@ -1077,13 +1077,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   </para>
   
   <sect2>
-    <title>Version 0.7</title>
+    <title>Version 0.7 (unreleased)</title>
     <itemizedlist>
       <listitem>
         <para>Make sure that the log file is only readable by the current user. Thanks to Joey Hess for pointing that out.</para>
       </listitem>
       <listitem>
         <para>Show a progress bar in <command>arbtt-stats</command>.</para>
+      </listitem>
+      <listitem>
+        <para>GHC-7.6 compatibility, thanks to Isaac Dupree.</para>
       </listitem>
     </itemizedlist>
   </sect2>
