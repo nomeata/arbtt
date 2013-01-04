@@ -1027,6 +1027,16 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
   </refentry>
 </sect1>
 
+<sect1 id="troubleshooting">
+  <title>Troubleshooting</title>
+  <sect2>
+    <title>arbtt and xmonad</title>
+    <para>
+      If you are using the <ulink url="http://xmonad.org">xmonad</ulink> window manager and arbtt does ont record any windows, ensure that your xmonad configuration includes the EWMH-Hints extensions in the module <ulink url="http://hackage.haskell.org/packages/archive/xmonad-contrib/latest/doc/html/XMonad-Hooks-EwmhDesktops.html">XMonad.Hooks.EwmhDesktops</ulink>.
+    </para>
+  </sect2>
+</sect1>
+
 <sect1 id="copyright">
   <title>Copyright and Contact</title>
   <para>
