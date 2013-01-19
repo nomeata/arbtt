@@ -7,7 +7,7 @@ cabal-version:      >= 1.6
 build-type:         Simple
 author:             Joachim Breitner <mail@joachim-breitner.de>
 maintainer:         Joachim Breitner <mail@joachim-breitner.de>
-copyright:          Joachim Breitner 2009-2010
+copyright:          Joachim Breitner 2009-2013
 synopsis:           Automatic Rule-Based Time Tracker
 description:
     arbtt is a background daemon that stores which windows are open, which one
