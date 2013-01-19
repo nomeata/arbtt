@@ -16,6 +16,7 @@ import qualified Data.ByteString.Lazy as BS
 import Data.ByteString.Lazy.Progress
 import System.Posix.Files
 import System.ProgressBar
+import TermSize
 
 import TimeLog
 import Categorize
@@ -160,12 +161,13 @@ main = do
 
   hSetBuffering stderr NoBuffering
   trackedTimelog <- trackProgressWithChunkSize (fromIntegral size `div` 100) (\_ b -> do
+    (_height, width) <- getTermSize
     hPutChar stderr '\r'
     hPutStr stderr $
-        mkProgressBar (msg "Processing data") percentage 80 (fromIntegral b) (fromIntegral size)
+        mkProgressBar (msg "Processing data") percentage (fromIntegral width) (fromIntegral b) (fromIntegral size)
     when  (fromIntegral b >= fromIntegral size) $ do
         hPutChar stderr '\r'
-        hPutStr stderr (replicate 80 ' ')
+        hPutStr stderr (replicate width ' ')
         hPutChar stderr '\r'
     ) timelog
 

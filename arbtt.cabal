@@ -33,7 +33,8 @@ executable arbtt-capture
         base == 4.5.* || == 4.6.*,
         filepath, directory, transformers, time >= 1.4, utf8-string,
         bytestring, binary, deepseq, strict,
-        terminal-progress-bar, bytestring-progress
+        terminal-progress-bar,
+        bytestring-progress
     other-modules:
         Data
         Data.MyText
@@ -81,6 +82,7 @@ executable arbtt-stats
         Text.Parsec.ExprFail
         Text.ParserCombinators.Parsec.ExprFail
         Text.Regex.PCRE.Light.Text
+        TermSize
     ghc-options: -rtsopts
     if os(windows) 
         cpp-options:    -DWIN32
