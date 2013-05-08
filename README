@@ -83,7 +83,7 @@ Some of my plans or ideas include:
    syntax).
  * $total_idle time, which is the maximum idle time until it is reset. This
    would allow the user to catch the idle times more exactly.
- * Rules based on day of time, to create tags for worktime, weekend, late
+ * Rules based on time of day, to create tags for worktime, weekend, late
    at night. (Partially done)
  * Storing the current timezone in the tags, for the prevoius entry to be
    more to be more useful.
