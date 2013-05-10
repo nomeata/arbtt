@@ -972,7 +972,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
 
     <refsect1><title>Description</title>
       <para>
-      <command>arbtt-recover</command> tries to readsthe data samples recorded
+      <command>arbtt-recover</command> tries to read the data samples recorded
       by <xref linkend="arbtt-capture"/>, skipping over possible broken entries. A fixed log file is written to <file>~/.arbtt/capture.log.recovered</file>. If the recovery was successful, you should stop <command>arbtt-capture</command> and move the file to <file>~/.arbtt/capture.log</file>.
       </para>
       <para>
