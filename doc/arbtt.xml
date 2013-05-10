@@ -748,7 +748,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
 
     <refsect1><title>See also</title>
       <para>See the arbtt manual for more information and the <ulink
-      url="http://www.hackage.org/package/arbtt">arbtt hackage page</ulink> for
+      url="http://hackage.haskell.org/package/arbtt">arbtt hackage page</ulink> for
       newer versions of arbtt.</para>
     </refsect1>
   </refentry>
@@ -818,7 +818,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
 
     <refsect1><title>See also</title>
       <para>See the arbtt manual for more information and the <ulink
-      url="http://www.hackage.org/package/arbtt">arbtt hackage page</ulink> for
+      url="http://hackage.haskell.org/package/arbtt">arbtt hackage page</ulink> for
       newer versions of arbtt.</para>
     </refsect1>
   </refentry>
@@ -882,7 +882,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
 
     <refsect1><title>See also</title>
       <para>See the arbtt manual for more information and the <ulink
-      url="http://www.hackage.org/package/arbtt">arbtt hackage page</ulink> for
+      url="http://hackage.haskell.org/package/arbtt">arbtt hackage page</ulink> for
       newer versions of arbtt.</para>
     </refsect1>
   </refentry>
@@ -946,7 +946,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
 
     <refsect1><title>See also</title>
       <para>See the arbtt manual for more information and the <ulink
-      url="http://www.hackage.org/package/arbtt">arbtt hackage page</ulink> for
+      url="http://hackage.haskell.org/package/arbtt">arbtt hackage page</ulink> for
       newer versions of arbtt.</para>
     </refsect1>
   </refentry>
@@ -1021,7 +1021,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
 
     <refsect1><title>See also</title>
       <para>See the arbtt manual for more information and the <ulink
-      url="http://www.hackage.org/package/arbtt">arbtt hackage page</ulink> for
+      url="http://hackage.haskell.org/package/arbtt">arbtt hackage page</ulink> for
       newer versions of arbtt.</para>
     </refsect1>
   </refentry>
