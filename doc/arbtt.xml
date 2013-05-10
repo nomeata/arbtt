@@ -973,7 +973,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
     <refsect1><title>Description</title>
       <para>
       <command>arbtt-recover</command> tries to read the data samples recorded
-      by <xref linkend="arbtt-capture"/>, skipping over possible broken entries. A fixed log file is written to <file>~/.arbtt/capture.log.recovered</file>. If the recovery was successful, you should stop <command>arbtt-capture</command> and move the file to <file>~/.arbtt/capture.log</file>.
+      by <xref linkend="arbtt-capture"/>, skipping over possible broken entries. A fixed log file is written to <filename>~/.arbtt/capture.log.recovered</filename>. If the recovery was successful, you should stop <command>arbtt-capture</command> and move the file to <filename>~/.arbtt/capture.log</filename>.
       </para>
       <para>
       As a sid effect, <command>arbtt-recover</command> applies the log compression method implemented in version 0.4.5 to the samples created by an earlier version. If you have a large logfile written by older versions, running <command>arbtt-recover</command> is recommended.
