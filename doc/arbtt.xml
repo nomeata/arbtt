@@ -33,6 +33,12 @@
       <contrib>Contributor</contrib>
       <email>muharem@linux.com</email>
     </author>
+    <author id="waldir">
+      <firstname>Waldir</firstname>
+      <surname>Pimenta</surname>
+      <contrib>Documentation writer</contrib>
+      <email>waldir@email.com</email>
+    </author>
   </authorgroup>
 </articleinfo>
 <abstract>
