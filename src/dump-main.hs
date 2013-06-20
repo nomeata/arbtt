@@ -75,4 +75,4 @@ main = do
   flags <- foldl (>>=) (return (defaultOptions dir)) actions
   
   captures <- readTimeLog (optLogFile flags) :: IO (TimeLog CaptureData)
-  mapM_ print captures
+  dumpSamples (optFormat flags) captures
