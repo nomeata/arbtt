@@ -94,7 +94,8 @@ executable arbtt-dump
     main-is:            dump-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.*, parsec == 3.*, containers
+        base == 4.*, parsec == 3.*, containers,
+        aeson == 0.6.*
     other-modules:
         Data
         Data.MyText

@@ -1,7 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, FlexibleInstances #-}
 module DumpFormat where
 
 import Data.MyText (unpack, Text)
+import Data.Aeson
+import qualified Data.ByteString.Lazy as LBS
 
 import Data
 import Text.Printf
@@ -12,6 +14,16 @@ data DumpFormat
     | DFPrettyJSON
     | DFJSON 
 
+instance ToJSON Text where
+    toJSON = toJSON . unpack
+
+instance ToJSON (TimeLogEntry CaptureData) where
+    toJSON (TimeLogEntry {..}) = object [
+        "date" .= tlTime,
+        "rate" .= tlRate,
+        "inactive" .= cLastActivity tlData,
+        "windows" .= map (\(a,p,t) -> object ["active" .= a, "program" .= p, "title" .= t]) (cWindows tlData)
+        ]
 
 dumpSamples :: DumpFormat -> TimeLog CaptureData -> IO ()
 dumpSamples DFShow = mapM_ print
@@ -28,4 +40,4 @@ dumpSamples DFHuman = mapM_ go
             (unpack program ++ ":")
             (unpack title)
              
-
+dumpSamples DFJSON = LBS.putStr . encode
