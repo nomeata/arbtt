@@ -1,20 +1,24 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Data.List.TakeR where
 
-import qualified Data.Vector.Mutable as V
 import Control.Monad.ST
 import Debug.Trace
+import Data.Array.MArray
+import Data.Array.ST
 
 -- Efficient taking of last r values
-takeR :: Int -> [a] -> [a]
+takeR :: forall a. Int -> [a] -> [a]
 takeR n l | n <= 0 = []
-takeR n l = runST $ do
-    buffer <- V.new n
-    i <- go buffer 0 l
-    let s = min i n
-    sequence $ [ V.read buffer (j `mod` n) | j <- [i-s..i-1] ]
+takeR n l = runST stAction
   where
+    stAction :: forall s. ST s [a]
+    stAction = do
+        buffer <- newArray_ (0, n-1)
+        i <- go (buffer :: STArray s Int a) 0 l
+        let s = min i n
+        sequence $ [ readArray buffer (j `mod` n) | j <- [i-s..i-1] ]
     go buffer i [] = return i
-    go buffer i (x:xs) = V.write buffer (i `mod` n) x >> go buffer (i+1) xs
+    go buffer i (x:xs) = writeArray buffer (i `mod` n) x >> go buffer (i+1) xs
 
     
 -- Correctness asserted by
