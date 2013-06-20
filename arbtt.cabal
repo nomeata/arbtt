@@ -95,7 +95,7 @@ executable arbtt-dump
     hs-source-dirs:     src
     build-depends:
         base == 4.*, parsec == 3.*, containers,
-        aeson == 0.6.*
+        aeson == 0.6.*, array == 0.4.*
     other-modules:
         Data
         Data.MyText
@@ -103,6 +103,7 @@ executable arbtt-dump
         CommonStartup
         TimeLog
         DumpFormat
+        Data.List.TakeR
     ghc-options: -rtsopts
     if os(windows) 
         cpp-options:    -DWIN32

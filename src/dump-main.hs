@@ -10,6 +10,7 @@ import Data.Version (showVersion)
 import Data.Maybe
 import Control.Monad
 import Data.Char
+import Data.List.TakeR
 
 import TimeLog
 import Data
@@ -21,11 +22,13 @@ import Paths_arbtt (version)
 data Options = Options
     { optLogFile :: String
     , optFormat :: DumpFormat
+    , optLast :: Maybe Int
     }
 
 defaultOptions dir = Options
     { optLogFile = dir </> "capture.log"
     , optFormat = DFHuman
+    , optLast = Nothing
     }
 
 
@@ -55,10 +58,20 @@ options =
                     "human"      -> return $ opt { optFormat = DFHuman }
                     "show"       -> return $ opt { optFormat = DFShow }
                     "json"       -> return $ opt { optFormat = DFJSON }
-                    _            -> do hPutStrLn stderr ("Invalid format \"" ++ arg ++ "\".")
-                                       hPutStr stderr (usageInfo header options)
-                                       exitFailure) "FORMAT")
+                    _            -> do
+                        hPutStrLn stderr ("Invalid format \"" ++ arg ++ "\".")
+                        hPutStr stderr (usageInfo header options)
+                        exitFailure) "FORMAT")
                "output format, one of Human (default), Show or JSON "
+     , Option "l"      ["last"]
+              (ReqArg (\arg opt ->
+                case reads arg of
+                    [(n, "")] | n >= 0 -> return $ opt { optLast = Just n }
+                    _                  -> do
+                        hPutStrLn stderr ("Invalid number \"" ++ arg ++ "\".")
+                        hPutStr stderr (usageInfo header options)
+                        exitFailure) "NUMBER")
+               "only dump the last NUMBER of samples."
      ]
 
 main = do
@@ -74,4 +87,9 @@ main = do
   flags <- foldl (>>=) (return (defaultOptions dir)) actions
   
   captures <- readTimeLog (optLogFile flags) :: IO (TimeLog CaptureData)
+
+  captures <- case optLast flags of 
+    Nothing -> return captures
+    Just n  -> return $ takeR n captures
+
   dumpSamples (optFormat flags) captures
