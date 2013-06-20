@@ -875,7 +875,11 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <term><option>--logfile</option> <replaceable>FILE</replaceable></term>
         <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
         </varlistentry>
-
+        <varlistentry>
+        <term><option>-t</option> <replaceable>FORMAT</replaceable></term>
+        <term><option>--format</option> <replaceable>FORMAT</replaceable></term>
+        <listitem><simpara>dumping format to use, where <replaceable>FORMAT</replaceable> is one of <literal>human</literal> (the default), <literal>show</literal> or <literal>JSON</literal>. Case in-sensitive.</simpara></listitem>
+	</varlistentry>
         <varlistentry>
         <term><option>-l</option> <replaceable>NUMBER</replaceable></term>
         <term><option>--last</option> <replaceable>NUMBER</replaceable></term>
