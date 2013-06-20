@@ -875,10 +875,11 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <term><option>--logfile</option> <replaceable>FILE</replaceable></term>
         <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
         </varlistentry>
+
         <varlistentry>
-        <term><option>-t</option> <replaceable>FORMAT</replaceable></term>
-        <term><option>--format</option> <replaceable>FORMAT</replaceable></term>
-        <listitem><simpara>dumping format to use, where <replaceable>FORMAT</replaceable> is one of <literal>human</literal> (the default), <literal>show</literal> or <literal>JSON</literal>. Case in-sensitive.</simpara></listitem>
+        <term><option>-l</option> <replaceable>NUMBER</replaceable></term>
+        <term><option>--last</option> <replaceable>NUMBER</replaceable></term>
+        <listitem><simpara>dump only the last <replaceable>NUMBER</replaceable> of samples.</simpara></listitem>
         </varlistentry>
       </variablelist>
     </refsect1>
@@ -1150,6 +1151,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <itemizedlist>
       <listitem>
         <para><command>arbtt-dump</command> can now show the data in other formats as well, as suggested by Waldir Pimenta.</para>
+      </listitem>
+      <listitem>
+        <para>New option <option>--last</option> of <command>arbtt-dump</command>.</para>
       </listitem>
     </itemizedlist>
   </sect2>
