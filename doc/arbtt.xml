@@ -519,7 +519,7 @@ $ runhaskell Setup.hs install</screen>
   -->
     <para>Because the data log file is binary, a tool names
     <command>arbtt-dump</command> can bee used to dump the data in
-    textual form. Its command line reference is given in <xref
+    various textual formats. Its command line reference is given in <xref
     linkend="arbtt-dump"/>.</para>
 
     <para>If <command>arbtt-capture</command> crashes it might be that the log
@@ -875,8 +875,14 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <term><option>--logfile</option> <replaceable>FILE</replaceable></term>
         <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
         </varlistentry>
+        <varlistentry>
+        <term><option>-t</option> <replaceable>FORMAT</replaceable></term>
+        <term><option>--format</option> <replaceable>FORMAT</replaceable></term>
+        <listitem><simpara>dumping format to use, where <replaceable>FORMAT</replaceable> is one of <literal>human</literal> (the default), <literal>show</literal> or <literal>JSON</literal>. Case in-sensitive.</simpara></listitem>
+        </varlistentry>
       </variablelist>
     </refsect1>
+
     <refsect1><title>Files</title>
       <variablelist>
         <varlistentry>
@@ -884,6 +890,63 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
           <listitem><para>binary file, storing the arbtt data samples</para></listitem>
         </varlistentry>
       </variablelist>
+    </refsect1>
+
+    <refsect1><title>Formats</title>
+      <refsect2><title>Human</title>
+      <para>This format is intended for human inspection, but not for further
+      processing. Hence, it may change in new versions of arbtt without notice.
+      Example output:</para>
+      <screen>2013-06-20 14:53:50.957763 UTC (48ms inactive):
+    ( ) Navigator:      arbtt-dump - Iceweasel
+    ( ) gnome-terminal-server: jojo@kirk:~/projekte/programming/arbtt/doc
+    (*) gvim:           arbtt.xml + (~/projekte/programming/arbtt/doc) - GVIM2
+</screen>
+      <para>The line with a star indicates the currently active window.</para>
+      </refsect2>
+
+      <refsect2><title>Show</title>
+      <para>This is the default serialization format of Haskell's
+      <literal>Show</literal> type class, one entry per line. This can be
+      useful if the data is to be processed by further Haskell code. Example
+      output, with indentation added manually:</para>
+      <screen>TimeLogEntry
+    { tlTime = 2013-06-20 14:53:50.957763 UTC
+    , tlRate = 60000
+    , tlData = CaptureData
+        { cWindows =
+            [ (False,"arbtt-dump - Iceweasel","Navigator")
+            , (False,"jojo@kirk:~/projekte/programming/arbtt/doc","gnome-terminal-server")
+            , (True,"arbtt.xml + (~/projekte/programming/arbtt/doc) - GVIM2","gvim")
+            ]
+        , cLastActivity = 48
+        }
+    }</screen>
+      </refsect2>
+
+      <refsect2><title>JSON</title>
+      <para>For operability, arbtt supports dumping its data to JSON, which can
+      easily be parsed by many different programming languages. Some level of
+      backward-compatibility will be provided, as far as possible. Default
+      output, again with indentation and spacing added manually:</para>
+      <screen>[ ...,
+  { "windows": [
+      { "program": "arbtt-dump - Iceweasel",
+        "title": "Navigator",
+        "active": false},
+      { "program": "jojo@kirk:~/projekte/programming/arbtt/doc",
+        "title":" gnome-terminal-server",
+        "active": false},
+      { "program": "arbtt.xml + (~/projekte/programming/arbtt/doc) - GVIM2",
+        "title": "gvim",
+        "active":true
+      }],
+    "inactive": 48,
+    "date": "2013-06-20T14:53:50.957Z",
+    "rate": 60000},
+  ...
+]</screen>
+      </refsect2>
     </refsect1>
 
     <refsect1><title>See also</title>
@@ -1081,6 +1144,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   <para>
   The version history with changes relevant for the user are documented here.
   </para>
+  
+  <sect2>
+    <title>Version 0.7.1 (unreleased)</title>
+    <itemizedlist>
+      <listitem>
+        <para><command>arbtt-dump</command> can now show the data in other formats as well, as suggested by Waldir Pimenta.</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
   
   <sect2>
     <title>Version 0.7</title>
