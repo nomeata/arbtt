@@ -7,6 +7,7 @@ import qualified Data.ByteString.Lazy as LBS
 
 import Data
 import Text.Printf
+import Data.List
 
 data DumpFormat
     = DFShow
@@ -39,4 +40,6 @@ dumpSamples DFHuman = mapM_ go
             (unpack program ++ ":")
             (unpack title)
              
-dumpSamples DFJSON = LBS.putStr . encode
+dumpSamples DFJSON = enclose . sequence_ . intersperse (putStrLn ",") . map (LBS.putStr . encode)
+  where
+    enclose m = putStrLn "[" >> m >> putStrLn "]"
