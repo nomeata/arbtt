@@ -101,6 +101,7 @@ executable arbtt-dump
         Data.Binary.StringRef
         CommonStartup
         TimeLog
+        DumpFormat
     ghc-options: -rtsopts
     if os(windows) 
         cpp-options:    -DWIN32
