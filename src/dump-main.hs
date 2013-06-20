@@ -54,12 +54,11 @@ options =
                 case map toLower arg of 
                     "human"      -> return $ opt { optFormat = DFHuman }
                     "show"       -> return $ opt { optFormat = DFShow }
-                    "prettyjson" -> return $ opt { optFormat = DFPrettyJSON }
                     "json"       -> return $ opt { optFormat = DFJSON }
                     _            -> do hPutStrLn stderr ("Invalid format \"" ++ arg ++ "\".")
                                        hPutStr stderr (usageInfo header options)
                                        exitFailure) "FORMAT")
-               "output format, one of Human (default), Show, PrettyJSON or JSON "
+               "output format, one of Human (default), Show or JSON "
      ]
 
 main = do

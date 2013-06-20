@@ -11,7 +11,6 @@ import Text.Printf
 data DumpFormat
     = DFShow
     | DFHuman
-    | DFPrettyJSON
     | DFJSON 
 
 instance ToJSON Text where
