@@ -7,6 +7,13 @@ import Data.Array.MArray
 import Data.Array.ST
 
 -- Efficient taking of last r values
+takeR n l = go (drop n l) l
+  where
+    go [] r = r
+    go (x:xs) (y:ys) = go xs ys
+
+-- Much faster and better evaluation properties than:
+{-
 takeR :: forall a. Int -> [a] -> [a]
 takeR n l | n <= 0 = []
 takeR n l = runST stAction
@@ -19,6 +26,7 @@ takeR n l = runST stAction
         sequence $ [ readArray buffer (j `mod` n) | j <- [i-s..i-1] ]
     go buffer i [] = return i
     go buffer i (x:xs) = writeArray buffer (i `mod` n) x >> go buffer (i+1) xs
+-}
 
     
 -- Correctness asserted by
