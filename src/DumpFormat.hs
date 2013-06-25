@@ -4,6 +4,8 @@ module DumpFormat where
 import Data.MyText (unpack, Text)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as LBS
+import Data.Time.Format
+import System.Locale
 
 import Data
 import Text.Printf
@@ -31,7 +33,7 @@ dumpSamples DFShow = mapM_ print
 dumpSamples DFHuman = mapM_ go
   where
     go tle = do 
-        printf "%s (%dms inactive):\n" (show (tlTime tle)) (cLastActivity (tlData tle))
+        printf "%s (%dms inactive):\n" (formatTime defaultTimeLocale "%F %X" (tlTime tle)) (cLastActivity (tlData tle))
         mapM_ goW (cWindows (tlData tle))
     goW :: (Bool, Text, Text) -> IO ()
     goW (active, title, program) = do

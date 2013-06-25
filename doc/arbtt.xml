@@ -902,7 +902,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
       <para>This format is intended for human inspection, but not for further
       processing. Hence, it may change in new versions of arbtt without notice.
       Example output:</para>
-      <screen>2013-06-20 14:53:50.957763 UTC (48ms inactive):
+      <screen>2013-06-20 14:53:50 (48ms inactive):
     ( ) Navigator:      arbtt-dump - Iceweasel
     ( ) gnome-terminal-server: jojo@kirk:~/projekte/programming/arbtt/doc
     (*) gvim:           arbtt.xml + (~/projekte/programming/arbtt/doc) - GVIM2
