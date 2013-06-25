@@ -74,6 +74,7 @@ nav > ul > li > a.active {
 
 nav > ul > li > a {
 	color: white;
+	font-weight: bold;
 	display: block;
 	padding: 0.5em;
 }
