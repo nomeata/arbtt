@@ -930,7 +930,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
       </refsect2>
 
       <refsect2><title>JSON</title>
-      <para>For operability, arbtt supports dumping its data to JSON, which can
+      <para>For interoperability, arbtt supports dumping its data to JSON, which can
       easily be parsed by many different programming languages. Some level of
       backward-compatibility will be provided, as far as possible. Default
       output, again with indentation and spacing added manually:</para>
