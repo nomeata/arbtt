@@ -378,6 +378,8 @@ $ runhaskell Setup.hs install</screen>
 	   	 <nonterminal def="#g-number"/> </rhs>
             <rhs> <nonterminal def="#g-timediff"/> <nonterminal def="#g-cmpop"/>
 	   	 <nonterminal def="#g-timediff"/> </rhs>
+            <rhs> <nonterminal def="#g-date"/> <nonterminal def="#g-cmpop"/>
+	   	 <nonterminal def="#g-date"/> </rhs>
             <rhs> <quote>current window</quote> <nonterminal def="#g-cond"/> </rhs>
             <rhs> <quote>any window</quote> <nonterminal def="#g-cond"/> </rhs>
 	  </production>
