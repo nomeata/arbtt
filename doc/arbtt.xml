@@ -1078,7 +1078,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <varlistentry>
         <term><option>-o</option></term>
         <term><option>--outfile</option></term>
-        <listitem><simpara>where to save the recovered file, instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
+        <listitem><simpara>where to save the recovered file, instead of <filename>~/.arbtt/capture.log.recovered</filename></simpara></listitem>
         </varlistentry>
       </variablelist>
     </refsect1>
