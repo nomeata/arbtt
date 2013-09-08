@@ -63,13 +63,13 @@ recoverTimeLog filename = do
                   then do putStrLn $ "WARNING: Timelog starts with unknown marker " ++
                                 show (map (chr.fromIntegral) (BS.unpack startString))
                   else do putStrLn $ "Found header, continuing... (" ++ show (BS.length rest) ++ " bytes to go)"
-                go Nothing rest off
-        go prev input off = do
+                reverse <$> go [] Nothing rest off
+        go res prev input off = do
                 mb <- tryGet prev False input off
-                flip (maybe (return [])) mb $ \(v,rest,off') ->
+                flip (maybe (return res)) mb $ \(v,rest,off') ->
                         if BS.null rest
-                        then return [v]
-                        else (v :) <$> go (Just (tlData v)) rest off'
+                        then return (v:res)
+                        else go (v:res) (Just (tlData v)) rest off'
         tryGet prev retrying input off = catch (
                         do -- putStrLn $ "Trying value at offset " ++ show off
                            let (v,rest,off') = runGetState (ls_get strs) input off
