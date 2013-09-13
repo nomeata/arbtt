@@ -17,6 +17,7 @@ import Control.Exception
 import Prelude hiding (catch)
 import Control.DeepSeq
 import System.Posix.Files
+import System.IO.Unsafe (unsafeInterleaveIO)
 
 import qualified Data.ByteString.Lazy as BS
 import Data.Maybe
@@ -53,6 +54,7 @@ writeTimeLog filename tl = do
                        return (Just (tlData v))
 
 -- | This might be very bad style, and it hogs memory, but it might help in some situations...
+-- Use of unsafeInterleaveIO should be replaced by conduit, pipe or something the like
 recoverTimeLog :: ListOfStringable a => FilePath -> IO (TimeLog a)
 recoverTimeLog filename = do
         content <- BS.readFile filename
@@ -63,13 +65,13 @@ recoverTimeLog filename = do
                   then do putStrLn $ "WARNING: Timelog starts with unknown marker " ++
                                 show (map (chr.fromIntegral) (BS.unpack startString))
                   else do putStrLn $ "Found header, continuing... (" ++ show (BS.length rest) ++ " bytes to go)"
-                reverse <$> go [] Nothing rest off
-        go res prev input off = do
+                go Nothing rest off
+        go prev input off = do
                 mb <- tryGet prev False input off
-                flip (maybe (return res)) mb $ \(v,rest,off') ->
+                flip (maybe (return [])) mb $ \(v,rest,off') ->
                         if BS.null rest
-                        then return (v:res)
-                        else go (v:res) (Just (tlData v)) rest off'
+                        then return [v]
+                        else (v:) <$> (unsafeInterleaveIO $ go (Just (tlData v)) rest off')
         tryGet prev retrying input off = catch (
                         do -- putStrLn $ "Trying value at offset " ++ show off
                            let (v,rest,off') = runGetState (ls_get strs) input off
