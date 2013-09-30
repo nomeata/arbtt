@@ -44,7 +44,7 @@ getTermSize :: IO (Int, Int)
 getTermSize = 
   with (WinSize 0 0) $ \ws -> do
     throwErrnoIfMinus1 "ioctl" $
-      ioctl (#const STDOUT_FILENO) (#const TIOCGWINSZ) ws
+      ioctl (#const STDERR_FILENO) (#const TIOCGWINSZ) ws
     WinSize row col <- peek ws
     return (fromIntegral row, fromIntegral col)
 #endif
