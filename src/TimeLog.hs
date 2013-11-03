@@ -66,18 +66,20 @@ recoverTimeLog filename = do
                                 show (map (chr.fromIntegral) (BS.unpack startString))
                   else do putStrLn $ "Found header, continuing... (" ++ show (BS.length rest) ++ " bytes to go)"
                 go Nothing rest off
+
         go prev input off = do
-                mb <- tryGet prev False input off
+                mb <- tryGet prev input off off
                 flip (maybe (return [])) mb $ \(v,rest,off') ->
                         if BS.null rest
                         then return [v]
                         else (v:) <$> (unsafeInterleaveIO $ go (Just (tlData v)) rest off')
-        tryGet prev retrying input off = catch (
+
+        tryGet prev input off orig_off = catch (
                         do -- putStrLn $ "Trying value at offset " ++ show off
                            let (v,rest,off') = runGetState (ls_get strs) input off
                            evaluate rest
-                           when retrying $
-                                putStrLn $ "Succesfully read value at position " ++ show off
+                           when (off /= orig_off) $
+                                putStrLn $ "Skipped from " ++ show orig_off ++ ", succesful read at position " ++ show off ++ ", lost " ++ show (off - orig_off) ++ " bytes."
                            return (Just (v,rest,off'))
                         ) (
                         \e -> do
@@ -86,8 +88,7 @@ recoverTimeLog filename = do
                            if BS.length input <= 1
                              then do putStrLn $ "End of file reached"
                                      return Nothing
-                             else do putStrLn $ "Trying at position " ++ show (off+1) ++ "."
-                                     tryGet prev True (BS.tail input) (off+1)
+                             else do tryGet prev (BS.tail input) (off+1) orig_off
                         )
           where strs = maybe [] listOfStrings prev
 
