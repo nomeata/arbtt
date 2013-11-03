@@ -66,3 +66,4 @@ main = do
 
   captures <- recoverTimeLog (optInFile flags) :: IO (TimeLog CaptureData)
   writeTimeLog (optOutFile flags) captures
+  putStrLn $ "Wrote data recovered from " ++ optInFile flags ++ " to " ++ optOutFile flags
