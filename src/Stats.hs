@@ -6,12 +6,14 @@ module Stats (
     ReportResults(..),
     ActivityFilter(..),
     Filter(..),
+    Repeater(..),
     defaultFilter,
     defaultReportOptions,
     parseActivityMatcher,
     filterPredicate,
     prepareCalculations,
-    processReports,
+    processReport,
+    processRepeater,
     renderReport
     ) where
 
@@ -26,7 +28,8 @@ import Data.MyText (Text,pack,unpack)
 import Data.Function (on)
 import System.Locale (defaultTimeLocale)
 import Control.Applicative
-import Data.Strict ((:!:))
+import Data.Strict ((:!:), Pair(..))
+import qualified Data.Strict as Strict
 import Data.Traversable (sequenceA)
 
 import Data
@@ -49,6 +52,9 @@ data ActivityMatcher = MatchActivity Activity | MatchCategory Category
         deriving (Show, Eq)
 
 data ActivityFilter = ExcludeActivity ActivityMatcher | OnlyActivity ActivityMatcher
+        deriving (Show, Eq)
+
+data Repeater = ByDay | ByMonth | ByYear
         deriving (Show, Eq)
 
 -- Supported report output formats: text, comma-separated values and
@@ -79,6 +85,7 @@ data ReportResults =
         | PieChartOfTimePercValues  String [(String, String, Double)]
         | ListOfIntervals String [Interval]
         | MultipleReportResults [ReportResults]
+        | RepeatedReportResults String [(String, ReportResults)]
 
 
 filterPredicate :: [Filter] -> TimeLogEntry (Ctx, ActivityData) -> Bool
@@ -160,8 +167,19 @@ calcSums = LeftFold M.empty
                 let go' m act = M.insertWith' (+) act (fromInteger (tlRate tl)/1000) m
                 in foldl' go' m (snd (tlData tl))) id
 
-processReports :: ReportOptions -> [Report] ->  LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) [ReportResults]
-processReports opts = sequenceA . map (processReport opts)
+processRepeater :: Repeater -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
+processRepeater ByDay rep =
+    filterElems (\(b :!: _) -> b) $ 
+    pure (RepeatedReportResults "Day" . map (\(d,rr) -> (showGregorian d, rr)) . M.toList) <*>
+    multiplex (utctDay . tlTime . Strict.snd) rep
+processRepeater ByMonth rep =
+    filterElems (\(b :!: _) -> b) $ 
+    pure (RepeatedReportResults "Month" . map (\((y,m),rr) -> (show y ++ "-" ++ show m, rr)) . M.toList) <*>
+    multiplex ((\(y,m,d) -> (y, m)). toGregorian . utctDay . tlTime . Strict.snd) rep
+processRepeater ByYear rep =
+    filterElems (\(b :!: _) -> b) $ 
+    pure (RepeatedReportResults "Year" . map (\(y,rr) -> (show y, rr)) . M.toList) <*>
+    multiplex ((\(y,m,d) -> y). toGregorian . utctDay . tlTime . Strict.snd) rep
 
 processReport :: ReportOptions -> Report -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
 processReport opts GeneralInfos =
@@ -187,6 +205,7 @@ processReport opts GeneralInfos =
     onSelected calcTotalTime
 
 processReport opts  TotalTime =
+    onSelected $
         pure (\totalTimeSel sums -> 
             ListOfTimePercValues "Total time per tag" .
             mapMaybe (\(tag,time) ->
@@ -202,8 +221,8 @@ processReport opts  TotalTime =
             sortBy (comparing snd) $
             M.toList $
             sums) <*>
-    onSelected calcTotalTime <*>
-    onSelected calcSums 
+    calcTotalTime <*>
+    calcSums 
 
 processReport opts (Category cat) = pure (\c -> processCategoryReport opts c cat) <*>
     prepareCalculations
@@ -324,22 +343,26 @@ renderReport opts reportdata =
 
 doRender :: ReportOptions -> ReportResults -> String
 doRender opts reportdata = case roReportFormat opts of
-                RFText -> renderReportText reportdata
-                RFCSV -> renderReportCSV reportdata
-                RFTSV -> renderReportTSV reportdata
+                RFText -> renderReportText id reportdata
+                RFCSV -> renderWithDelimiter "," $ renderXSV reportdata
+                RFTSV -> renderWithDelimiter "\t" $ renderXSV reportdata
 
-renderReportText (ListOfFields title dats) = 
-    underline title ++
+renderReportText titleMod (ListOfFields title dats) = 
+    underline (titleMod title) ++
     (tabulate False $ map (\(f,v) -> [f,v]) dats)
 
-renderReportText (ListOfTimePercValues title dats) = 
-    underline title ++ (tabulate True $ listOfValues dats)
+renderReportText titleMod (ListOfTimePercValues title dats) = 
+    underline (titleMod title) ++ (tabulate True $ listOfValues dats)
 
-renderReportText (PieChartOfTimePercValues title dats) = 
-    underline title ++ (tabulate True $ piechartOfValues dats)
+renderReportText titleMod (PieChartOfTimePercValues title dats) = 
+    underline (titleMod title) ++ (tabulate True $ piechartOfValues dats)
 
-renderReportText (ListOfIntervals title dats) = 
-    underline title ++ (tabulate True $ listOfIntervals dats)
+renderReportText titleMod (ListOfIntervals title dats) = 
+    underline (titleMod title) ++ (tabulate True $ listOfIntervals dats)
+
+renderReportText titleMod (RepeatedReportResults cat reps) = 
+    intercalate "\n" $ map (\(v,rr) -> renderReportText (titleMod . mod v) rr) reps
+  where mod v s = s ++ " (" ++ cat ++ " " ++ v ++ ")"
 
 listOfValues dats =
     ["Tag","Time","Percentage"] :
@@ -355,31 +378,20 @@ listOfIntervals dats =
 
 -- The reporting of "General Information" is not supported for the
 -- comma-separated output format.
-renderReportCSV (ListOfFields title dats) = 
-    error ("\"" ++ title ++ "\"" ++ " not supported for comma-separated output format")
+renderXSV (ListOfFields title dats) = 
+    error ("\"" ++ title ++ "\"" ++ " not supported for this output format")
 
-renderReportCSV (ListOfTimePercValues _ dats) = 
-    renderWithDelimiter "," (listOfValues dats)
+renderXSV (ListOfTimePercValues _ dats) = listOfValues dats
 
-renderReportCSV (PieChartOfTimePercValues _ dats) = 
-    renderWithDelimiter "," (piechartOfValues dats)
+renderXSV (PieChartOfTimePercValues _ dats) = piechartOfValues dats
 
-renderReportCSV (ListOfIntervals title dats) = 
-    renderWithDelimiter "," (listOfIntervals dats)
+renderXSV (ListOfIntervals title dats) = listOfIntervals dats
 
--- The reporting of "General Information" is not supported for the
--- TAB-separated output format.
-renderReportTSV (ListOfFields title dats) = 
-    error ("\"" ++ title ++ "\"" ++ " not supported for TAB-separated output format")
-
-renderReportTSV (ListOfTimePercValues _ dats) = 
-    renderWithDelimiter "\t" (listOfValues dats)
-
-renderReportTSV (PieChartOfTimePercValues _ dats) = 
-    renderWithDelimiter "\t" (piechartOfValues dats)
-
-renderReportTSV (ListOfIntervals title dats) = 
-    renderWithDelimiter "\t" (listOfIntervals dats)
+-- A bit code-smelly here.
+renderXSV (RepeatedReportResults cat reps) = title : fields
+  where
+    title = cat : head (renderXSV (snd (head reps)))
+    fields = concatMap (\(v,rr) -> map (v:) (tail (renderXSV rr))) reps
 
 renderWithDelimiter :: String -> [[String]] -> String
 renderWithDelimiter delim datasource =

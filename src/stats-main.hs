@@ -29,6 +29,7 @@ import Paths_arbtt (version)
 data Options = Options
     { optReports :: [Report]
     , optFilters :: [Filter]
+    , optRepeater :: [Repeater]
     , optAlsoInactive :: Bool
     , optReportOptions :: ReportOptions
     , optLogFile :: String
@@ -39,6 +40,7 @@ defaultOptions :: FilePath -> Options
 defaultOptions dir = Options
     { optReports = []
     , optFilters = []
+    , optRepeater = []
     , optAlsoInactive = False
     , optReportOptions = defaultReportOptions
     , optLogFile = dir </> "capture.log"
@@ -124,7 +126,19 @@ options =
               (ReqArg (\arg opt -> let ro = (optReportOptions opt) { roReportFormat = readReportFormat arg }
                                    in  return opt { optReportOptions = ro }) "FORMAT")
               "one of: text, csv (comma-separated values), tsv (TAB-separated values) (default: Text)"
+     , Option ""       ["for-each"]
+              (ReqArg (\arg opt -> let repeater = readRepeater arg : optRepeater opt
+                                   in  return opt { optRepeater = repeater }) "PERIOD")
+              "one of: day, month, year"
      ]
+
+readRepeater :: String -> Repeater
+readRepeater arg =
+    case map toLower arg of
+        "day"   -> ByDay
+        "month" -> ByMonth
+        "year"  -> ByYear
+        _       -> error ("Unsupported parameter to --for-each: '" ++ arg ++ "'")
 
 readReportFormat :: String -> ReportFormat
 readReportFormat arg =
@@ -176,18 +190,24 @@ main = do
      exitFailure
       
   let filters = (if optAlsoInactive flags then id else (defaultFilter:)) $ optFilters flags
-  let reps = case optReports flags of {[] -> [TotalTime]; reps -> reverse reps }
+
+  let rep = case optReports flags of
+                [] -> TotalTime
+                [x] -> x
+                _ -> error "Please specify exactly one report to generate"
+  let repeater = foldr (.) id $ map processRepeater (optRepeater flags)
 
   -- These are defined here, but of course only evaluated when any report
   -- refers to them. Some are needed by more than one report, which is then
   -- advantageous.
   let opts = optReportOptions flags
-  let results = runLeftFold (filterPredicate filters `filterWith` (processReports opts reps)) allTags
+  let fold = filterPredicate filters `adjoin` repeater (processReport opts rep)
+  let result = runLeftFold fold allTags
 
   -- Force the results a bit, to ensure the progress bar to be shown before the title
-  results `seq` return ()
+  result `seq` return ()
   
-  renderReport opts (MultipleReportResults results)
+  renderReport opts result
 
 {-
 import Data.Accessor

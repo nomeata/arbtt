@@ -7,6 +7,8 @@ import Data.List
 import Data.Monoid
 import Data.Strict ((:!:), Pair((:!:)))
 import qualified Data.Strict as S
+import qualified Data.Map.Strict as M
+import Data.Maybe
 
 
 data LeftFold x a = forall s. LeftFold {
@@ -47,8 +49,13 @@ mapElems :: LeftFold y a -> (x -> y) -> LeftFold x a
 mapElems (Pure x) _ = (Pure x)
 mapElems (LeftFold s p f) t = LeftFold s (\s x -> p s $! t x) f
 
-filterWith :: (x -> Bool) -> LeftFold (Bool :!: x) a -> LeftFold x a
-filterWith p f = f `mapElems` (\x -> (p x :!: x))
+filterElems :: (x -> Bool) -> LeftFold x a -> LeftFold x a 
+filterElems _ (Pure x) = (Pure x)
+filterElems pred (LeftFold s p f) = LeftFold s (\s x -> if pred x then p s x else s) f
+
+adjoin :: (x -> Bool) -> LeftFold (Bool :!: x) a -> LeftFold x a
+adjoin p f = f `mapElems` (\x -> (p x :!: x))
+
 
 onSelected :: LeftFold x a -> LeftFold (Bool :!: x) a
 onSelected (Pure x) = Pure x
@@ -99,6 +106,12 @@ runOnIntervals (LeftFold si pi fi) (LeftFold so po fo) = LeftFold (S.Nothing :!:
           finish (S.Nothing :!: S.Nothing) = fo so
           finish (S.Just si :!: S.Just so) = fo (po so (fi si))
           finish (S.Just si :!: S.Nothing) = fo (po so (fi si))
+
+multiplex :: Ord k => (a -> k) -> LeftFold a b -> LeftFold a (M.Map k b)
+multiplex key (LeftFold si pi fi) = LeftFold M.empty go finish
+    where go m x = M.alter go' (key x) m
+            where go' mbOld = Just $ pi (fromMaybe si mbOld) x
+          finish = M.map fi
 
 lfLength :: LeftFold x Int
 lfLength = leftFold 0 (\c _ -> c + 1)
