@@ -182,11 +182,10 @@ main = do
   -- refers to them. Some are needed by more than one report, which is then
   -- advantageous.
   let opts = optReportOptions flags
-  let (c,results) = runLeftFold (filterPredicate filters `filterWith` 
-        (pure (,) <*> prepareCalculations <*> processReports opts c reps)) allTags
+  let results = runLeftFold (filterPredicate filters `filterWith` (processReports opts reps)) allTags
 
   -- Force the results a bit, to ensure the progress bar to be shown before the title
-  c `seq` return ()
+  results `seq` return ()
   
   renderReport opts (MultipleReportResults results)
 
