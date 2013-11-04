@@ -188,7 +188,7 @@ main = do
   -- Force the results a bit, to ensure the progress bar to be shown before the title
   c `seq` return ()
   
-  renderReport opts (MultpleReportResults results)
+  renderReport opts (MultipleReportResults results)
 
 {-
 import Data.Accessor
