@@ -185,7 +185,7 @@ main = do
   let (c,results) = runLeftFold (filterPredicate filters `filterWith` 
         (pure (,) <*> prepareCalculations <*> processReports opts c reps)) allTags
 
-  -- Force the results a bit, to ensure the progress bar to be shown before the titel
+  -- Force the results a bit, to ensure the progress bar to be shown before the title
   c `seq` return ()
   
   renderReport opts (MultpleReportResults results)
