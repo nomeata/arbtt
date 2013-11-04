@@ -78,7 +78,7 @@ data ReportResults =
         | ListOfTimePercValues String [(String, String, Double)]
         | PieChartOfTimePercValues  String [(String, String, Double)]
         | ListOfIntervals String [Interval]
-        | MultpleReportResults [ReportResults]
+        | MultipleReportResults [ReportResults]
 
 
 filterPredicate :: [Filter] -> TimeLogEntry (Ctx, ActivityData) -> Bool
@@ -198,7 +198,7 @@ processReport opts ~(Calculations {..}) TotalTime =
 processReport opts c (Category cat) = pure (processCategoryReport opts c cat)
 
 processReport opts c EachCategory = 
-    pure (\cats -> MultpleReportResults $ map (processCategoryReport opts c) cats) <*>
+    pure (\cats -> MultipleReportResults $ map (processCategoryReport opts c) cats) <*>
     onSelected calcCategories
 
 processReport opts c (IntervalCategory cat) =
@@ -305,7 +305,7 @@ intervalReportToTable title extr = ListOfIntervals title $
 -}           
             
 renderReport :: ReportOptions -> ReportResults -> IO ()
-renderReport opts (MultpleReportResults reports) =
+renderReport opts (MultipleReportResults reports) =
     sequence_ . intersperse (putStrLn "") . map (renderReport opts) $ reports
 renderReport opts reportdata =
     putStr $ doRender opts reportdata
