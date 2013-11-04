@@ -722,6 +722,22 @@ $ runhaskell Setup.hs install</screen>
             
             </listitem>
           </varlistentry>
+          <varlistentry>
+            <term><option>--for-each</option> <replaceable>PERIOD</replaceable></term>
+            <listitem><para>This is not a report of its own, but causes the selected
+            report to be executed for each of the given PERIOD (which can be
+            day, month or year) where there exist selected samples. All the reports 
+            will then be printed one after another or, in the case of CSV output,
+            with an additional column.</para>
+            
+            <para>Note that if this option is enabled, samples that are filtered out
+            are completely ignored (to avoid empty reports for periods with
+            only filtered samples). Therefore, the
+            <option>--information</option> report will print the numbers for
+            the samples selected also for the totals.</para>
+
+            </listitem>
+          </varlistentry>
         </variablelist>
       </refsect2>
     </refsect1>
