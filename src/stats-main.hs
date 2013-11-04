@@ -128,13 +128,11 @@ options =
 
 readReportFormat :: String -> ReportFormat
 readReportFormat arg =
-    case (tolower arg) of
+    case map toLower arg of
         "text" -> RFText
         "csv"  -> RFCSV
         "tsv"  -> RFTSV
         _      -> error ("Unsupported report output format: '" ++ arg ++ "'")
-    where
-        tolower = map toLower
 
 main :: IO ()
 main = do
