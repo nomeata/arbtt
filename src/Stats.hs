@@ -160,26 +160,34 @@ calcSums = LeftFold M.empty
                 let go' m act = M.insertWith' (+) act (fromInteger (tlRate tl)/1000) m
                 in foldl' go' m (snd (tlData tl))) id
 
-processReports :: ReportOptions -> Calculations -> [Report] ->  LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) [ReportResults]
-processReports opts c = sequenceA . map (processReport opts c)
+processReports :: ReportOptions -> [Report] ->  LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) [ReportResults]
+processReports opts = sequenceA . map (processReport opts)
 
-processReport :: ReportOptions -> Calculations ->  Report -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
-processReport opts ~(Calculations {..}) GeneralInfos =
-   pure (\n ->
-    ListOfFields "General Information"
+processReport :: ReportOptions -> Report -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
+processReport opts GeneralInfos =
+   pure (\n firstDate lastDate ttr tts ->
+    let timeDiff = diffUTCTime lastDate firstDate
+        fractionRec = realToFrac ttr / (realToFrac timeDiff) :: Double
+        fractionSel = realToFrac tts / (realToFrac timeDiff) :: Double
+        fractionSelRec = realToFrac tts / realToFrac ttr :: Double
+    in ListOfFields "General Information"
         [ ("FirstRecord", show firstDate)
         , ("LastRecord",  show lastDate)
         , ("Number of records", show n)
-        , ("Total time recorded",  showTimeDiff totalTimeRec)
-        , ("Total time selected",  showTimeDiff totalTimeSel)
+        , ("Total time recorded",  showTimeDiff ttr)
+        , ("Total time selected",  showTimeDiff tts)
         , ("Fraction of total time recorded", printf "%3.0f%%" (fractionRec * 100))
         , ("Fraction of total time selected", printf "%3.0f%%" (fractionSel * 100))
         , ("Fraction of recorded time selected", printf "%3.0f%%" (fractionSelRec * 100))
         ]) <*>
-    onAll lfLength
+    onAll lfLength <*>
+    onAll calcFirstDate <*>
+    onAll calcLastDate <*>
+    onAll calcTotalTime <*>
+    onSelected calcTotalTime
 
-processReport opts ~(Calculations {..}) TotalTime =
-        pure $ 
+processReport opts  TotalTime =
+        pure (\totalTimeSel sums -> 
             ListOfTimePercValues "Total time per tag" .
             mapMaybe (\(tag,time) ->
                   let perc = realToFrac time/realToFrac totalTimeSel
@@ -193,22 +201,26 @@ processReport opts ~(Calculations {..}) TotalTime =
             reverse .
             sortBy (comparing snd) $
             M.toList $
-            sums
+            sums) <*>
+    onSelected calcTotalTime <*>
+    onSelected calcSums 
 
-processReport opts c (Category cat) = pure (processCategoryReport opts c cat)
+processReport opts (Category cat) = pure (\c -> processCategoryReport opts c cat) <*>
+    prepareCalculations
 
-processReport opts c EachCategory = 
-    pure (\cats -> MultipleReportResults $ map (processCategoryReport opts c) cats) <*>
+processReport opts EachCategory = 
+    pure (\c cats -> MultipleReportResults $ map (processCategoryReport opts c) cats) <*>
+    prepareCalculations <*>
     onSelected calcCategories
 
-processReport opts c (IntervalCategory cat) =
-    processIntervalReport opts c ("Intervals for category " ++ show cat) (extractCat cat) 
+processReport opts (IntervalCategory cat) =
+    processIntervalReport opts ("Intervals for category " ++ show cat) (extractCat cat) 
     where
         extractCat :: Category -> ActivityData -> Maybe String
         extractCat cat = fmap (unpack . activityName) . listToMaybe . filter ( (==Just cat) . activityCategory )
 
-processReport opts c (IntervalTag tag) =
-    processIntervalReport opts c ("Intervals for category " ++ show tag) (extractTag tag) 
+processReport opts (IntervalTag tag) =
+    processIntervalReport opts ("Intervals for category " ++ show tag) (extractTag tag) 
     where
         extractTag :: Activity -> ActivityData -> Maybe String
         extractTag tag = fmap show . listToMaybe . filter ( (==tag) )
@@ -255,8 +267,8 @@ processCategoryReport opts ~(Calculations {..}) cat =
                 else []
                 )
 
-processIntervalReport :: ReportOptions -> Calculations -> String -> (ActivityData -> Maybe String) -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
-processIntervalReport _opts _c title extr = runOnIntervals  go1 go2
+processIntervalReport :: ReportOptions -> String -> (ActivityData -> Maybe String) -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
+processIntervalReport _opts title extr = runOnIntervals  go1 go2
   where
     go1 :: LeftFold (TimeLogEntry (Ctx, ActivityData)) [Interval]
     go1 = go3 `mapElems` fmap (extr . snd) 
