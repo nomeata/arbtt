@@ -371,10 +371,7 @@ renderReportTSV (ListOfIntervals title dats) =
 
 renderWithDelimiter :: String -> [[String]] -> String
 renderWithDelimiter delim datasource =
-    unlines $ map (injectDelimiter delim) datasource
-
-injectDelimiter :: [a] -> [[a]] -> [a]
-injectDelimiter d = concat . intersperse d
+    unlines $ map (intercalate delim) datasource
 
 tabulate :: Bool -> [[String]] -> String
 tabulate titlerow rows = unlines $ addTitleRow $ map (intercalate " | " . zipWith (\l s -> take (l - length s) (repeat ' ') ++ s) colwidths) rows
