@@ -40,7 +40,7 @@ instance Applicative (LeftFold x) where
 
 runLeftFold :: LeftFold x a -> [x] -> a
 runLeftFold (Pure x) _ = x
-runLeftFold (LeftFold st1 p1 f1) xs = f1 (foldl' p1 st1 xs)
+runLeftFold (LeftFold st1 p1 f1) xs = f1 $! foldl' p1 st1 xs
 
 monoidFold :: Monoid m => LeftFold m m
 monoidFold = leftFold mempty mappend
