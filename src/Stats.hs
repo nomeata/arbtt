@@ -99,6 +99,9 @@ filterPredicate filters tl =
                 Only act     -> onlyTag act tl
                 GeneralCond s-> applyCond s (cTimeZone (fst (tlData tl))) tl) filters
 
+filterActivity :: [ActivityFilter] -> ActivityData -> ActivityData
+filterActivity fs = filter (applyActivityFilter fs)
+
 applyActivityFilter :: [ActivityFilter] -> Activity -> Bool
 applyActivityFilter fs act = all go fs
     where go (ExcludeActivity matcher) = not (matchActivityMatcher matcher act)
@@ -249,7 +252,7 @@ processReport opts (IntervalTag tag) =
         extractTag tag = fmap show . listToMaybe . filter ( (==tag) )
 
 processReport opts DumpSamples =
-    DumpResult <$> onSelected (toList `mapElems` (fmap (first (tlData . cNow))))
+    DumpResult <$> onSelected (toList `mapElems` (fmap ((tlData . cNow) *** (filterActivity (roActivityFilter opts)))))
 
 calcCategories :: LeftFold (TimeLogEntry (Ctx, ActivityData)) [Category]
 calcCategories = fmap S.toList $ leftFold S.empty $ \s tl ->
