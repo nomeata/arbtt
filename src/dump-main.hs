@@ -54,11 +54,9 @@ options =
                "use this file instead of ~/.arbtt/capture.log"
      , Option "t"      ["format"]
               (ReqArg (\arg opt ->
-                case map toLower arg of 
-                    "human"      -> return $ opt { optFormat = DFHuman }
-                    "show"       -> return $ opt { optFormat = DFShow }
-                    "json"       -> return $ opt { optFormat = DFJSON }
-                    _            -> do
+                case readDumpFormat arg of
+                    Just fm -> return $ opt { optFormat = fm}
+                    Nothing -> do
                         hPutStrLn stderr ("Invalid format \"" ++ arg ++ "\".")
                         hPutStr stderr (usageInfo header options)
                         exitFailure) "FORMAT")
