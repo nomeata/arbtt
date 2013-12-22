@@ -6,7 +6,7 @@ import System.Environment
 import System.Exit
 import System.IO
 import Control.Monad
-import qualified Data.MyText as T
+import Data.Maybe
 import Data.Char (toLower)
 import Text.Printf
 import Data.Version (showVersion)
@@ -17,12 +17,14 @@ import Data.ByteString.Lazy.Progress
 import System.Posix.Files
 import System.ProgressBar
 import TermSize
+import qualified Data.MyText as T
 
 import TimeLog
 import Categorize
 import Stats
 import CommonStartup
 import LeftFold
+import DumpFormat
 
 import Paths_arbtt (version)
 
@@ -122,6 +124,10 @@ options =
                                        reports = report : optReports opt
                                    in  return opt { optReports = reports }) "TAG")
               "list intervals of tag or category TAG"
+     , Option ""       ["dump-samples"]
+              (NoArg (\opt ->      let reports = DumpSamples : optReports opt
+                                   in  return opt { optReports = reports }))
+              "Dump the raw samples and tags."
      , Option ""       ["output-format"]
               (ReqArg (\arg opt -> let ro = (optReportOptions opt) { roReportFormat = readReportFormat arg }
                                    in  return opt { optReportOptions = ro }) "FORMAT")

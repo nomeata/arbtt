@@ -31,10 +31,12 @@ import Control.Applicative
 import Data.Strict ((:!:), Pair(..))
 import qualified Data.Strict as Strict
 import Data.Traversable (sequenceA)
+import Control.Arrow
 
 import Data
 import Categorize
 import LeftFold
+import DumpFormat
 
 
 data Report = GeneralInfos
@@ -43,6 +45,7 @@ data Report = GeneralInfos
     | EachCategory
     | IntervalCategory Category
     | IntervalTag Activity
+    | DumpSamples
         deriving (Show, Eq)
 
 data Filter = Exclude ActivityMatcher | Only ActivityMatcher | GeneralCond String
@@ -86,6 +89,7 @@ data ReportResults =
         | ListOfIntervals String [Interval]
         | MultipleReportResults [ReportResults]
         | RepeatedReportResults String [(String, ReportResults)]
+        | DumpResult (TimeLog (CaptureData, ActivityData))
 
 
 filterPredicate :: [Filter] -> TimeLogEntry (Ctx, ActivityData) -> Bool
@@ -169,17 +173,17 @@ calcSums = LeftFold M.empty
 
 processRepeater :: Repeater -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
 processRepeater ByDay rep =
-    filterElems (\(b :!: _) -> b) $ 
+    filterElems (\(b :!: _) -> b) $
     pure (RepeatedReportResults "Day" . map (\(d,rr) -> (showGregorian d, rr)) . M.toList) <*>
     multiplex (utctDay . tlTime . Strict.snd) rep
 processRepeater ByMonth rep =
-    filterElems (\(b :!: _) -> b) $ 
+    filterElems (\(b :!: _) -> b) $
     pure (RepeatedReportResults "Month" . map (\((y,m),rr) -> (show y ++ "-" ++ show m, rr)) . M.toList) <*>
-    multiplex ((\(y,m,d) -> (y, m)). toGregorian . utctDay . tlTime . Strict.snd) rep
+    multiplex ((\(y,m,_) -> (y, m)). toGregorian . utctDay . tlTime . Strict.snd) rep
 processRepeater ByYear rep =
-    filterElems (\(b :!: _) -> b) $ 
+    filterElems (\(b :!: _) -> b) $
     pure (RepeatedReportResults "Year" . map (\(y,rr) -> (show y, rr)) . M.toList) <*>
-    multiplex ((\(y,m,d) -> y). toGregorian . utctDay . tlTime . Strict.snd) rep
+    multiplex ((\(y,_,_) -> y). toGregorian . utctDay . tlTime . Strict.snd) rep
 
 processReport :: ReportOptions -> Report -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
 processReport opts GeneralInfos =
@@ -243,6 +247,9 @@ processReport opts (IntervalTag tag) =
     where
         extractTag :: Activity -> ActivityData -> Maybe String
         extractTag tag = fmap show . listToMaybe . filter ( (==tag) )
+
+processReport opts DumpSamples =
+    DumpResult <$> onSelected (toList `mapElems` (fmap (first (tlData . cNow))))
 
 calcCategories :: LeftFold (TimeLogEntry (Ctx, ActivityData)) [Category]
 calcCategories = fmap S.toList $ leftFold S.empty $ \s tl ->
@@ -336,12 +343,13 @@ intervalReportToTable title extr = ListOfIntervals title $
 -}           
             
 renderReport :: ReportOptions -> ReportResults -> IO ()
+renderReport opts (DumpResult samples) =
+    dumpActivity samples
 renderReport opts (MultipleReportResults reports) =
     sequence_ . intersperse (putStrLn "") . map (renderReport opts) $ reports
 renderReport opts reportdata =
     putStr $ doRender opts reportdata
 
-doRender :: ReportOptions -> ReportResults -> String
 doRender opts reportdata = case roReportFormat opts of
                 RFText -> renderReportText id reportdata
                 RFCSV -> renderWithDelimiter "," $ renderXSV reportdata
