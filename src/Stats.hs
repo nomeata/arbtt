@@ -89,7 +89,7 @@ data ReportResults =
         | ListOfIntervals String [Interval]
         | MultipleReportResults [ReportResults]
         | RepeatedReportResults String [(String, ReportResults)]
-        | DumpResult (TimeLog (CaptureData, ActivityData))
+        | DumpResult (TimeLog (CaptureData, TimeZone, ActivityData))
 
 
 filterPredicate :: [Filter] -> TimeLogEntry (Ctx, ActivityData) -> Bool
@@ -252,7 +252,9 @@ processReport opts (IntervalTag tag) =
         extractTag tag = fmap show . listToMaybe . filter ( (==tag) )
 
 processReport opts DumpSamples =
-    DumpResult <$> onSelected (toList `mapElems` (fmap ((tlData . cNow) *** (filterActivity (roActivityFilter opts)))))
+    DumpResult <$> onSelected (mapElems toList $ fmap $
+        \(cd,ad) -> (tlData (cNow cd), cTimeZone cd, filterActivity (roActivityFilter opts) ad)
+        )
 
 calcCategories :: LeftFold (TimeLogEntry (Ctx, ActivityData)) [Category]
 calcCategories = fmap S.toList $ leftFold S.empty $ \s tl ->

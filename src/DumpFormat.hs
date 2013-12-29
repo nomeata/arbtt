@@ -37,23 +37,25 @@ readDumpFormat arg =
         "json"       -> return DFJSON
         _            -> Nothing
 
-dumpActivity :: TimeLog (CaptureData, ActivityData) -> IO ()
+dumpActivity :: TimeLog (CaptureData, TimeZone, ActivityData) -> IO ()
 dumpActivity = mapM_ go
  where
     go tle = do
-        dumpHeader (tlTime tle) (cLastActivity cd)
+        dumpHeader tz (tlTime tle) (cLastActivity cd)
         mapM_ dumpWindow (cWindows cd)
         dumpTags ad
       where
-        (cd, ad) = tlData tle
+        (cd, tz, ad) = tlData tle
 
 dumpTags :: ActivityData -> IO ()
 dumpTags = mapM_ go
   where go act = printf "    %s\n" (show act)
 
-dumpHeader :: UTCTime -> Integer -> IO ()
-dumpHeader time lastActivity = do
-    printf "%s (%dms inactive):\n" (formatTime defaultTimeLocale "%F %X" time) lastActivity
+dumpHeader :: TimeZone -> UTCTime -> Integer -> IO ()
+dumpHeader tz time lastActivity = do
+    printf "%s (%dms inactive):\n"
+        (formatTime defaultTimeLocale "%F %X" (utcToLocalTime tz time))
+        lastActivity
 
 dumpWindow :: (Bool, Text, Text) -> IO ()
 dumpWindow (active, title, program) = do
@@ -62,14 +64,14 @@ dumpWindow (active, title, program) = do
         (unpack program ++ ":")
         (unpack title)
 
-dumpSamples :: DumpFormat -> TimeLog CaptureData -> IO ()
-dumpSamples DFShow = mapM_ print
+dumpSamples :: TimeZone -> DumpFormat -> TimeLog CaptureData -> IO ()
+dumpSamples _ DFShow = mapM_ print
 
-dumpSamples DFHuman = mapM_ go
+dumpSamples tz DFHuman = mapM_ go
   where
     go tle = do
-        dumpHeader (tlTime tle) (cLastActivity (tlData tle))
+        dumpHeader tz (tlTime tle) (cLastActivity (tlData tle))
         mapM_ dumpWindow (cWindows (tlData tle))
-dumpSamples DFJSON = enclose . sequence_ . intersperse (putStrLn ",") . map (LBS.putStr . encode)
+dumpSamples _ DFJSON = enclose . sequence_ . intersperse (putStrLn ",") . map (LBS.putStr . encode)
   where
     enclose m = putStrLn "[" >> m >> putStrLn "]"

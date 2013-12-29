@@ -11,6 +11,7 @@ import Data.Maybe
 import Control.Monad
 import Data.Char
 import Data.List.TakeR
+import Data.Time.LocalTime
 
 import TimeLog
 import Data
@@ -90,4 +91,5 @@ main = do
     Nothing -> return captures
     Just n  -> return $ takeR n captures
 
-  dumpSamples (optFormat flags) captures
+  tz <- getCurrentTimeZone
+  dumpSamples tz (optFormat flags) captures
