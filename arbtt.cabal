@@ -21,7 +21,7 @@ description:
 homepage:           http://arbtt.nomeata.de/
 
 extra-source-files:
-    categorize.cfg, arbtt-capture.desktop, README,
+    categorize.cfg, arbtt-capture.desktop, README.md,
     doc/arbtt.xml, doc/fptools.css, doc/Makefile,
     setup.iss, modpath.iss
 
