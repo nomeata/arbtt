@@ -48,6 +48,7 @@ latest source at the darcs repository at
   http://darcs.nomeata.de/arbtt
 
 Git mirrors are available at
+
  * http://git.nomeata.de/?p=darcs-mirror-arbtt.git
  * https://github.com/nomeata/darcs-mirror-arbtt
  * https://bitbucket.org/nomeata/arbtt
