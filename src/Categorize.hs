@@ -373,6 +373,8 @@ parseCondPrim = choice
                            return $ CondTime (getTimeVar "sampleage")
                       , do guard $ varname == "date"
                            return $ CondDate (getDateVar "date")
+                      , do guard $ varname == "desktop"
+                           return $ CondString (getVar "desktop")
                      ]
               ] <?> "variable"
         , do regex <- parseRegex <?> "regular expression"
@@ -522,6 +524,8 @@ getVar "title"   ctx = do
 getVar "program" ctx = do
                 (_,_,p) <- cWindowInScope ctx
                 return p
+getVar "desktop" ctx = do
+                return $ cDesktop (tlData (cNow ctx))
 getVar v ctx = error $ "Unknown variable " ++ v
 
 getNumVar :: String -> CtxFun Integer
