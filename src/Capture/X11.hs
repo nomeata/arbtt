@@ -55,7 +55,7 @@ captureData = do
         p <- getWindowProperty32 dpy a rwin
 
         wins <- case p of
-                Just wins -> return (map fromIntegral wins)
+                Just wins -> filterM (isInteresting dpy) (map fromIntegral wins)
                 Nothing   -> return []
 
         (fsubwin,_) <- getInputFocus dpy
@@ -85,6 +85,17 @@ followTreeUntil dpy cond = go
              | otherwise = do (r,p,_) <- queryTree dpy w
                               if p == 0 then return w
                                         else go p 
+
+-- | Ignore, for example, Desktop and Docks windows
+isInteresting :: Display -> Window -> IO Bool
+isInteresting d w = do
+    a <- internAtom d "_NET_WM_WINDOW_TYPE" False
+    dock <- internAtom d "_NET_WM_WINDOW_TYPE_DOCK" False
+    desk <- internAtom d "_NET_WM_WINDOW_TYPE_DESKTOP" False
+    mbr <- getWindowProperty32 d a w
+    case mbr of
+        Just [r] -> return $ fromIntegral r `notElem` [dock, desk]
+        _        -> return True
 
 -- | better than fetchName from X11, as it supports _NET_WM_NAME and unicode
 --
