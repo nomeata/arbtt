@@ -36,6 +36,21 @@ captureData = do
         xSetErrorHandler
         let rwin = defaultRootWindow dpy
 
+        -- Desktops
+        a <- internAtom dpy "_NET_CURRENT_DESKTOP" False
+        p <- getWindowProperty32 dpy a rwin
+        let desk_index = do {[d] <- p; return (fromIntegral d)}
+
+        a <- internAtom dpy "_NET_DESKTOP_NAMES" False
+        tp <- getTextProperty dpy rwin a
+        names <- wcTextPropertyToTextList dpy tp
+
+        let current_desktop = case desk_index of
+              Nothing -> ""
+              Just n -> if 1 <= n && n <= length names
+                        then names !! (n-1)
+                        else show n
+        -- Windows
         a <- internAtom dpy "_NET_CLIENT_LIST" False
         p <- getWindowProperty32 dpy a rwin
 
@@ -54,7 +69,7 @@ captureData = do
         it <- fromIntegral `fmap` getXIdleTime dpy
 
         closeDisplay dpy
-        return $ CaptureData winData it
+        return $ CaptureData winData it (T.pack current_desktop)
 
 getWindowTitle :: Display -> Window -> IO String
 getWindowTitle dpy =  myFetchName dpy

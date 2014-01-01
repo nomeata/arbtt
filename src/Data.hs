@@ -34,11 +34,13 @@ data CaptureData = CaptureData
         { cWindows :: [ (Bool, Text, Text) ]
                 -- ^ Active window, window title, programm name
         , cLastActivity :: Integer -- ^ in milli-seconds
+        , cDesktop :: Text
+                -- ^ Current desktop name
         }
   deriving (Show, Read)
 
 instance NFData CaptureData where
-    rnf (CaptureData a b) = a `deepseq` b `deepseq` ()
+    rnf (CaptureData a b c) = a `deepseq` b `deepseq` c `deepseq` ()
 
 type ActivityData = [Activity]
 
@@ -105,14 +107,16 @@ instance StringReferencingBinary CaptureData where
 -- 2 Using ListOfStringable
  ls_put strs cd = do
         -- A version tag
-        putWord8 2
+        putWord8 3
         ls_put strs (cWindows cd)
         ls_put strs (cLastActivity cd)
+        ls_put strs (cDesktop cd)
  ls_get strs = do
         v <- getWord8
         case v of
-         1 -> CaptureData <$> get <*> get
-         2 -> CaptureData <$> ls_get strs <*> ls_get strs
+         1 -> CaptureData <$> get <*> get <*> pure ""
+         2 -> CaptureData <$> ls_get strs <*> ls_get strs <*> pure ""
+         3 -> CaptureData <$> ls_get strs <*> ls_get strs <*> ls_get strs
          _ -> error $ "Unsupported CaptureData version tag " ++ show v
 
   -- | 'getMany n' get 'n' elements in order, without blowing the stack.
