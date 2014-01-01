@@ -1,5 +1,11 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards, FlexibleInstances #-}
-module DumpFormat where
+module DumpFormat
+    ( DumpFormat(..)
+    , readDumpFormat
+    , dumpActivity
+    , dumpSample
+    , dumpSamples
+    ) where
 
 import Data.MyText (unpack, Text)
 import Data.Aeson
@@ -64,14 +70,16 @@ dumpWindow (active, title, program) = do
         (unpack program ++ ":")
         (unpack title)
 
+dumpSample :: TimeZone -> TimeLogEntry CaptureData -> IO ()
+dumpSample tz tle = do
+    dumpHeader tz (tlTime tle) (cLastActivity (tlData tle))
+    mapM_ dumpWindow (cWindows (tlData tle))
+
 dumpSamples :: TimeZone -> DumpFormat -> TimeLog CaptureData -> IO ()
 dumpSamples _ DFShow = mapM_ print
 
-dumpSamples tz DFHuman = mapM_ go
-  where
-    go tle = do
-        dumpHeader tz (tlTime tle) (cLastActivity (tlData tle))
-        mapM_ dumpWindow (cWindows (tlData tle))
+dumpSamples tz DFHuman = mapM_ (dumpSample tz)
+
 dumpSamples _ DFJSON = enclose . sequence_ . intersperse (putStrLn ",") . map (LBS.putStr . encode)
   where
     enclose m = putStrLn "[" >> m >> putStrLn "]"

@@ -24,15 +24,22 @@ import Data.Maybe
 
 magic = BS.pack $ map (fromIntegral.ord) "arbtt-timelog-v1\n"
 
+mkTimeLogEntry :: Integer -> a -> IO (TimeLogEntry a)
+mkTimeLogEntry delay entry = do
+    date <- getCurrentTime
+    return $ TimeLogEntry date delay entry
+
+
 -- | Runs the given action each delay milliseconds and appends the TimeLog to the
 -- given file.
 runLogger :: ListOfStringable a => FilePath -> Integer -> IO a -> IO ()
 runLogger filename delay action = flip fix Nothing $ \loop prev -> do
         entry <- action
-        date <- getCurrentTime
+        tle <- mkTimeLogEntry delay entry
+
         createTimeLog False filename
         setFileMode filename (ownerReadMode `unionFileModes` ownerWriteMode)
-        appendTimeLog filename prev (TimeLogEntry date delay entry)
+        appendTimeLog filename prev tle
         threadDelay (fromIntegral delay * 1000)
         loop (Just entry)
 

@@ -828,6 +828,11 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <term><option>--logfile</option> <replaceable>FILE</replaceable></term>
         <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
         </varlistentry>
+        <varlistentry>
+        <term><option>-d</option></term>
+        <term><option>--dump</option></term>
+        <listitem><simpara>dump one current sample instead of modifying the logfile</simpara></listitem>
+        </varlistentry>
       </variablelist>
     </refsect1>
     <refsect1><title>Files</title>
@@ -1181,7 +1186,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <para><command>arbtt-recover</command> can handle larger datasets with a reasonable amount of memory.</para>
       </listitem>
       <listitem>
-        <para>When dumping sampels with <command>arbtt-stats</command> or <command>arbtt-dump</command> (in human-readable mode), times are printed in the local time zone, as suggested by Oren Gampel.</para>
+        <para>When dumping samples with <command>arbtt-stats</command> or <command>arbtt-dump</command> (in human-readable mode), times are printed in the local time zone, as suggested by Oren Gampel.</para>
+      </listitem>
+      <listitem>
+        <para><command>arbtt-capture</command> now supports the option <option>--dump</option> for development and debugging purposes.</para>
       </listitem>
     </itemizedlist>
   </sect2>
