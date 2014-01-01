@@ -47,8 +47,8 @@ captureData = do
 
         let current_desktop = case desk_index of
               Nothing -> ""
-              Just n -> if 1 <= n && n <= length names
-                        then names !! (n-1)
+              Just n -> if 0 <= n && n < length names
+                        then names !! n
                         else show n
         -- Windows
         a <- internAtom dpy "_NET_CLIENT_LIST" False
