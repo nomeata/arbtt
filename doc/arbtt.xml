@@ -393,6 +393,7 @@ $ runhaskell Setup.hs install</screen>
 	    <lhs>String</lhs>
 	    <rhs> <quote>$title</quote> </rhs>
 	    <rhs> <quote>$program</quote> </rhs>
+	    <rhs> <quote>$desktop</quote> </rhs>
 	    <rhs> <quote>format</quote> <nonterminal def="#g-date" /> </rhs>
 	    <rhs> <quote>"</quote> string literal <quote>"</quote> </rhs>
 	  </production>
