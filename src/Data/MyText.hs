@@ -7,7 +7,7 @@ import Data.Binary.Get
 import Data.Binary
 import Control.Applicative ((<$>))
 import Control.Arrow (first)
-import Prelude hiding (length, map)
+import Prelude hiding (length, map, null)
 import qualified Prelude
 import GHC.Exts( IsString(..) )
 import Control.DeepSeq
@@ -78,3 +78,6 @@ map f = pack . Prelude.map f . unpack
 
 concat :: [Text] -> Text
 concat = Text . BS.concat . Prelude.map toBytestring
+
+null :: Text -> Bool
+null = BS.null . toBytestring

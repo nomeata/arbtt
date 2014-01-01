@@ -7,7 +7,7 @@ module DumpFormat
     , dumpSamples
     ) where
 
-import Data.MyText (unpack, Text)
+import Data.MyText (unpack, null, Text)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as LBS
 import Data.Time
@@ -16,7 +16,8 @@ import Data.Char
 
 import Data
 import Text.Printf
-import Data.List
+import Data.List hiding (null)
+import Prelude hiding (null)
 
 data DumpFormat
     = DFShow
@@ -32,7 +33,8 @@ instance ToJSON (TimeLogEntry CaptureData) where
         "date" .= tlTime,
         "rate" .= tlRate,
         "inactive" .= cLastActivity tlData,
-        "windows" .= map (\(a,p,t) -> object ["active" .= a, "program" .= p, "title" .= t]) (cWindows tlData)
+        "windows" .= map (\(a,p,t) -> object ["active" .= a, "program" .= p, "title" .= t]) (cWindows tlData),
+        "desktop" .= cDesktop tlData
         ]
 
 readDumpFormat :: String -> Maybe DumpFormat
@@ -48,6 +50,7 @@ dumpActivity = mapM_ go
  where
     go tle = do
         dumpHeader tz (tlTime tle) (cLastActivity cd)
+        dumpDesktop (cDesktop cd)
         mapM_ dumpWindow (cWindows cd)
         dumpTags ad
       where
@@ -70,9 +73,15 @@ dumpWindow (active, title, program) = do
         (unpack program ++ ":")
         (unpack title)
 
+dumpDesktop :: Text -> IO ()
+dumpDesktop d
+    | null d    = return ()
+    | otherwise = printf "    Current Desktop: %s\n" (unpack d)
+
 dumpSample :: TimeZone -> TimeLogEntry CaptureData -> IO ()
 dumpSample tz tle = do
     dumpHeader tz (tlTime tle) (cLastActivity (tlData tle))
+    dumpDesktop (cDesktop (tlData tle))
     mapM_ dumpWindow (cWindows (tlData tle))
 
 dumpSamples :: TimeZone -> DumpFormat -> TimeLog CaptureData -> IO ()

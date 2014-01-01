@@ -26,4 +26,4 @@ captureData = do
 
         it <- fromIntegral `fmap` getIdleTime
 
-        return $ CaptureData winData it
+        return $ CaptureData winData it (T.pack "")
