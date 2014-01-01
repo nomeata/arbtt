@@ -156,8 +156,8 @@ $ runhaskell Setup.hs install</screen>
     <title>The semantics (informal)</title>
     <para>
       A data sample consists of the time of recording, the time passed since the
-      user’s last action and the list of windows. For each window this
-      information is available:
+      user’s last action, the name of the current workspace and the list of
+      windows. For each window this information is available:
       <itemizedlist>
         <listitem><simpara>the window title</simpara></listitem>
         <listitem><simpara>the program name</simpara></listitem>
@@ -217,6 +217,11 @@ $ runhaskell Setup.hs install</screen>
       By default, there is no window is in scope. Condition should be prefixed
       with either <literal>current window</literal> or <literal>any
       window</literal>, to define scope of these variables.
+    </para>
+
+    <para>
+      The name of the current desktop (or workspace) is available as
+      <literal>$desktop</literal>.
     </para>
 
     <para>
@@ -1190,6 +1195,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       </listitem>
       <listitem>
         <para><command>arbtt-capture</command> now supports the option <option>--dump</option> for development and debugging purposes.</para>
+      </listitem>
+      <listitem>
+        <para>The name of the current desktop (or workspace) is also recorded, and available as <literal>$desktop</literal> (<ulink url="https://bitbucket.org/nomeata/arbtt/issue/1/track-active-workspace-name">issue #1</ulink>).</para>
       </listitem>
     </itemizedlist>
   </sect2>
