@@ -37,19 +37,20 @@ captureData = do
         let rwin = defaultRootWindow dpy
 
         -- Desktops
-        a <- internAtom dpy "_NET_CURRENT_DESKTOP" False
-        p <- getWindowProperty32 dpy a rwin
-        let desk_index = do {[d] <- p; return (fromIntegral d)}
+        current_desktop <- flip catchIOError (\_ -> return "") $ do
+            a <- internAtom dpy "_NET_CURRENT_DESKTOP" False
+            p <- getWindowProperty32 dpy a rwin
+            let desk_index = do {[d] <- p; return (fromIntegral d)}
 
-        a <- internAtom dpy "_NET_DESKTOP_NAMES" False
-        tp <- getTextProperty dpy rwin a
-        names <- wcTextPropertyToTextList dpy tp
+            a <- internAtom dpy "_NET_DESKTOP_NAMES" False
+            tp <- getTextProperty dpy rwin a
+            names <- wcTextPropertyToTextList dpy tp
 
-        let current_desktop = case desk_index of
-              Nothing -> ""
-              Just n -> if 0 <= n && n < length names
-                        then names !! n
-                        else show n
+            return $ case desk_index of
+                  Nothing -> ""
+                  Just n -> if 0 <= n && n < length names
+                            then names !! n
+                            else show n
         -- Windows
         a <- internAtom dpy "_NET_CLIENT_LIST" False
         p <- getWindowProperty32 dpy a rwin
