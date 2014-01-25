@@ -1,4 +1,0 @@
-name = "arbtt-dump_small"
-call = "../dist/build/arbtt-dump/arbtt-dump -f in/small.log"
-stdin = "/dev/null"
-test = {{ type = "stdout", right = "out/small_dump.out" }}

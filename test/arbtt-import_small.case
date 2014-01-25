@@ -1,6 +1,0 @@
-tmpRepair = tmp()
-
-name = "arbtt-import_small"
-call = "../dist/build/arbtt-import/arbtt-import -f " .. tmpRepair
-stdin = "in/small_import.in"
-test = {{ type = "file", left = tmpRepair, right = "out/small_import.out" }}
