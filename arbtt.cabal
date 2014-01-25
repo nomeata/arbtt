@@ -63,7 +63,7 @@ executable arbtt-capture
             System.Locale.SetLocale
         build-depends:
             X11 > 1.4.4, unix
-    default-language: Haskell2010
+    default-language: Haskell98
 
 executable arbtt-stats
     main-is:            stats-main.hs
@@ -93,7 +93,7 @@ executable arbtt-stats
     else
         other-modules:
             System.Locale.SetLocale
-    default-language: Haskell2010
+    default-language: Haskell98
 
 executable arbtt-dump
     main-is:            dump-main.hs
@@ -119,7 +119,7 @@ executable arbtt-dump
     else
         other-modules:
             System.Locale.SetLocale
-    default-language: Haskell2010
+    default-language: Haskell98
 
 executable arbtt-import
     main-is:            import-main.hs
@@ -141,7 +141,7 @@ executable arbtt-import
     else
         other-modules:
             System.Locale.SetLocale
-    default-language: Haskell2010
+    default-language: Haskell98
 
 executable arbtt-recover
     main-is:            recover-main.hs
@@ -163,7 +163,7 @@ executable arbtt-recover
     else
         other-modules:
             System.Locale.SetLocale
-    default-language: Haskell2010
+    default-language: Haskell98
 
 test-suite test
   Type:
@@ -189,7 +189,7 @@ test-suite test
       , directory
       , parsec == 3.*, containers == 0.5.*, pcre-light, old-locale
       , transformers
-  default-language: Haskell2010
+  default-language: Haskell98
 
 source-repository head
     type:     darcs
