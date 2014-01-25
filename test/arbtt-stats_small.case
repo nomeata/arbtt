@@ -1,4 +1,0 @@
-name = "arbtt-stats_small"
-call = "TZ=Ghana/Accra ../dist/build/arbtt-stats/arbtt-stats --logfile in/small.log --categorize in/small.cfg"
-stdin = "/dev/null"
-test = {{ type = "stdout", right = "out/small_stats.out" }}

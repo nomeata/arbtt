@@ -150,6 +150,19 @@ executable arbtt-recover
         other-modules:
             System.Locale.SetLocale
 
+test-suite test
+  Type:
+    exitcode-stdio-1.0
+  Hs-source-dirs:
+    tests
+  Main-is:
+    test.hs
+  Build-depends:
+      base >= 4 && < 5
+      , tasty == 0.7.*
+      , tasty-golden == 2.2.*
+      , process-extras == 0.2.*
+
 source-repository head
     type:     darcs
     location: http://darcs.nomeata.de/arbtt

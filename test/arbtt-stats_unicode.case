@@ -1,4 +1,0 @@
-name = "arbtt-stats_unicode"
-call = "../dist/build/arbtt-stats/arbtt-stats --categorizefile in/unicode.cfg --logfile in/unicode.log"
-stdin = "/dev/null"
-test = {{ type = "stdout", right = "out/unicode_stats.out" }}
