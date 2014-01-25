@@ -176,18 +176,22 @@ main = do
 
   timelog <- BS.readFile (optLogFile flags)
   size <- fileSize <$> getFileStatus (optLogFile flags)
+  isTerm <- hIsTerminalDevice stderr
 
-  hSetBuffering stderr NoBuffering
-  trackedTimelog <- trackProgressWithChunkSize (fromIntegral size `div` 100) (\_ b -> do
-    (_height, width) <- getTermSize
-    hPutChar stderr '\r'
-    hPutStr stderr $
-        mkProgressBar (msg "Processing data") percentage (fromIntegral width) (fromIntegral b) (fromIntegral size)
-    when  (fromIntegral b >= fromIntegral size) $ do
+  trackedTimelog <- case isTerm of
+    True -> do
+      hSetBuffering stderr NoBuffering
+      trackProgressWithChunkSize (fromIntegral size `div` 100) (\_ b -> do
+        (_height, width) <- getTermSize
         hPutChar stderr '\r'
-        hPutStr stderr (replicate width ' ')
-        hPutChar stderr '\r'
-    ) timelog
+        hPutStr stderr $
+            mkProgressBar (msg "Processing data") percentage (fromIntegral width) (fromIntegral b) (fromIntegral size)
+        when  (fromIntegral b >= fromIntegral size) $ do
+            hPutChar stderr '\r'
+            hPutStr stderr (replicate width ' ')
+            hPutChar stderr '\r'
+        ) timelog
+    False -> return timelog
 
   let captures = parseTimeLog trackedTimelog
   let allTags = categorizer captures
