@@ -23,7 +23,13 @@ tests = testGroup "Tests" [goldenTests, regressionTests]
 
 regressionTests :: TestTree
 regressionTests = testGroup "Regression tests"
-    [ testCase "Issue #5" $ do
+    [ testCase "Issue #4" $ do
+        cat <- readCategorizer "tests/issue4.cfg"
+        let sample = TimeLogEntry undefined 0 (CaptureData [(True, "aa", "program")] 0 "")
+        let [TimeLogEntry _ _ (_,acts)] = cat [sample]
+        [Activity (Just "Cat") "aa"] @=? acts
+        return ()
+    , testCase "Issue #5" $ do
         cat <- readCategorizer "tests/issue5.cfg"
         let sample = TimeLogEntry undefined 0 (CaptureData [(True, "aa", "program")] 0 "")
         let [TimeLogEntry _ _ (_,acts)] = cat [sample]
