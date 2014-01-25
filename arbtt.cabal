@@ -3,7 +3,7 @@ version:            0.7.1
 license:            GPL
 license-file:       LICENSE
 category:           Desktop
-cabal-version:      >= 1.6
+cabal-version:      >= 1.10
 build-type:         Simple
 author:             Joachim Breitner <mail@joachim-breitner.de>
 maintainer:         Joachim Breitner <mail@joachim-breitner.de>
