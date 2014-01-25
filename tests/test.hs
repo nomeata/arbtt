@@ -1,8 +1,10 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, OverloadedStrings #-}
 
 import Test.Tasty hiding (defaultMain)
 import Test.Tasty.Golden.Manage
 import Test.Tasty.Golden
+import Test.Tasty.HUnit
+import Test.HUnit
 import System.Process.ByteString.Lazy
 import qualified Data.ByteString.Lazy as B
 import Control.Monad
@@ -10,10 +12,25 @@ import Control.Exception
 import Data.Typeable
 import System.Exit
 
+import Categorize
+import TimeLog
+import Data
+
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [goldenTests]
+tests = testGroup "Tests" [goldenTests, regressionTests]
+
+regressionTests :: TestTree
+regressionTests = testGroup "Regression tests"
+    [ testCase "Issue #5" $ do
+        cat <- readCategorizer "tests/issue5.cfg"
+        let sample = TimeLogEntry undefined 0 (CaptureData [(True, "aa", "program")] 0 "")
+        let [TimeLogEntry _ _ (_,acts)] = cat [sample]
+        [Activity Nothing "A2"] @=? acts
+        return ()
+    ]
+
 
 goldenTests :: TestTree
 goldenTests = testGroup "Golden tests"
