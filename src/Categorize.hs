@@ -143,10 +143,10 @@ parseRulesBody :: Parser Rule
 parseRulesBody = do 
         x <- parseRule
         choice [ do comma lang
-                    xs <- sepEndBy1 parseRule (comma lang)
+                    xs <- parseRule `sepEndBy1` comma lang
                     return (matchAny (x:xs))
                , do semi lang
-                    xs <- many1 (semi lang >> parseRule)
+                    xs <- parseRule `sepEndBy1` semi lang
                     return (matchFirst (x:xs))
                ,    return x
                ]

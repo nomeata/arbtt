@@ -155,12 +155,15 @@ test-suite test
     exitcode-stdio-1.0
   Hs-source-dirs:
     tests
+    src
   Main-is:
     test.hs
   Build-depends:
       base >= 4 && < 5
       , tasty == 0.7.*
       , tasty-golden == 2.2.*
+      , tasty-hunit == 0.2.*
+      , HUnit == 1.2.*
       , process-extras == 0.2.*
 
 source-repository head
