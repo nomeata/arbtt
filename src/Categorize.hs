@@ -355,7 +355,7 @@ parseCondPrim = choice
             ) <?> "list of regular expressions"
             ])
         , char '$' >> choice 
-             [ do backref <- natural lang
+             [ do backref <- read <$> many1 digit
                   return $ CondString (getBackref backref)
              , do varname <- identifier lang 
                   choice 
@@ -482,7 +482,7 @@ parseTagPart :: Parser (Ctx -> Maybe Text)
 parseTagPart = do parts <- many1 (choice
                         [ do char '$'
                              (replaceForbidden . ) <$> choice
-                               [ do num <- natural lang
+                               [ do num <- read <$> many1 digit
                                     return $ getBackref num
                                , do varname <- many1 (letter <|> oneOf ".")
                                     return $ getVar varname
