@@ -31,9 +31,8 @@ executable arbtt-capture
     build-depends:
         base == 4.5.* || == 4.6.*,
         filepath, directory, transformers, time >= 1.4, utf8-string,
-        bytestring, binary, deepseq, strict,
-        terminal-progress-bar,
-        bytestring-progress
+        aeson == 0.6.*, array == 0.4.*,
+        bytestring, binary, deepseq, strict, old-locale
     other-modules:
         Data
         Data.MyText
@@ -64,13 +63,18 @@ executable arbtt-capture
             System.Locale.SetLocale
         build-depends:
             X11 > 1.4.4, unix
+    default-language: Haskell2010
 
 executable arbtt-stats
     main-is:            stats-main.hs
     hs-source-dirs:     src
     build-depends:
         base == 4.5.* || == 4.6.*,
-        parsec == 3.*, containers == 0.5.*, pcre-light, old-locale
+        parsec == 3.*, containers == 0.5.*, pcre-light, old-locale,
+        deepseq, binary, bytestring, utf8-string, time >= 1.4, strict,
+        transformers, unix, directory, filepath,
+        aeson == 0.6.*, array == 0.4.*,
+        terminal-progress-bar, bytestring-progress
     other-modules:
         Data
         Data.MyText
@@ -89,6 +93,7 @@ executable arbtt-stats
     else
         other-modules:
             System.Locale.SetLocale
+    default-language: Haskell2010
 
 executable arbtt-dump
     main-is:            dump-main.hs
@@ -96,7 +101,10 @@ executable arbtt-dump
     build-depends:
         base == 4.5.* || == 4.6.*,
         parsec == 3.*, containers == 0.5.*,
-        aeson == 0.6.*, array == 0.4.*
+        aeson == 0.6.*, array == 0.4.*,
+        deepseq, binary, bytestring, utf8-string, time >= 1.4, strict,
+        transformers, unix, directory, filepath,
+        old-locale
     other-modules:
         Data
         Data.MyText
@@ -111,13 +119,16 @@ executable arbtt-dump
     else
         other-modules:
             System.Locale.SetLocale
+    default-language: Haskell2010
 
 executable arbtt-import
     main-is:            import-main.hs
     hs-source-dirs:     src
     build-depends:
         base == 4.5.* || == 4.6.*,
-        parsec == 3.*, containers == 0.5.*
+        parsec == 3.*, containers == 0.5.*,
+        deepseq, binary, bytestring, utf8-string, time >= 1.4, strict,
+        transformers, unix, directory, filepath
     other-modules:
         Data
         Data.MyText
@@ -130,13 +141,16 @@ executable arbtt-import
     else
         other-modules:
             System.Locale.SetLocale
+    default-language: Haskell2010
 
 executable arbtt-recover
     main-is:            recover-main.hs
     hs-source-dirs:     src
     build-depends:
         base == 4.5.* || == 4.6.*,
-        parsec == 3.*, containers == 0.5.*
+        parsec == 3.*, containers == 0.5.*,
+        deepseq, binary, bytestring, utf8-string, time >= 1.4, strict,
+        transformers, unix, directory, filepath
     other-modules:
         Data
         Data.MyText
@@ -149,6 +163,7 @@ executable arbtt-recover
     else
         other-modules:
             System.Locale.SetLocale
+    default-language: Haskell2010
 
 test-suite test
   Type:
@@ -165,6 +180,16 @@ test-suite test
       , tasty-hunit == 0.2.*
       , HUnit == 1.2.*
       , process-extras == 0.2.*
+      , deepseq
+      , binary
+      , bytestring
+      , utf8-string
+      , time
+      , unix
+      , directory
+      , parsec == 3.*, containers == 0.5.*, pcre-light, old-locale
+      , transformers
+  default-language: Haskell2010
 
 source-repository head
     type:     darcs
