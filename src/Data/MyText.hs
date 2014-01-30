@@ -31,8 +31,8 @@ instance Binary Text where
     -- The downside is that it quietly suceeds for broken input
     get = do
         n <- get :: Get Int
-        lbs <- lookAhead (getLazyByteString (4*fromIntegral n)) -- safe approximation
-        let bs = BS.concat $ LBS.toChunks $ lbs
+        r <- remaining
+        bs <- lookAhead (getByteString (min (fromIntegral r) (4*n))) -- safe approximation
         let utf8bs = BSU.take n bs
         unless (BSU.length utf8bs == n) $
             fail $ "Coult not parse the expected " ++ show n ++ " utf8 characters."
