@@ -611,7 +611,7 @@ $ runhaskell Setup.hs install</screen>
           </varlistentry>
           <varlistentry>
             <term><option>-o</option> <replaceable>TAG</replaceable></term>
-            <term><option>--only</option> <replaceable>TAB</replaceable></term>
+            <term><option>--only</option> <replaceable>TAG</replaceable></term>
             <listitem><simpara>Ignore any data samples that have
             not been assigned this tag. To distinguish tags and categories, the latter have to be
             entered followed by a colon. Can be given more than once.</simpara></listitem>
