@@ -70,7 +70,7 @@ executable arbtt-stats
     main-is:            stats-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.5.* || == 4.6.*,
+        base == 4.5.* || == 4.6.* || == 4.7.*,
         parsec == 3.*, containers == 0.5.*, pcre-light, old-locale,
         binary >= 0.5,
         deepseq, bytestring, utf8-string, time >= 1.4, strict,
@@ -101,7 +101,7 @@ executable arbtt-dump
     main-is:            dump-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.5.* || == 4.6.*,
+        base == 4.5.* || == 4.6.* || == 4.7.*,
         parsec == 3.*, containers == 0.5.*,
         aeson == 0.6.*, array == 0.4.*,
         binary >= 0.5,
@@ -128,7 +128,7 @@ executable arbtt-import
     main-is:            import-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.5.* || == 4.6.*,
+        base == 4.5.* || == 4.6.* || == 4.7.*,
         parsec == 3.*, containers == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string, time >= 1.4, strict,
@@ -151,7 +151,7 @@ executable arbtt-recover
     main-is:            recover-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.5.* || == 4.6.*,
+        base == 4.5.* || == 4.6.* || == 4.7.*,
         parsec == 3.*, containers == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string, time >= 1.4, strict,
@@ -179,7 +179,7 @@ test-suite test
   Main-is:
     test.hs
   Build-depends:
-      base >= 4 && < 5
+      base == 4.5.* || == 4.6.* || == 4.7.*
       , tasty == 0.7.*
       , tasty-golden == 2.2.*
       , tasty-hunit == 0.2.*
