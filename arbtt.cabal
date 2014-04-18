@@ -199,7 +199,7 @@ test-suite test
       , time
       , unix
       , directory
-      , parsec == 3.*,
+      , parsec == 3.*
       , containers == 0.5.*
       , pcre-light, old-locale
       , transformers
