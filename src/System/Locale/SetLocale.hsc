@@ -1,4 +1,5 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 {-
 This file is copied from the setlocale-0.0.3 package. Its author is Lukas Mai
@@ -26,10 +27,7 @@ data Category
     | LC_MONETARY
     | LC_NUMERIC
     | LC_TIME
-    deriving (Eq, Ord, Read, Show, Enum, Bounded)
-
-instance Typeable Category where
-    typeOf _ = mkTyConApp (mkTyCon "System.Locale.SetLocale.Category") []
+    deriving (Eq, Ord, Read, Show, Enum, Bounded, Typeable)
 
 #include <locale.h>
 
