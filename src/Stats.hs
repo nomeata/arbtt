@@ -199,8 +199,8 @@ processReport opts GeneralInfos =
         [ ("FirstRecord", show firstDate)
         , ("LastRecord",  show lastDate)
         , ("Number of records", show n)
-        , ("Total time recorded",  showTimeDiff ttr)
-        , ("Total time selected",  showTimeDiff tts)
+        , ("Total time recorded",  showTimeDiff opts ttr)
+        , ("Total time selected",  showTimeDiff opts tts)
         , ("Fraction of total time recorded", printf "%3.0f%%" (fractionRec * 100))
         , ("Fraction of total time selected", printf "%3.0f%%" (fractionSel * 100))
         , ("Fraction of recorded time selected", printf "%3.0f%%" (fractionSelRec * 100))
@@ -220,7 +220,7 @@ processReport opts  TotalTime =
                       pick = applyActivityFilter (roActivityFilter opts) tag
                   in if pick && perc*100 >= roMinPercentage opts
                   then Just $ ( show tag
-                              , showTimeDiff time
+                              , showTimeDiff opts time
                               , perc)
                   else Nothing
                   ) .
@@ -275,7 +275,7 @@ processCategoryReport opts ~(Calculations {..}) cat =
                           pick = applyActivityFilter (roActivityFilter opts) tag
                       in if pick && perc*100 >= roMinPercentage opts
                       then Just ( show tag
-                                , showTimeDiff time
+                                , showTimeDiff opts time
                                 , perc)
                       else Nothing
                       )
@@ -284,7 +284,7 @@ processCategoryReport opts ~(Calculations {..}) cat =
                 (
                 if tooSmallTimes > 0
                 then [( printf "(%d entries omitted)" (M.size tooSmallSums)
-                      , showTimeDiff tooSmallTimes
+                      , showTimeDiff opts tooSmallTimes
                       , realToFrac tooSmallTimes/realToFrac totalTimeSel
                       )]
                 else []
@@ -292,14 +292,14 @@ processCategoryReport opts ~(Calculations {..}) cat =
                 ++      
                 (if uncategorizedTime > 0
                 then [( "(unmatched time)"
-                      , showTimeDiff uncategorizedTime
+                      , showTimeDiff opts uncategorizedTime
                       , realToFrac uncategorizedTime/realToFrac totalTimeSel
                       )]
                 else []
                 )
 
 processIntervalReport :: ReportOptions -> String -> (ActivityData -> Maybe String) -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
-processIntervalReport _opts title extr = runOnIntervals  go1 go2
+processIntervalReport opts title extr = runOnIntervals  go1 go2
   where
     go1 :: LeftFold (TimeLogEntry (Ctx, ActivityData)) [Interval]
     go1 = go3 `mapElems` fmap (extr . snd) 
@@ -312,7 +312,7 @@ processIntervalReport _opts title extr = runOnIntervals  go1 go2
                 ( str
                 , showUtcTime (tlTime fe)
                 , showUtcTime (tlTime le)
-                , showTimeDiff $
+                , showTimeDiff opts $
                     tlTime le `diffUTCTime` tlTime fe + fromIntegral (tlRate fe)/1000
                 )
             Nothing -> Nothing) <*>
@@ -355,6 +355,7 @@ renderReport opts (MultipleReportResults reports) =
 renderReport opts reportdata =
     putStr $ doRender opts reportdata
 
+doRender :: ReportOptions -> ReportResults -> String
 doRender opts reportdata = case roReportFormat opts of
                 RFText -> renderReportText id reportdata
                 RFCSV -> renderWithDelimiter "," $ renderXSV reportdata
@@ -419,8 +420,12 @@ tabulate titlerow rows = unlines $ addTitleRow $ map (intercalate " | " . zipWit
                  -- | titlerow  = \(l:ls) -> l : (take (length l) (repeat '-')) : ls
                     | otherwise = id
 
-showTimeDiff :: NominalDiffTime -> String
-showTimeDiff t = go False $ zip [days,hours,mins,secs] ["d","h","m","s"]
+showTimeDiff :: ReportOptions -> NominalDiffTime -> String
+showTimeDiff (ReportOptions { roReportFormat = RFText }) = showTimeDiffHuman
+showTimeDiff _                                           = showTimeDiffMachine
+
+showTimeDiffHuman :: NominalDiffTime -> String
+showTimeDiffHuman t = go False $ zip [days,hours,mins,secs] ["d","h","m","s"]
   where s = round t :: Integer
         days  =  s `div` (24*60*60)
         hours = (s `div` (60*60)) `mod` 24
@@ -432,6 +437,13 @@ showTimeDiff t = go False $ zip [days,hours,mins,secs] ["d","h","m","s"]
         go True  ((a,u):vs)             = printf "%02d%s" a u ++ go True vs
         go False ((a,u):vs) | a > 0     = printf "%2d%s" a u ++ go True vs
                             | otherwise =                       go False vs
+
+showTimeDiffMachine :: NominalDiffTime -> String
+showTimeDiffMachine t = printf "%d:%02d:%02d" hours mins secs
+  where s = round t :: Integer
+        hours = s `div` (60*60)
+        mins  = (s `div` 60) `mod` 60
+        secs  =  s `mod` 60 
 
 showUtcTime :: UTCTime -> String
 showUtcTime = formatTime defaultTimeLocale "%x %X"
