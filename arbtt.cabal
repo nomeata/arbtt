@@ -23,7 +23,8 @@ homepage:           http://arbtt.nomeata.de/
 extra-source-files:
     categorize.cfg, arbtt-capture.desktop, README.md,
     doc/arbtt.xml, doc/fptools.css, doc/Makefile,
-    setup.iss, modpath.iss
+    setup.iss, modpath.iss,
+    tests/*.log, tests/*.out, tests/*.in, tests/*.cfg
 
 executable arbtt-capture
     main-is:            capture-main.hs
