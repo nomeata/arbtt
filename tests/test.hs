@@ -11,12 +11,15 @@ import Control.Monad
 import Control.Exception
 import Data.Typeable
 import System.Exit
+import System.Posix.Env
 
 import Categorize
 import TimeLog
 import Data
 
-main = defaultMain tests
+main = do
+    putEnv "TZ=UTC" -- to make tests reproducible
+    defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Tests" [goldenTests, regressionTests]
