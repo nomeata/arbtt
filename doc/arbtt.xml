@@ -1180,7 +1180,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   </para>
   
   <sect2>
-    <title>Version 0.7.1 (unreleased)</title>
+    <title>Version 0.8 (unreleased)</title>
     <itemizedlist>
       <listitem>
         <para><command>arbtt-dump</command> can now show the data in other formats as well, as suggested by Waldir Pimenta.</para>
