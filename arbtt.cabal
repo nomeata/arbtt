@@ -16,7 +16,7 @@ description:
     expressive rules you specify, derive what you were doing, and what for.
     .
     The documentation, which includes the changelog, can also be found at
-    http://arbtt.nomeata.de/doc/users_guide/.
+    <http://arbtt.nomeata.de/doc/users_guide/>.
     .
     WARNING: The log file might contain very sensitive private data. Make sure
     you understand the consequences of a full-time logger and be careful with this
