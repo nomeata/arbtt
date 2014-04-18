@@ -56,6 +56,9 @@ goldenTests = testGroup "Golden tests"
     , goldenVsString "stats small"
         "tests/small_stats.out" $
         run "dist/build/arbtt-stats/arbtt-stats" ["--logfile", "tests/small.log", "--categorize", "tests/small.cfg"] B.empty
+    , goldenVsString "stats small csv"
+        "tests/small_stats_csv.out" $
+        run "dist/build/arbtt-stats/arbtt-stats" ["--logfile", "tests/small.log", "--categorize", "tests/small.cfg", "--output-format", "csv"] B.empty
     , goldenVsString "stats small unicode"
         "tests/unicode_stats.out" $
         run "dist/build/arbtt-stats/arbtt-stats" ["--logfile", "tests/unicode.log", "--categorize", "tests/unicode.cfg"] B.empty
