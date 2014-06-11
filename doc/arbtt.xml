@@ -425,7 +425,7 @@ $ runhaskell Setup.hs install</screen>
 	    <rhs> <quote>$time</quote> </rhs>
 	    <rhs> <quote>$sampleage</quote> </rhs>
 	    <!-- <rhs> <nonterminal def="#g-date"/> <quote>-</quote> <nonterminal def="#g-date"/></rhs> -->
-            <rhs>[ Digit ] Digit <quote>:</quote> Digit Digit</rhs>
+            <rhs>( Digit )* Digit <quote>:</quote> Digit Digit</rhs>
 	  </production>
 
           <production id="g-tag">
@@ -1178,7 +1178,19 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   <para>
   The version history with changes relevant for the user is documented here.
   </para>
-  
+
+  <sect2 id="release-notes-0.8">
+    <title>Version 0.8.1 (UNRELEASED)</title>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  The syntax now allows for time differences larger than 99:99.
+          (<ulink url="https://bitbucket.org/nomeata/arbtt/issue/14/improve-time-categorization-directives">issue #14</ulink>)
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
   <sect2 id="release-notes-0.8">
     <title>Version 0.8</title>
     <itemizedlist>

@@ -433,13 +433,10 @@ parseRegex = fmap (flip RE.compile [] . T.pack) $ lexeme lang $ choice
 -- | Parses a day-of-time specification (hh:mm)
 parseTime :: Parser NominalDiffTime
 parseTime = fmap fromIntegral $ lexeme lang $ do
-               h <- digitToInt <$> digit
-               mh <- optionMaybe (digitToInt <$> digit)
+               hour <- read <$> many1 digit
                char ':'
-               m1 <- digitToInt <$> digit
-               m2 <- digitToInt <$> digit
-               let hour = maybe h ((10*h)+) mh
-               return $ (hour * 60 + m1 * 10 + m2) * 60
+               minute <- read <$> count 2 digit
+               return $ (hour * 60 + minute) * 60
 
 parseDate :: Parser UTCTime
 parseDate = lexeme lang $ do

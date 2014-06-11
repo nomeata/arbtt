@@ -16,6 +16,7 @@ import System.Posix.Env
 import Categorize
 import TimeLog
 import Data
+import Data.Time.Clock
 
 main = do
     putEnv "TZ=UTC" -- to make tests reproducible
@@ -37,6 +38,15 @@ regressionTests = testGroup "Regression tests"
         let sample = TimeLogEntry undefined 0 (CaptureData [(True, "aa", "program")] 0 "")
         let [TimeLogEntry _ _ (_,acts)] = cat [sample]
         [Activity Nothing "A2"] @=? acts
+        return ()
+    , testCase "Issue #14" $ do
+        cat <- readCategorizer "tests/issue14.cfg"
+        now <- getCurrentTime
+        let backThen = (-60*60*101) `addUTCTime` now
+
+        let sample = TimeLogEntry backThen 0 (CaptureData [(True, "aa", "program")] 0 "")
+        let [TimeLogEntry _ _ (_,acts)] = cat [sample]
+        [Activity Nothing "old"] @=? acts
         return ()
     ]
 
