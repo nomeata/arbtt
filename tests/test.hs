@@ -4,7 +4,6 @@ import Test.Tasty hiding (defaultMain)
 import Test.Tasty.Golden.Manage
 import Test.Tasty.Golden
 import Test.Tasty.HUnit
-import Test.HUnit
 import System.Process.ByteString.Lazy
 import qualified Data.ByteString.Lazy as B
 import Control.Monad
