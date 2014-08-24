@@ -1,5 +1,5 @@
 name:               arbtt
-version:            0.8.1.1
+version:            0.8.1.2
 license:            GPL
 license-file:       LICENSE
 category:           Desktop
@@ -35,7 +35,7 @@ executable arbtt-capture
     build-depends:
         base == 4.5.* || == 4.6.* || == 4.7.*,
         filepath, directory, transformers, time >= 1.4, utf8-string,
-        aeson == 0.6.* || == 0.7.*,
+        aeson == 0.6.* || == 0.7.* || == 0.8.*,
         array == 0.4.* || == 0.5.*,
         binary >= 0.5,
         bytestring, deepseq, strict, old-locale
@@ -82,7 +82,7 @@ executable arbtt-stats
         binary >= 0.5,
         deepseq, bytestring, utf8-string, time >= 1.4, strict,
         transformers, unix, directory, filepath,
-        aeson == 0.6.* || == 0.7.*,
+        aeson == 0.6.* || == 0.7.* || == 0.8.*,
         array == 0.4.* || == 0.5.*,
         terminal-progress-bar, bytestring-progress
     other-modules:
@@ -112,7 +112,7 @@ executable arbtt-dump
         base == 4.5.* || == 4.6.* || == 4.7.*,
         parsec == 3.*,
         containers == 0.5.*,
-        aeson == 0.6.* || == 0.7.*,
+        aeson == 0.6.* || == 0.7.* || == 0.8.*,
         array == 0.4.* || == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string, time >= 1.4, strict,
@@ -193,7 +193,7 @@ test-suite test
       base == 4.5.* || == 4.6.* || == 4.7.*
       , tasty == 0.7.* || == 0.8.*
       , tasty-golden >= 2.2.0.2  && <= 2.3
-      , tasty-hunit == 0.2.* || == 0.4.* || == 0.8.*
+      , tasty-hunit == 0.2.* || == 0.4.* || == 0.8.* || == 0.9.*
       , HUnit == 1.2.*
       , process-extras == 0.2.*
       , deepseq
