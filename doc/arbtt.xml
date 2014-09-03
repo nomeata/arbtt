@@ -53,6 +53,8 @@
     has the focus and how long since your last action (and possibly more sources
     later), and stores this. It is also a program that will, based on
     expressive rules you specify, derive what you were doing, and what for.
+  </para>
+  <para>
     It is comparable to the window trackers  <ulink
     url="https://www.rescuetime.com/">RescueTime</ulink>, <ulink
     url="https://github.com/gurgeh/selfspy">selfspy</ulink>, <ulink
