@@ -49,7 +49,6 @@
     expressive rules you specify, derive what you were doing, and what for.
 
     <warning><para>The log file might contain very sensitive private data. Make sure
-
     you understand the consequences of a full-time logger and be careful with this
     data.</para></warning>
   </para>
@@ -107,7 +106,7 @@ $ runhaskell Setup.hs install</screen>
     <para>
     Obviously, you can already read the documentation. If you still want to
     build it yourself, enter the directory <filename>doc/</filename> and run
-    <command>make</command> for the documentation in HTML and PDF format. 
+    <command>make</command> for the documentation in HTML and PDF format.
     </para>
   </sect2>
 
@@ -147,7 +146,7 @@ $ runhaskell Setup.hs install</screen>
 
   <example id="catex">
   <title><filename>categorize.cfg</filename></title>
-    <programlisting><xi:include  href="../categorize.cfg"  parse="text"  
+    <programlisting><xi:include  href="../categorize.cfg"  parse="text"
       xmlns:xi="http://www.w3.org/2001/XInclude" /></programlisting>
   </example>
   </sect2>
@@ -228,7 +227,7 @@ $ runhaskell Setup.hs install</screen>
       For <literal>current window</literal>, the currently active window is in
       scope. If there is no such window, the condition is false.
     </para>
-    
+
     <para>
       For <literal>any window</literal>, the condition is applied to each
       window, in turn, and if any of the windows matches, the result is true. If
@@ -244,7 +243,7 @@ $ runhaskell Setup.hs install</screen>
       time span from when the sample was recored until now, the time of
       evaluating the statistics. The latter variable is especially useful when
       passed to the <option>--filter</option> option of
-      <command>arbtt-stats</command>. They can be compared with expressions 
+      <command>arbtt-stats</command>. They can be compared with expressions
       like "hh:mm", for example
       <programlisting>$time >=  8:00 &amp;&amp; $time &lt; 12:00 ==> tag time-of-day:morning</programlisting>
     </para>
@@ -344,7 +343,7 @@ $ runhaskell Setup.hs install</screen>
                  <quote>}</quote>
             </rhs>
             <rhs>
-              <nonterminal def="#g-cond"/> <quote>==&gt;</quote> 
+              <nonterminal def="#g-cond"/> <quote>==&gt;</quote>
               <nonterminal def="#g-rule"/> | <quote>if</quote>
               <nonterminal def="#g-cond"/> <quote>then</quote>
               <nonterminal def="#g-rule"/> <quote>else</quote>
@@ -370,13 +369,13 @@ $ runhaskell Setup.hs install</screen>
             <rhs> <nonterminal def="#g-string"/> <nonterminal def="#g-cmpop"/>
 	   	 <nonterminal def="#g-string"/> </rhs>
             <rhs> <nonterminal def="#g-string"/> <nonterminal def="#g-cmpop"/>
-	   	 <quote>[</quote> <nonterminal def="#g-listofstring"/> 
+	   	 <quote>[</quote> <nonterminal def="#g-listofstring"/>
                  <quote>]</quote>
-                 </rhs> 
+                 </rhs>
             <rhs> <nonterminal def="#g-string"/> <quote>=~</quote>
 	    	 <nonterminal def="#g-regex"/></rhs>
             <rhs> <nonterminal def="#g-string"/> <quote>=~</quote>
-	   	 <quote>[</quote> <nonterminal def="#g-listofregex"/> 
+	   	 <quote>[</quote> <nonterminal def="#g-listofregex"/>
                  <quote>]</quote>
                  </rhs>
             <rhs> <nonterminal def="#g-number"/> <nonterminal def="#g-cmpop"/>
@@ -492,7 +491,7 @@ $ runhaskell Setup.hs install</screen>
         expressions.
       </para>
   </sect2>
-  
+
 </sect1>
 
 <sect1 id="references">
@@ -501,7 +500,7 @@ $ runhaskell Setup.hs install</screen>
   <command>arbtt-stats</command>. This overview is followed by their manual
   pages.
   </para>
-  
+
   <!-- <sect2>
     <title>Generating statistics</title> -->
     <para>To generate statistics about the data that
@@ -550,7 +549,7 @@ $ runhaskell Setup.hs install</screen>
       <refname>arbtt-stats</refname>
       <refpurpose>generate statistics from the arbtt data samples</refpurpose>
     </refnamediv>
-  
+
     <refsynopsisdiv>
       <cmdsynopsis>
         <command>arbtt-stats</command>
@@ -716,26 +715,26 @@ $ runhaskell Setup.hs install</screen>
             intervals where the given tag has been applied to, or where the
             given category has the same value.
             </para>
-            
+
             <para>To distinguish tags and categories, the latter have to be
             entered followed by a colon.</para>
-            
+
             <para>This report will give wrong results if an activity has been
             carried out at the end of a session and right at the beginning, as
             the intermediate time is thought to be part of the interval.
             Inactive times while <command>arbtt-capture</command> is running
             will separate the results as expected.</para>
-            
+
             </listitem>
           </varlistentry>
           <varlistentry>
             <term><option>--for-each</option> <replaceable>PERIOD</replaceable></term>
             <listitem><para>This is not a report of its own, but causes the selected
             report to be executed for each of the given PERIOD (which can be
-            day, month or year) where there exist selected samples. All the reports 
+            day, month or year) where there exist selected samples. All the reports
             will then be printed one after another or, in the case of CSV output,
             with an additional column.</para>
-            
+
             <para>Note that if this option is enabled, samples that are filtered out
             are completely ignored (to avoid empty reports for periods with
             only filtered samples). Therefore, the
@@ -751,7 +750,7 @@ $ runhaskell Setup.hs install</screen>
     <refsect1><title>Examples</title>
       <para>Some useful examples of what you can do with
       <command>arbtt-stats</command> are provided here:</para>
-      <screen># Only consider the time when I was programming in Haskell 
+      <screen># Only consider the time when I was programming in Haskell
 arbtt-stats -o Editing-Haskell
 
 # Tell me what evolution folders I spend my time in when I actually do
@@ -782,7 +781,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
       newer versions of arbtt.</para>
     </refsect1>
   </refentry>
-  
+
   <refentry id="arbtt-capture">
     <refmeta>
       <refentrytitle>arbtt-capture</refentrytitle>
@@ -794,7 +793,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
       <refname>arbtt-capture</refname>
       <refpurpose>collect data samples for arbtt</refpurpose>
     </refnamediv>
-  
+
     <refsynopsisdiv>
       <cmdsynopsis>
         <command>arbtt-capture</command>
@@ -806,7 +805,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
       <para>
       <command>arbtt-capture</command> runs continuously and saves at the given
       sample rate, usually once per minute, the collected data to
-      <filename>~/.arbtt/capture.log</filename>. 
+      <filename>~/.arbtt/capture.log</filename>.
       </para>
     </refsect1>
 
@@ -869,7 +868,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
       <refname>arbtt-dump</refname>
       <refpurpose>dumps arbtt data samples</refpurpose>
     </refnamediv>
-  
+
     <refsynopsisdiv>
       <cmdsynopsis>
         <command>arbtt-dump</command>
@@ -995,7 +994,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
       <refname>arbtt-import</refname>
       <refpurpose>imports dumped arbtt data samples</refpurpose>
     </refnamediv>
-  
+
     <refsynopsisdiv>
       <cmdsynopsis>
         <command>arbtt-import</command>
@@ -1065,7 +1064,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
       <refname>arbtt-recover</refname>
       <refpurpose>tries to recover a broken arbtt data log</refpurpose>
     </refnamediv>
-  
+
     <refsynopsisdiv>
       <cmdsynopsis>
         <command>arbtt-recover</command>
@@ -1237,7 +1236,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       </listitem>
     </itemizedlist>
   </sect2>
-  
+
   <sect2>
     <title>Version 0.7</title>
     <itemizedlist>
