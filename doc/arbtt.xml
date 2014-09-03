@@ -39,6 +39,12 @@
       <contrib>Documentation writer</contrib>
       <email>waldir@email.com</email>
     </author>
+    <author id="gwern">
+      <firstname>Gwern</firstname>
+      <surname>Branwen</surname>
+      <contrib>Documentation writer</contrib>
+      <email>gwern@gwern.net</email>
+    </author>
   </authorgroup>
 </articleinfo>
 <abstract>
@@ -47,6 +53,14 @@
     has the focus and how long since your last action (and possibly more sources
     later), and stores this. It is also a program that will, based on
     expressive rules you specify, derive what you were doing, and what for.
+    It is comparable to the window trackers  <ulink
+    url="https://www.rescuetime.com/">RescueTime</ulink>, <ulink
+    url="https://github.com/gurgeh/selfspy">selfspy</ulink>, <ulink
+    url="http://www.timesnapper.com/">TimeSnapper</ulink>, and
+    <ulink url="https://etopian.com/software/automatic-screenshots-windows-mac-linux/">
+    Productive Peach</ulink>; but it differs from the manual timetrackers like <ulink
+    url="http://projecthamster.wordpress.com/about/">Project Hamster</ulink> which require
+    the user to type a description of their activities.
 
     <warning><para>The log file might contain very sensitive private data. Make sure
     you understand the consequences of a full-time logger and be careful with this
