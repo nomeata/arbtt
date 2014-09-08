@@ -191,9 +191,9 @@ test-suite test
     test.hs
   Build-depends:
       base == 4.5.* || == 4.6.* || == 4.7.*
-      , tasty >= 0.7.* && < 0.11
+      , tasty >= 0.7 && < 0.11
       , tasty-golden >= 2.2.0.2  && <= 2.3
-      , tasty-hunit >= 0.2.*  && < 0.11
+      , tasty-hunit >= 0.2  && < 0.11
       , HUnit == 1.2.*
       , process-extras == 0.2.*
       , deepseq
