@@ -190,7 +190,7 @@ repeaterImpl ByMinute = RepeaterImpl
     (formatTime defaultTimeLocale "%F %H:%M")
     id
 repeaterImpl ByHour = RepeaterImpl
-    (formatTime defaultTimeLocale "%F %H")
+    (formatTime defaultTimeLocale "%F %H:00")
     id
 repeaterImpl ByDay = RepeaterImpl
     localDay
