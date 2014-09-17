@@ -141,10 +141,12 @@ options =
 readRepeater :: String -> Repeater
 readRepeater arg =
     case map toLower arg of
-        "day"   -> ByDay
-        "month" -> ByMonth
-        "year"  -> ByYear
-        _       -> error ("Unsupported parameter to --for-each: '" ++ arg ++ "'")
+        "minute" -> ByMinute
+        "hour"   -> ByHour
+        "day"    -> ByDay
+        "month"  -> ByMonth
+        "year"   -> ByYear
+        _        -> error ("Unsupported parameter to --for-each: '" ++ arg ++ "'")
 
 readReportFormat :: String -> ReportFormat
 readReportFormat arg =

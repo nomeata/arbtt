@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, NamedFieldPuns, TypeOperators, TupleSections #-}
+{-# LANGUAGE RecordWildCards, NamedFieldPuns, TypeOperators, TupleSections, GADTSyntax, ExistentialQuantification #-}
 module Stats (
     Report(..),
     ReportOptions(..),
@@ -57,7 +57,7 @@ data ActivityMatcher = MatchActivity Activity | MatchCategory Category
 data ActivityFilter = ExcludeActivity ActivityMatcher | OnlyActivity ActivityMatcher
         deriving (Show, Eq)
 
-data Repeater = ByDay | ByMonth | ByYear
+data Repeater = ByMinute | ByHour | ByDay | ByMonth | ByYear
         deriving (Show, Eq)
 
 -- Supported report output formats: text, comma-separated values and
@@ -175,18 +175,32 @@ calcSums = LeftFold M.empty
                 in foldl' go' m (snd (tlData tl))) id
 
 processRepeater :: Repeater -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
-processRepeater ByDay rep =
-    filterElems (\(b :!: _) -> b) $
-    pure (RepeatedReportResults "Day" . map (\(d,rr) -> (showGregorian d, rr)) . M.toList) <*>
-    multiplex (utctDay . tlTime . Strict.snd) rep
-processRepeater ByMonth rep =
-    filterElems (\(b :!: _) -> b) $
-    pure (RepeatedReportResults "Month" . map (\((y,m),rr) -> (show y ++ "-" ++ show m, rr)) . M.toList) <*>
-    multiplex ((\(y,m,_) -> (y, m)). toGregorian . utctDay . tlTime . Strict.snd) rep
-processRepeater ByYear rep =
-    filterElems (\(b :!: _) -> b) $
-    pure (RepeatedReportResults "Year" . map (\(y,rr) -> (show y, rr)) . M.toList) <*>
-    multiplex ((\(y,_,_) -> y). toGregorian . utctDay . tlTime . Strict.snd) rep
+processRepeater r rep = case repeaterImpl r of
+    RepeaterImpl catR showR ->
+        filterElems (\(b :!: _) -> b) $
+        pure (RepeatedReportResults "Day" . map (first showR) . M.toList) <*>
+        multiplex (catR . tlTime . Strict.snd) rep
+
+data RepeaterImpl where
+  RepeaterImpl :: Ord r => (UTCTime -> r) -> (r -> String) -> RepeaterImpl
+
+repeaterImpl :: Repeater -> RepeaterImpl
+repeaterImpl ByMinute = RepeaterImpl
+    -- a somewhat lazy implementations, using strings...
+    (formatTime defaultTimeLocale "%F %H:%M")
+    id
+repeaterImpl ByHour = RepeaterImpl
+    (formatTime defaultTimeLocale "%F %H")
+    id
+repeaterImpl ByDay = RepeaterImpl
+    utctDay
+    showGregorian
+repeaterImpl ByMonth = RepeaterImpl
+    ((\(y,m,_) -> (y, m)) . toGregorian . utctDay)
+    (\(y,m) -> show y ++ "-" ++ show m)
+repeaterImpl ByYear = RepeaterImpl
+    ((\(y,_,_) -> y) . toGregorian . utctDay)
+    show
 
 processReport :: ReportOptions -> Report -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
 processReport opts GeneralInfos =
