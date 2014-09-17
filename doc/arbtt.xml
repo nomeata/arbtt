@@ -890,11 +890,10 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
       When building up rules, a few rules of thumb should be kept in
       mind:
     </para>
-    <orderedlist numeration="arabic">
-      <listitem>
-        <para>
-          categorize by purpose, not by program
-        </para>
+    <sect3>
+        <title>
+          Categorize by purpose, not by program
+        </title>
         <para>
           This leads to misleading time reports. Avoid, for example,
           lumping all web browser time into a single category named
@@ -902,11 +901,11 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
           categories describe an activity or goal, such as 'Work' or
           'Recreation', not a tool, like 'Emacs' or 'Vim'.
         </para>
-      </listitem>
-      <listitem>
-        <para>
-          when in doubt, write narrow rules and generalize later
-        </para>
+    </sect3>
+    <sect3>
+        <title>
+          When in doubt, write narrow rules and generalize later
+        </title>
         <para>
           Regexps are tricky and it can be easy to write rules far
           broader than one intended. The <literal>--exclude</literal>
@@ -918,11 +917,11 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
           or online regexp-testers like
           <ulink url="http://regexpal.com/">regexpal</ulink>.
         </para>
-      </listitem>
-      <listitem>
-        <para>
-          don't try to classify everything
-        </para>
+    </sect3>
+    <sect3>
+        <title>
+          Don't try to classify everything
+        </title>
         <para>
           You will never classify 100% of samples because sometimes
           programs do not include useful X properties and cannot be
@@ -935,9 +934,11 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
           It is easy to waste more time tweaking arbtt than one gains
           from increased accuracy or more finely-grained tags.
         </para>
-      </listitem>
-      <listitem>
-	<para>avoid large and microscopic tags</para>
+    </sect3>
+    <sect3>
+	<title>
+	  Avoid large and microscopic tags
+	</title>
 	<para>
 	  If a tag takes up more than a third or so of your time, it is
 	  probably too large, masks variation, and can be broken down into more
@@ -946,8 +947,7 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
 	  helpful because it is usually tiny, and can be combined with the most
 	  similar tag to yield more compact and easily interpreted reports.
 	</para>
-      </listitem>
-    </orderedlist>
+    </sect3>
   </sect2>
   <sect2>
     <title>Long-term storage</title>
