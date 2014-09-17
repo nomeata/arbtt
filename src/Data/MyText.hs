@@ -28,8 +28,12 @@ instance IsString Text where
 -- Binary instance compatible with Binary String
 instance Binary Text where
     put = put . unpack
+    get = pack <$> get
     -- The following code exploits that the Binary Char instance uses UTF8 as well
     -- The downside is that it quietly suceeds for broken input
+    -- Unfortunately, with binary-0.7, it is no longer possible to implement
+    -- this nice and lazily, so go via String :-(
+    {-
     get = do
         n <- get :: Get Int
         bs <- lookAhead $ getRemainingLazyByteString
@@ -39,6 +43,7 @@ instance Binary Text where
         let sbs = LBS.toStrict utf8bs
         skip $ BS.length sbs
         return $ Text sbs
+    -}
 
 {- Possible speedup with a version of binary that provides access to the
    internals, as the Char instance is actually UTF8, but the length bit is
