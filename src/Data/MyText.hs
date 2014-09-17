@@ -1,6 +1,7 @@
 module Data.MyText where
 
 import qualified Data.ByteString.UTF8 as BSU
+import qualified Data.ByteString.Lazy.UTF8 as BLU
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.ByteString as BS
 import Data.Binary.Get
@@ -31,13 +32,13 @@ instance Binary Text where
     -- The downside is that it quietly suceeds for broken input
     get = do
         n <- get :: Get Int
-        r <- remaining
-        bs <- lookAhead (getByteString (min (fromIntegral r) (4*n))) -- safe approximation
-        let utf8bs = BSU.take n bs
-        unless (BSU.length utf8bs == n) $
+        bs <- lookAhead $ getRemainingLazyByteString
+        let utf8bs = BLU.take (fromIntegral n) bs
+        unless (BLU.length utf8bs == n) $
             fail $ "Coult not parse the expected " ++ show n ++ " utf8 characters."
-        skip (BS.length utf8bs)
-        return $ Text utf8bs
+        let sbs = LBS.toStrict utf8bs
+        skip $ BS.length sbs
+        return $ Text sbs
 
 {- Possible speedup with a version of binary that provides access to the
    internals, as the Char instance is actually UTF8, but the length bit is
