@@ -507,9 +507,472 @@ $ runhaskell Setup.hs install</screen>
         expressions.
       </para>
   </sect2>
-
 </sect1>
 
+<sect1 id="effective-use-of-arbtt">
+  <title>Effective Use of Arbtt</title>
+  <para>
+    Now that the syntax has been described &amp; the toolbox laid out,
+    how does one practically go about using and configuring arbtt?
+  </para>
+  <sect2 id="enabling-data-collection">
+    <title>Enabling data collection</title>
+    <para>
+      After installing arbtt, one needs to configure it to run. There
+      are many ways one can run the <literal>arbtt-capture</literal>
+      daemon, but a standard way on Unix systems would be to add it as a
+      <ulink url="https://en.wikipedia.org/wiki/Cron"><literal>cron</literal></ulink>
+      job: for example, one could edit one's crontab file
+      (<literal>crontab -e</literal>) and add a line like this:
+    </para>
+    <programlisting>
+DISPLAY=:0
+@reboot arbtt-capture --logfile=/home/username/doc/arbtt/capture.log
+</programlisting>
+    <para>
+      At boot, <literal>arbtt-capture</literal> will be run in the
+      background and will capture a snapshot of the X metadata for
+      active windows every 60 seconds (the default). If one wanted more
+      fine-grained time data at the expense of doubling storage use per
+      day, one could increase the sampling rate with a command like
+      <literal>--sample-rate=30</literal>. To be resilient to any errors
+      or segfaults, one could also wrap it in a infinite loop to restart
+      the daemon should it ever crash, with a command like
+    </para>
+    <programlisting>
+DISPLAY=:0
+@reboot while true; do arbtt-capture --sample-rate=30; sleep 1m; done
+</programlisting>
+  </sect2>
+  <sect2 id="checking-data-availability">
+    <title>Checking data availability</title>
+    <para>
+      arbtt tracks X properties like window title, class, and running
+      program, and one writes regexp rules to classify the strings as
+      one wishes; but this assumes that the necessary data is present in
+      those properties.
+    </para>
+    <para>
+      For some programs, this is the case. For example, web browsers
+      like Firefox typically set the X title to the
+      <literal>&lt;title&gt;</literal> of the web page in the
+      currently-focused tab, which is enough for classification.
+    </para>
+    <para>
+      Some programs do not set titles or class, and all arbtt sees is
+      empty strings like &quot;&quot;; or they may set the title/class
+      to a constant like &quot;Liferea&quot;, which may be acceptable if
+      that program is used for only one purpose, but if it is used for
+      many purposes, then one cannot write a rule matching it without
+      producing highly-misleading time analyses. (For example, a web
+      browser may be used for countless purposes, ranging from work to
+      research to music to writing to programming; but if the web
+      browser's title/class were always just &quot;Web browser&quot;,
+      how would one classify 5 hours spent using the web browser? If the
+      5 hours are classified as any or all of those purposes, then the
+      results will be misleading garbage - one probably didn't spend 5
+      hours just listening to music, but a mixture of those purposes,
+      which changes from day to day.)
+    </para>
+    <para>
+      One should check for such problematic programs upon starting using
+      arbtt. It would be unfortunate if one were to log for a few
+      months, go back for a detailed report for some reason, and
+      discover that the necessary data was never actually available for
+      arbtt to log!
+    </para>
+    <para>
+      These programs can sometimes be customized internally, a bug
+      report filed with the maintainers, or their titles can be
+      externally set by
+      <ulink url="https://en.wikipedia.org/wiki/Wmctrl"><literal>wmctrl</literal></ulink>
+      or
+      <ulink url="http://jonisalonen.com/2014/setting-x11-window-properties-with-xprop/"><literal>xprop</literal></ulink>.
+    </para>
+    <sect3 id="xprop">
+      <title><literal>xprop</literal></title>
+      <para>
+        One can check the X properties of a running window by running
+        the command
+        <ulink url="http://www.xfree86.org/current/xprop.1.html"><literal>xprop</literal></ulink>
+        and clicking on the window; <literal>xprop</literal> will print
+        out all the relevant X information. For example, the output for
+        Emacs might look like this
+      </para>
+      <programlisting>
+$ xprop | tail -5
+WM_CLASS(STRING) = &quot;emacs&quot;, &quot;Emacs&quot;
+WM_ICON_NAME(STRING) = &quot;emacs@elan&quot;
+_NET_WM_ICON_NAME(UTF8_STRING) = &quot;emacs@elan&quot;
+WM_NAME(STRING) = &quot;emacs@elan&quot;
+_NET_WM_NAME(UTF8_STRING) = &quot;emacs@elan&quot;
+</programlisting>
+      <para>
+        This is not very helpful: it does not tell us the filename being
+        edited, the mode being used, or anything. One could classify
+        time spent in Emacs as &quot;programming&quot; or
+        &quot;writing&quot;, but this would be imperfect, especially if
+        one does both activities regularly. However, Emacs can be
+        customized by editing <literal>~/.emacs</literal>, and after
+        some searching with queries like &quot;setting Emacs window
+        title&quot;, the
+        <ulink url="http://www.emacswiki.org/emacs-en/FrameTitle">Emacs
+        wiki</ulink> &amp;
+        <ulink url="https://www.gnu.org/software/emacs/manual/html_node/efaq/Displaying-the-current-file-name-in-the-titlebar.html">manual</ulink>
+        advise us to put something like this Elisp in our
+        <literal>.emacs</literal> file:
+      </para>
+      <programlisting>
+(setq frame-title-format &quot;%f&quot;)
+</programlisting>
+      <para>
+        Now the output looks different:
+      </para>
+      <programlisting>
+$ xprop | tail -5
+WM_CLASS(STRING) = &quot;emacs&quot;, &quot;Emacs&quot;
+WM_ICON_NAME(STRING) = &quot;/home/gwern/arbtt.page&quot;
+_NET_WM_ICON_NAME(UTF8_STRING) = &quot;/home/gwern/arbtt.page&quot;
+WM_NAME(STRING) = &quot;/home/gwern/arbtt.page&quot;
+_NET_WM_NAME(UTF8_STRING) = &quot;/home/gwern/arbtt.page&quot;
+</programlisting>
+      <para>
+        With this, we can usefully classify all such time samples as
+        being &quot;writing&quot;.
+      </para>
+      <para>
+        Another common gap is terminals/shells: they often do not
+        include information in the title like the current working
+        directory or last shell command. For example, urxvt/Bash:
+      </para>
+      <programlisting>
+WM_COMMAND(STRING) = { &quot;urxvt&quot; }
+_NET_WM_ICON_NAME(UTF8_STRING) = &quot;urxvt&quot;
+WM_ICON_NAME(STRING) = &quot;urxvt&quot;
+_NET_WM_NAME(UTF8_STRING) = &quot;urxvt&quot;
+WM_NAME(STRING) = &quot;urxvt&quot;
+</programlisting>
+      <para>
+        Programmers may spend many hours in the shell doing a variety of
+        things (like Emacs), so this is a problem. Fortunately, this is
+        also solvable by customizing one's <literal>.bashrc</literal> to
+        set the prompt to emit an escape code interpreted by the
+        terminal (baroque, but it works). The following will include the
+        working directory, a timestamp, and the last command:
+      </para>
+      <programlisting>
+trap 'echo -ne &quot;\033]2;$(pwd); $(history 1 | sed &quot;s/^[ ]*[0-9]*[ ]*//g&quot;)\007&quot;' DEBUG
+</programlisting>
+      <para>
+        Now the urxvt samples are useful:
+      </para>
+      <programlisting>
+_NET_WM_NAME(UTF8_STRING) = &quot;/home/gwern/wiki; 2014-09-03 13:39:32 arbtt-stats --help&quot;
+</programlisting>
+      <para>
+        A rule could classify based on the directory one is working in,
+        the command one ran, or both. Other shells like zsh can be fixed
+        this way too but the exact command may differ; you will need to
+        research &amp; experiment.
+      </para>
+      <para>
+        Some programs can be tricky to set. The
+        <ulink url="http://feh.finalrewind.org/">X image viewer
+        feh</ulink> has a <literal>--title</literal> option but it
+        cannot be set in the configuration file,
+        <literal>.config/feh/themes</literal>, because it needs to be
+        specified dynamically; so one needs to set up a shell alias or
+        script to wrap the command like
+        <literal>feh --title &quot;$(pwd) / %f / %n&quot;</literal>.
+      </para>
+    </sect3>
+    <sect3 id="raw-samples">
+      <title>Raw samples</title>
+      <para>
+        <literal>xprop</literal> can be tedious to use on every running
+        window and one may not think to check rarer programs. A better
+        approach is to use <literal>arbtt-stats</literal>'s
+        <literal>--dump-samples</literal> option: this option will print
+        out the collected data for specified time periods, allowing one
+        to examine the X properties en masse. This option can be used
+        with the <literal>-x</literal>/<literal>--exclude=</literal>
+        options to print the samples for <emphasis>samples not matched
+        by existing rules</emphasis> as well, which is indispensable for
+        improving coverage and suggesting ideas for new rules. A good
+        way to figure out what customizations to make is to run arbtt as
+        a daemon for a day or so, and then begin examining the raw
+        samples for problems.
+      </para>
+      <para>
+        An example: suppose I create a simple category file named
+        <literal>foo</literal> with just the line
+      </para>
+      <programlisting>
+$idle &gt; 30 ==&gt; tag inactive
+</programlisting>
+      <para>
+        I can then dump all my arbtt samples for the past day with a
+        command like this:
+      </para>
+      <programlisting>
+arbtt-stats --categorizefile=foo --m=0 --filter='$sampleage &lt;24:00' --dump-samples
+</programlisting>
+      <para>
+        Because there are so many open windows, this produces a large
+        amount (26586 lines) of hard-to-read output:
+      </para>
+      <programlisting>
+...
+( ) Navigator:      /r/Touhou's Favorite Arranges! Part 71: Retribution for the Eternal Night ~ Imperishable Night : touhou - Iceweasel
+( ) Navigator:      Configuring the arbtt categorizer (arbtt-stats) - Iceweasel
+( ) evince:         ATTACHMENT02
+( ) evince:         2009-geisler.pdf — Heart rate variability predicts self-control in goal pursuit
+( ) urxvt:          /home/gwern; arbtt-stats --categorizefile=foo --m=0 --filter='$sampleage &lt;24:00' --dump-samples
+( ) mnemosyne:      Mnemosyne
+( ) urxvt:          /home/gwern; 2014-09-03 13:11:45 xprop
+( ) urxvt:          /home/gwern; 2014-09-03 13:42:17 history 1 | cut --delimiter=' ' --fields=5-
+( ) urxvt:          /home/gwern; 2014-09-03 13:12:21 git log -p .emacs
+(*) emacs:          emacs@elan
+( ) urxvt:          /home/gwern; 2014-09-01 14:50:30 while true; do cd ~/ &amp;&amp; getmail_fetch --ssl pop.gmail.com gwern0 'ugaozoumbhwcijxb' ./mail/; done
+( ) urxvt:          /home/gwern/blackmarket-mirrors/silkroad2-forums; 2014-08-31 23:20:10 mv /home/gwern/cookies.txt ./; http_proxy=&quot;localhost:8118&quot; wget...
+( ) urxvt:          /home/gwern/blackmarket-mirrors/agora; 2014-08-31 23:15:50 mv /home/gwern/cookies.txt ./; http_proxy=&quot;localhost:8118&quot; wget --mirror ...
+( ) urxvt:          /home/gwern/blackmarket-mirrors/evolution-forums; 2014-08-31 23:04:10 mv ~/cookies.txt ./; http_proxy=&quot;localhost:8118&quot; wget --mirror ...
+( ) puddletag:      puddletag: /home/gwern/music
+</programlisting>
+      <para>
+        Active windows are denoted by an asterisk, so I can focus &amp;
+        simplify by adding a pipe like <literal>| fgrep '(*)'</literal>,
+        producing more manageable output like
+      </para>
+      <programlisting>
+(*) urxvt:          irssi
+(*) urxvt:          irssi
+(*) urxvt:          irssi
+(*) Navigator:      Pyramid of Technology - NextNature.net - Iceweasel
+(*) Navigator:      Search results - gwern0@gmail.com - Gmail - Iceweasel
+(*) Navigator:      [New comment] The Wrong Path - gwern0@gmail.com - Gmail - Iceweasel
+(*) Navigator:      Iceweasel
+(*) Navigator:      Litecoin Exchange Rate - $4.83 USD - litecoinexchangerate.org - Iceweasel
+(*) Navigator:      PredictionBook: LiteCoin will trade at &gt;=10 USD per ltc in 2 years, - Iceweasel
+(*) urxvt:          irssi
+(*) Navigator:      Bug#691547 closed by Mikhail Gusarov &lt;dottedmag@dottedmag.net&gt; (Re: s3cmd: Man page: --default-mime-type documentation incomplete...)
+(*) Navigator:      Bug#691547 closed by Mikhail Gusarov &lt;dottedmag@dottedmag.net&gt; (Re: s3cmd: Man page: --default-mime-type documentation incomplete...)
+(*) Navigator:      Bug#691547 closed by Mikhail Gusarov &lt;dottedmag@dottedmag.net&gt; (Re: s3cmd: Man page: --default-mime-type documentation incomplete...)
+(*) urxvt:          /home/gwern; 2014-09-02 14:25:17 man s3cmd
+(*) evince:         bayesiancausality.pdf
+(*) evince:         bayesiancausality.pdf
+(*) puddletag:      puddletag: /home/gwern/music
+(*) puddletag:      puddletag: /home/gwern/music
+(*) evince:         bayesiancausality.pdf
+(*) Navigator:      ▶ Umineko no Naku Koro ni Music Box 4 - オルガン小曲 第2億番 ハ短調 - YouTube - Iceweasel
+...
+</programlisting>
+      <para>
+        This is better. We can see a few things: the windows all now
+        produce enough information to be usefully classified (Gmail can
+        be classified under email, irssi can be classified as IRC, the
+        urxvt usage can clearly be classified as programming, the PDF
+        being read is statistics, etc) in part because of customizations
+        to bash/urxvt. The duplication still impedes focus, and we don't
+        know what's most common. We can use another pipeline to sort,
+        count duplicates, and sort by number of duplicates
+        (<literal>| sort | uniq --count | sort --general-numeric-sort</literal>),
+        yielding:
+      </para>
+      <programlisting>
+ ...
+ 14     (*) Navigator:      A Bluer Shade of White Chapter 4, a frozen fanfic | FanFiction - Iceweasel
+ 14     (*) Navigator:      Iceweasel
+ 15     (*) evince:         2009-geisler.pdf — Heart rate variability predicts self-control in goal pursuit
+ 15     (*) Navigator:      Tool use by animals - Wikipedia, the free encyclopedia - Iceweasel
+ 16     (*) Navigator:      Hacker News | Add Comment - Iceweasel
+ 17     (*) evince:         bayesiancausality.pdf
+ 17     (*) Navigator:      Comments - Less Wrong Discussion - Iceweasel
+ 17     (*) Navigator:      Keith Gessen · Why not kill them all?: In Donetsk · LRB 11 September 2014 - Iceweasel
+ 17     (*) Navigator:      Notes on the Celebrity Data Theft | Hacker News - Iceweasel
+ 18     (*) Navigator:      A Bluer Shade of White Chapter 1, a frozen fanfic | FanFiction - Iceweasel
+ 19     (*) gl:             mplayer2
+ 19     (*) Navigator:      Neural networks and deep learning - Iceweasel
+ 20     (*) Navigator:      Harry Potter and the Philosopher's Zombie, a harry potter fanfic | FanFiction - Iceweasel
+ 20     (*) Navigator:      [OBNYC] Time tracking app - gwern0@gmail.com - Gmail - Iceweasel
+ 25     (*) evince:         ps2007.pdf — untitled
+ 35     (*) emacs:          /home/gwern/arbtt.page
+ 43     (*) Navigator:      CCC comments on The Octopus, the Dolphin and Us: a Great Filter tale - Less Wrong - Iceweasel
+ 62     (*) evince:         The physics of information processing superobjects - Anders Sandberg - 1999.pdf — Brains2
+ 69     (*) liferea:        Liferea
+ 82     (*) evince:         BMS_raftery.pdf — untitled
+ 84     (*) emacs:          emacs@elan
+ 87     (*) Navigator:      overview for gwern - Iceweasel
+109     (*) puddletag:      puddletag: /home/gwern/music
+150     (*) urxvt:          irssi
+</programlisting>
+      <para>
+        Put this way, we can see what rules we should write to
+        categorize: we could categorize the activities here into a few
+        categories of &quot;recreational&quot;, &quot;statistics&quot;,
+        &quot;music&quot;, &quot;email&quot;, &quot;IRC&quot;,
+        &quot;research&quot;, &amp; &quot;writing&quot;; and add to the
+        <literal>categorize.cfg</literal> some rules like thus:
+      </para>
+      <programlisting>
+$idle &gt; 30 ==&gt; tag inactive,
+
+current window $title =~ [/.*Hacker News.*/, /.*Less Wrong.*/, /.*overview for gwern.*/, /.*[fF]an[fF]ic.*/, /.* LRB .*/]
+  || current window $program == &quot;liferea&quot; ==&gt; tag Recreation,
+current window $title =~ [/.*puddletag.*/, /.*mplayer2.*/] ==&gt; tag Music,
+current window $title =~ [/.*[bB]ayesian.*/, /.*[nN]eural [nN]etworks.*/, /.*ps2007.pdf.*/, /.*[Rr]aftery.*/] ==&gt; tag Statistics,
+current window $title =~ [/.*Wikipedia.*/, /.*Heart rate variability.*/, /.*Anders Sandberg.*/] ==&gt; tag Research,
+current window $title =~ [/.*Gmail.*/] ==&gt; tag Email,
+current window $title =~ [/.*arbtt.*/] ==&gt; tag Writing,
+current window $title == &quot;irssi&quot; ==&gt; tag IRC,
+</programlisting>
+      <para>
+        If we reran the command, we'd see the same output, so we need to
+        leverage our new rules and <emphasis>exclude</emphasis> any
+        samples matching our current tags, so now we run a command like:
+      </para>
+      <programlisting>
+arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples --exclude=Recreation --exclude=Music --exclude=Statistics
+             --exclude=Research --exclude=Email --exclude=Writing --exclude=IRC |
+             fgrep '(*)' | sort | uniq --count | sort --general-numeric-sort
+</programlisting>
+      <para>
+        Now the previous samples disappear, leaving us with a fresh
+        batch of unclassified samples to work with:
+      </para>
+      <programlisting>
+  9     (*) Navigator:      New Web Order &gt; Nik Cubrilovic - - Notes on the Celebrity Data Theft - Iceweasel
+  9     ( ) urxvt:          /home/gwern; arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples | fgrep '(*)' | less
+ 10     (*) evince:         ATTACHMENT02
+ 10     (*) Navigator:      These Giant Copper Orbs Show Just How Much Metal Comes From a Mine | Design | WIRED - Iceweasel
+ 12     (*) evince:         [Jon_Elster]_Alchemies_of_the_Mind_Rationality_an(BookFi.org).pdf — Alchemies of the mind
+ 12     (*) Navigator:      Morality Quiz/Test your Morals, Values &amp; Ethics - YourMorals.Org - Iceweasel
+ 33     ( ) urxvt:          /home/gwern; arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples | fgrep '(*)'...
+</programlisting>
+      <para>
+        We can add rules categorizing these as 'Recreational',
+        'Writing', 'Research', 'Recreational', 'Research', 'Writing',
+        and 'Writing' respectively; and we might decide at this point
+        that 'Writing' is starting to become overloaded, so we'll split
+        it into two tags, 'Writing' and 'Programming'. And then after
+        tossing another <literal>--exclude=Programming</literal> into
+        our rules, we can repeat the process.
+      </para>
+      <para>
+        As we refine our rules, we will quickly spot instances where the
+        title/class/program are insufficient to allow accurate
+        classification, and we will figure out the best collection of
+        tags for our particular purposes. A few iterations is enough for
+        most purposes.
+      </para>
+    </sect3>
+  </sect2>
+  <sect2 id="categorizing-advice">
+    <title>Categorizing advice</title>
+    <para>
+      When building up rules, a few rules of thumb should be kept in
+      mind:
+    </para>
+    <orderedlist numeration="arabic">
+      <listitem>
+        <para>
+          categorize by purpose, not by program
+        </para>
+        <para>
+          This leads to misleading time reports. Avoid, for example,
+          lumping all web browser time into a single category named
+          'Internet'; this is more misleading than helpful. Good
+          categories describe an activity or goal, such as 'Work' or
+          'Recreation', not a tool, like 'Emacs' or 'Vim'.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          when in doubt, write narrow rules and generalize later
+        </para>
+        <para>
+          Regexps are tricky and it can be easy to write rules far
+          broader than one intended. The <literal>--exclude</literal>
+          filters mean that one will never see samples which are matched
+          accidentally. If one is in doubt, it can be helpful to take a
+          specific sample one wants to match and several similar strings
+          and look at how well one's regexp rule works in Emacs's
+          <ulink url="http://www.emacswiki.org/emacs/ReBuilder">regexp-builder</ulink>
+          or online regexp-testers like
+          <ulink url="http://regexpal.com/">regexpal</ulink>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          don't try to classify everything
+        </para>
+        <para>
+          You will never classify 100% of samples because sometimes
+          programs do not include useful X properties &amp; cannot be
+          fixed, you have samples from before you fixed them, or they
+          are too transient (like popups and dialogues) to be worth
+          fixing. It is not necessary to classify 100% of your time,
+          since as long as the most common programs and, say,
+          <ulink url="https://en.wikipedia.org/wiki/Pareto_principle">80%</ulink>
+          of your time is classified, then you have most of the value.
+          It is easy to waste more time tweaking arbtt than one gains
+          from increased accuracy or more finely-grained tags.
+        </para>
+      </listitem>
+    </orderedlist>
+  </sect2>
+  <sect2 id="long-term-storage">
+    <title>Long-term storage</title>
+    <para>
+      Each halving of the sampling rate doubles the number of samples
+      taken and hence the storage requirement; sampling rates below 20s
+      are probably wasteful. But even the default 60s can accumulate
+      into a nontrivial amount of data over a year. A
+      constantly-changing binary file can interact poorly with backup
+      systems, may make arbtt analyses slower, and if one's system
+      occasionally crashes or experiences other problems, cause some
+      corruption of the log and be a nuisance in having to run
+      <literal>arbtt-recover</literal>.
+    </para>
+    <para>
+      Thus it may be a good idea to archive one's
+      <literal>capture.log</literal> on an annual basis. If one needs to
+      query the historical data, the particular log file can be
+      specified as an option like
+      <literal>--logfile=/home/gwern/doc/arbtt/2013-2014.log</literal>
+    </para>
+  </sect2>
+  <sect2 id="advanced-queries">
+    <title>Advanced queries</title>
+    <para>
+      arbtt supports CSV export of time by category in various levels of
+      granularity in a 'long' format (multiple rows for each day, with
+      <emphasis>n</emphasis> row specifying a category's value for that
+      day). These CSV exports can be imported into statistical programs
+      like R or Excel and manipulated as desired.
+    </para>
+    <para>
+      R users may prefer to have their time data in a 'wide' format
+      (each row is 1 day, with <emphasis>n</emphasis> columns for each
+      possible category); this can be done with the
+      <literal>reshape</literal> default library. After reading in the
+      CSV, the time-intervals can be converted to counts and the data to
+      a wide data-frame with R code like the following:
+    </para>
+    <programlisting>
+arbtt &lt;- read.csv(&quot;arbtt.csv&quot;)
+interval &lt;- function(x) { if (!is.na(x)) { if (grepl(&quot; s&quot;,x)) as.integer(sub(&quot; s&quot;,&quot;&quot;,x))
+                                          else { y &lt;- unlist(strsplit(x, &quot;:&quot;));
+                                                 as.integer(y[[1]])*3600 + as.integer(y[[2]])*60 + as.integer(y[[3]]); }
+                                                 }
+                         else NA
+                         }
+arbtt$Time &lt;- sapply(as.character(arbtt$Time), interval)
+library(reshape)
+arbtt &lt;- reshape(arbtt, v.names=&quot;Time&quot;, timevar=&quot;Tag&quot;, idvar=&quot;Day&quot;, direction=&quot;wide&quot;)
+</programlisting>
+  </sect2>
+</sect1>
 <sect1 id="references">
   <title>Program references</title>
   <para>arbtt consists of a few command line tools, the most important one is
