@@ -179,12 +179,12 @@ main = do
   categorizer <- readCategorizer (optCategorizeFile flags)
 
   timelog <- BS.readFile (optLogFile flags)
-  size <- fileSize <$> getFileStatus (optLogFile flags)
   isTerm <- hIsTerminalDevice stderr
 
   trackedTimelog <- case isTerm of
     True -> do
       hSetBuffering stderr NoBuffering
+      size <- fileSize <$> getFileStatus (optLogFile flags)
       trackProgressWithChunkSize (fromIntegral size `div` 100) (\_ b -> do
         (_height, width) <- getTermSize
         hPutChar stderr '\r'
@@ -199,10 +199,11 @@ main = do
 
   let captures = parseTimeLog trackedTimelog
   let allTags = categorizer captures
+
   when (null allTags) $ do
      putStrLn "Nothing recorded yet"
      exitFailure
-      
+
   let filters = (if optAlsoInactive flags then id else (defaultFilter:)) $ optFilters flags
 
   let rep = case optReports flags of

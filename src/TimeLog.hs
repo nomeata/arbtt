@@ -105,13 +105,13 @@ readTimeLog filename = do
         return $ parseTimeLog content
 
 parseTimeLog :: (NFData a, ListOfStringable a) => BS.ByteString -> TimeLog a
-parseTimeLog input = 
+parseTimeLog input =
     if startString == magic
        then go Nothing rest off
        else error $
             "Timelog starts with unknown marker " ++
             show (map (chr.fromIntegral) (BS.unpack startString))
-  where                
+  where
     (startString, rest, off) = runGetState (getLazyByteString (BS.length magic)) input 0
     go prev input off =
         let (v, rest, off') = runGetState (ls_get strs) input off
