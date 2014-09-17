@@ -747,9 +747,9 @@ $ runhaskell Setup.hs install</screen>
             <term><option>--for-each</option> <replaceable>PERIOD</replaceable></term>
             <listitem><para>This is not a report of its own, but causes the selected
             report to be executed for each of the given PERIOD (which can be
-            day, month or year) where there exist selected samples. All the reports
-            will then be printed one after another or, in the case of CSV output,
-            with an additional column.</para>
+            minute, hour,day, month or year) where there exist selected
+            samples. All the reports will then be printed one after another or,
+            in the case of CSV output, with an additional column.</para>
 
             <para>Note that if this option is enabled, samples that are filtered out
             are completely ignored (to avoid empty reports for periods with
@@ -1193,6 +1193,19 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   <para>
   The version history with changes relevant for the user is documented here.
   </para>
+
+  <sect2 id="release-notes-0.9">
+    <title>Version 0.9 (unreleased)</title>
+    <itemizedlist>
+      <listitem>
+	<para>
+          The <option>--for-each</option> option of
+          <command>arbtt-stats</command> now supports ggrouping results by
+          minute or hour.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
 
   <sect2 id="release-notes-0.8.1">
     <title>Version 0.8.1</title>
