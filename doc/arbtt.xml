@@ -1680,7 +1680,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <listitem>
 	<para>
           The <option>--for-each</option> option of
-          <command>arbtt-stats</command> now supports ggrouping results by
+          <command>arbtt-stats</command> now supports grouping results by
           minute or hour.
 	</para>
       </listitem>
