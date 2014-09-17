@@ -512,18 +512,26 @@ $ runhaskell Setup.hs install</screen>
 <sect1 id="effective-use-of-arbtt">
   <title>Effective Use of Arbtt</title>
   <para>
-    Now that the syntax has been described &amp; the toolbox laid out,
-    how does one practically go about using and configuring arbtt?
+    Now that the syntax has been describedand the toolbox laid out,
+    how do you practically go about using and configuring arbtt?
   </para>
   <sect2 id="enabling-data-collection">
     <title>Enabling data collection</title>
     <para>
-      After installing arbtt, one needs to configure it to run. There
-      are many ways one can run the <literal>arbtt-capture</literal>
-      daemon, but a standard way on Unix systems would be to add it as a
-      <ulink url="https://en.wikipedia.org/wiki/Cron"><literal>cron</literal></ulink>
-      job: for example, one could edit one's crontab file
-      (<literal>crontab -e</literal>) and add a line like this:
+      After installing arbtt, you need to configure it to run. There
+      are many ways you can run the <literal>arbtt-capture</literal>
+      daemon. One standard way is to include the command
+      <programlisting>
+arbtt-capture &amp;
+      </programlisting>
+      in your desktop environments startup script, e.g.
+      <filename>~/.xinitrc</filename> or similar.
+    </para>
+    <para>
+      Another trick is ad dit as a <ulink
+      url="https://en.wikipedia.org/wiki/Cron"><literal>cron</literal></ulink>
+      job. To do so, edit your crontab file (<literal>crontab -e</literal>) and
+      add a line like this:
     </para>
     <programlisting>
 DISPLAY=:0
@@ -532,11 +540,11 @@ DISPLAY=:0
     <para>
       At boot, <literal>arbtt-capture</literal> will be run in the
       background and will capture a snapshot of the X metadata for
-      active windows every 60 seconds (the default). If one wanted more
-      fine-grained time data at the expense of doubling storage use per
-      day, one could increase the sampling rate with a command like
+      active windows every 60 seconds (the default). If you want more
+      fine-grained time data at the expense of doubling storage use
+      you could increase the sampling rate with a command like
       <literal>--sample-rate=30</literal>. To be resilient to any errors
-      or segfaults, one could also wrap it in a infinite loop to restart
+      or segfaults, you could also wrap it in an infinite loop to restart
       the daemon should it ever crash, with a command like
     </para>
     <programlisting>
@@ -548,8 +556,8 @@ DISPLAY=:0
     <title>Checking data availability</title>
     <para>
       arbtt tracks X properties like window title, class, and running
-      program, and one writes regexp rules to classify the strings as
-      one wishes; but this assumes that the necessary data is present in
+      program, and you write rules to classify the strings as
+      you wish; but this assumes that the necessary data is present in
       those properties.
     </para>
     <para>
@@ -563,20 +571,20 @@ DISPLAY=:0
       empty strings like &quot;&quot;; or they may set the title/class
       to a constant like &quot;Liferea&quot;, which may be acceptable if
       that program is used for only one purpose, but if it is used for
-      many purposes, then one cannot write a rule matching it without
+      many purposes, then you cannot write a rule matching it without
       producing highly-misleading time analyses. (For example, a web
       browser may be used for countless purposes, ranging from work to
       research to music to writing to programming; but if the web
       browser's title/class were always just &quot;Web browser&quot;,
-      how would one classify 5 hours spent using the web browser? If the
+      how would you classify 5 hours spent using the web browser? If the
       5 hours are classified as any or all of those purposes, then the
-      results will be misleading garbage - one probably didn't spend 5
+      results will be misleading garbage - you probably did not spend 5
       hours just listening to music, but a mixture of those purposes,
       which changes from day to day.)
     </para>
     <para>
-      One should check for such problematic programs upon starting using
-      arbtt. It would be unfortunate if one were to log for a few
+      You should check for such problematic programs upon starting using
+      arbtt. It would be unfortunate if you were to log for a few
       months, go back for a detailed report for some reason, and
       discover that the necessary data was never actually available for
       arbtt to log!
@@ -592,7 +600,7 @@ DISPLAY=:0
     <sect3 id="xprop">
       <title><literal>xprop</literal></title>
       <para>
-        One can check the X properties of a running window by running
+        You can check the X properties of a running window by running
         the command
         <ulink url="http://www.xfree86.org/current/xprop.1.html"><literal>xprop</literal></ulink>
         and clicking on the window; <literal>xprop</literal> will print
@@ -609,15 +617,15 @@ _NET_WM_NAME(UTF8_STRING) = &quot;emacs@elan&quot;
 </programlisting>
       <para>
         This is not very helpful: it does not tell us the filename being
-        edited, the mode being used, or anything. One could classify
+        edited, the mode being used, or anything. You could classify
         time spent in Emacs as &quot;programming&quot; or
         &quot;writing&quot;, but this would be imperfect, especially if
-        one does both activities regularly. However, Emacs can be
+        you do both activities regularly. However, Emacs can be
         customized by editing <literal>~/.emacs</literal>, and after
         some searching with queries like &quot;setting Emacs window
         title&quot;, the
         <ulink url="http://www.emacswiki.org/emacs-en/FrameTitle">Emacs
-        wiki</ulink> &amp;
+        wiki</ulink> and
         <ulink url="https://www.gnu.org/software/emacs/manual/html_node/efaq/Displaying-the-current-file-name-in-the-titlebar.html">manual</ulink>
         advise us to put something like this Elisp in our
         <literal>.emacs</literal> file:
@@ -638,7 +646,7 @@ _NET_WM_NAME(UTF8_STRING) = &quot;/home/gwern/arbtt.page&quot;
 </programlisting>
       <para>
         With this, we can usefully classify all such time samples as
-        being &quot;writing&quot;.
+        being “writing”.
       </para>
       <para>
         Another common gap is terminals/shells: they often do not
@@ -670,10 +678,16 @@ trap 'echo -ne &quot;\033]2;$(pwd); $(history 1 | sed &quot;s/^[ ]*[0-9]*[ ]*//g
 _NET_WM_NAME(UTF8_STRING) = &quot;/home/gwern/wiki; 2014-09-03 13:39:32 arbtt-stats --help&quot;
 </programlisting>
       <para>
-        A rule could classify based on the directory one is working in,
+	Some distributions (e.g. Debian) already provide the relevant
+	configuration for this to happen. If it does not work for you, you can try to add
+	<programlisting>. /etc/profile.d/vte.sh</programlisting>
+	to your <filename>~/.bashrc</filename>.
+      </para>
+      <para>
+        A rule could classify based on the directory you are working in,
         the command one ran, or both. Other shells like zsh can be fixed
         this way too but the exact command may differ; you will need to
-        research &amp; experiment.
+        research and experiment.
       </para>
       <para>
         Some programs can be tricky to set. The
@@ -681,7 +695,7 @@ _NET_WM_NAME(UTF8_STRING) = &quot;/home/gwern/wiki; 2014-09-03 13:39:32 arbtt-st
         feh</ulink> has a <literal>--title</literal> option but it
         cannot be set in the configuration file,
         <literal>.config/feh/themes</literal>, because it needs to be
-        specified dynamically; so one needs to set up a shell alias or
+        specified dynamically; so you need to set up a shell alias or
         script to wrap the command like
         <literal>feh --title &quot;$(pwd) / %f / %n&quot;</literal>.
       </para>
@@ -690,19 +704,21 @@ _NET_WM_NAME(UTF8_STRING) = &quot;/home/gwern/wiki; 2014-09-03 13:39:32 arbtt-st
       <title>Raw samples</title>
       <para>
         <literal>xprop</literal> can be tedious to use on every running
-        window and one may not think to check rarer programs. A better
-        approach is to use <literal>arbtt-stats</literal>'s
+        window and you may forget to check seldomly used programs. A better
+        approach is to use <literal>arbtt-stats</literal>’s
         <literal>--dump-samples</literal> option: this option will print
-        out the collected data for specified time periods, allowing one
+        out the collected data for specified time periods, allowing you
         to examine the X properties en masse. This option can be used
-        with the <literal>-x</literal>/<literal>--exclude=</literal>
-        options to print the samples for <emphasis>samples not matched
+        with the <literal>--exclude=</literal>
+        option to print the samples for <emphasis>samples not matched
         by existing rules</emphasis> as well, which is indispensable for
         improving coverage and suggesting ideas for new rules. A good
         way to figure out what customizations to make is to run arbtt as
         a daemon for a day or so, and then begin examining the raw
         samples for problems.
       </para>
+      <example>
+      <title>An initial configuration session</title>
       <para>
         An example: suppose I create a simple category file named
         <literal>foo</literal> with just the line
@@ -811,7 +827,7 @@ arbtt-stats --categorizefile=foo --m=0 --filter='$sampleage &lt;24:00' --dump-sa
         categorize: we could categorize the activities here into a few
         categories of &quot;recreational&quot;, &quot;statistics&quot;,
         &quot;music&quot;, &quot;email&quot;, &quot;IRC&quot;,
-        &quot;research&quot;, &amp; &quot;writing&quot;; and add to the
+        &quot;research&quot;, and &quot;writing&quot;; and add to the
         <literal>categorize.cfg</literal> some rules like thus:
       </para>
       <programlisting>
@@ -865,6 +881,7 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
         tags for our particular purposes. A few iterations is enough for
         most purposes.
       </para>
+      </example>
     </sect3>
   </sect2>
   <sect2 id="categorizing-advice">
@@ -908,7 +925,7 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
         </para>
         <para>
           You will never classify 100% of samples because sometimes
-          programs do not include useful X properties &amp; cannot be
+          programs do not include useful X properties and cannot be
           fixed, you have samples from before you fixed them, or they
           are too transient (like popups and dialogues) to be worth
           fixing. It is not necessary to classify 100% of your time,
@@ -943,7 +960,7 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
     </para>
   </sect2>
   <sect2 id="advanced-queries">
-    <title>Advanced queries</title>
+    <title>External processing of arbtt statistics</title>
     <para>
       arbtt supports CSV export of time by category in various levels of
       granularity in a 'long' format (multiple rows for each day, with
