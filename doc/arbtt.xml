@@ -509,13 +509,13 @@ $ runhaskell Setup.hs install</screen>
   </sect2>
 </sect1>
 
-<sect1 id="effective-use-of-arbtt">
+<sect1 id="effective-use">
   <title>Effective Use of Arbtt</title>
   <para>
     Now that the syntax has been describedand the toolbox laid out,
     how do you practically go about using and configuring arbtt?
   </para>
-  <sect2 id="enabling-data-collection">
+  <sect2>
     <title>Enabling data collection</title>
     <para>
       After installing arbtt, you need to configure it to run. There
@@ -552,7 +552,7 @@ DISPLAY=:0
 @reboot while true; do arbtt-capture --sample-rate=30; sleep 1m; done
 </programlisting>
   </sect2>
-  <sect2 id="checking-data-availability">
+  <sect2>
     <title>Checking data availability</title>
     <para>
       arbtt tracks X properties like window title, class, and running
@@ -597,7 +597,7 @@ DISPLAY=:0
       or
       <ulink url="http://jonisalonen.com/2014/setting-x11-window-properties-with-xprop/"><literal>xprop</literal></ulink>.
     </para>
-    <sect3 id="xprop">
+    <sect3>
       <title><literal>xprop</literal></title>
       <para>
         You can check the X properties of a running window by running
@@ -700,7 +700,7 @@ _NET_WM_NAME(UTF8_STRING) = &quot;/home/gwern/wiki; 2014-09-03 13:39:32 arbtt-st
         <literal>feh --title &quot;$(pwd) / %f / %n&quot;</literal>.
       </para>
     </sect3>
-    <sect3 id="raw-samples">
+    <sect3>
       <title>Raw samples</title>
       <para>
         <literal>xprop</literal> can be tedious to use on every running
@@ -884,7 +884,7 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
       </example>
     </sect3>
   </sect2>
-  <sect2 id="categorizing-advice">
+  <sect2>
     <title>Categorizing advice</title>
     <para>
       When building up rules, a few rules of thumb should be kept in
@@ -938,7 +938,7 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
       </listitem>
     </orderedlist>
   </sect2>
-  <sect2 id="long-term-storage">
+  <sect2>
     <title>Long-term storage</title>
     <para>
       Each halving of the sampling rate doubles the number of samples
@@ -959,7 +959,7 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
       <literal>--logfile=/home/gwern/doc/arbtt/2013-2014.log</literal>
     </para>
   </sect2>
-  <sect2 id="advanced-queries">
+  <sect2>
     <title>External processing of arbtt statistics</title>
     <para>
       arbtt supports CSV export of time by category in various levels of
@@ -1682,6 +1682,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           The <option>--for-each</option> option of
           <command>arbtt-stats</command> now supports ggrouping results by
           minute or hour.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Gwern Branwen contributed the <xref linkend="effective-use"/>.
 	</para>
       </listitem>
     </itemizedlist>
