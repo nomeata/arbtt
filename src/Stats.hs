@@ -174,15 +174,15 @@ calcSums = LeftFold M.empty
                 let go' m act = M.insertWith' (+) act (fromInteger (tlRate tl)/1000) m
                 in foldl' go' m (snd (tlData tl))) id
 
-processRepeater :: Repeater -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
-processRepeater r rep = case repeaterImpl r of
+processRepeater :: TimeZone -> Repeater -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
+processRepeater tz r rep = case repeaterImpl r of
     RepeaterImpl catR showR ->
         filterElems (\(b :!: _) -> b) $
         pure (RepeatedReportResults "Day" . map (first showR) . M.toList) <*>
-        multiplex (catR . tlTime . Strict.snd) rep
+        multiplex (catR . utcToLocalTime tz . tlTime . Strict.snd) rep
 
 data RepeaterImpl where
-  RepeaterImpl :: Ord r => (UTCTime -> r) -> (r -> String) -> RepeaterImpl
+  RepeaterImpl :: Ord r => (LocalTime -> r) -> (r -> String) -> RepeaterImpl
 
 repeaterImpl :: Repeater -> RepeaterImpl
 repeaterImpl ByMinute = RepeaterImpl
@@ -193,13 +193,13 @@ repeaterImpl ByHour = RepeaterImpl
     (formatTime defaultTimeLocale "%F %H")
     id
 repeaterImpl ByDay = RepeaterImpl
-    utctDay
+    localDay
     showGregorian
 repeaterImpl ByMonth = RepeaterImpl
-    ((\(y,m,_) -> (y, m)) . toGregorian . utctDay)
+    ((\(y,m,_) -> (y, m)) . toGregorian . localDay)
     (\(y,m) -> show y ++ "-" ++ show m)
 repeaterImpl ByYear = RepeaterImpl
-    ((\(y,_,_) -> y) . toGregorian . utctDay)
+    ((\(y,_,_) -> y) . toGregorian . localDay)
     show
 
 processReport :: ReportOptions -> Report -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults

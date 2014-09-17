@@ -18,6 +18,7 @@ import System.Posix.Files
 import System.ProgressBar
 import TermSize
 import qualified Data.MyText as T
+import Data.Time.LocalTime
 
 import TimeLog
 import Categorize
@@ -165,6 +166,7 @@ main = do
           (_,_,errs) -> do
                 hPutStr stderr (concat errs ++ usageInfo header options)
                 exitFailure
+  tz <- getCurrentTimeZone
 
   dir <- getAppUserDataDirectory "arbtt"
   flags <- foldl (>>=) (return (defaultOptions dir)) actions
@@ -207,7 +209,7 @@ main = do
                 [] -> TotalTime
                 [x] -> x
                 _ -> error "Please specify exactly one report to generate"
-  let repeater = foldr (.) id $ map processRepeater (optRepeater flags)
+  let repeater = foldr (.) id $ map (processRepeater tz) (optRepeater flags)
 
   -- These are defined here, but of course only evaluated when any report
   -- refers to them. Some are needed by more than one report, which is then
