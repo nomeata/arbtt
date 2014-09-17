@@ -936,6 +936,17 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
           from increased accuracy or more finely-grained tags.
         </para>
       </listitem>
+      <listitem>
+	<para>avoid large and microscopic tags</para>
+	<para>
+	  If a tag takes up more than a third or so of your time, it is
+	  probably too large, masks variation, and can be broken down into more
+	  meaningful tags. Conversely, a tag too narrow to show up regularly in
+	  reports (because it is below the default 1% filter) may not be
+	  helpful because it is usually tiny, and can be combined with the most
+	  similar tag to yield more compact and easily interpreted reports.
+	</para>
+      </listitem>
     </orderedlist>
   </sect2>
   <sect2>
