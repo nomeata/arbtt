@@ -211,16 +211,13 @@ main = do
                 _ -> error "Please specify exactly one report to generate"
   let repeater = foldr (.) id $ map (processRepeater tz) (optRepeater flags)
 
-  -- These are defined here, but of course only evaluated when any report
-  -- refers to them. Some are needed by more than one report, which is then
-  -- advantageous.
   let opts = optReportOptions flags
   let fold = filterPredicate filters `adjoin` repeater (processReport opts rep)
   let result = runLeftFold fold allTags
 
   -- Force the results a bit, to ensure the progress bar to be shown before the title
   result `seq` return ()
-  
+
   renderReport opts result
 
 {-
