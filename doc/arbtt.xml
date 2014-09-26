@@ -330,16 +330,16 @@ $ runhaskell Setup.hs install</screen>
 
     <figure id="grammar">
         <title>The formal grammar of <filename>categorize.cfg</filename></title>
-	<productionset>
-	  <production id="g-rules">
-	    <lhs>Rules</lhs>
-	    <rhs>
-	      [ <nonterminal def="#g-aliasspec"/> ]
-	      <nonterminal def="#g-rule"/> ( (<quote>,</quote>
-	      <nonterminal def="#g-rule"/>)* | ( <quote>;</quote>
-	      <nonterminal def="#g-rule"/>)* )
-	    </rhs>
-	  </production>
+    <productionset>
+      <production id="g-rules">
+        <lhs>Rules</lhs>
+        <rhs>
+          [ <nonterminal def="#g-aliasspec"/> ]
+          <nonterminal def="#g-rule"/> ( (<quote>,</quote>
+          <nonterminal def="#g-rule"/>)* | ( <quote>;</quote>
+          <nonterminal def="#g-rule"/>)* )
+        </rhs>
+      </production>
 
           <production id="g-aliasspec">
             <lhs>AliasSpec</lhs>
@@ -353,9 +353,9 @@ $ runhaskell Setup.hs install</screen>
             <rhs>Literal <quote>-&gt;</quote> Literal</rhs>
           </production>
 
-	  <production id="g-rule">
-	    <lhs>Rule</lhs>
-	    <rhs><quote>{</quote> <nonterminal def="#g-rules"/>
+      <production id="g-rule">
+        <lhs>Rule</lhs>
+        <rhs><quote>{</quote> <nonterminal def="#g-rules"/>
                  <quote>}</quote>
             </rhs>
             <rhs>
@@ -368,11 +368,11 @@ $ runhaskell Setup.hs install</screen>
             <rhs>
               <quote>tag</quote> <nonterminal def="#g-tag"/>
             </rhs>
-	  </production>
+      </production>
 
-	  <production id="g-cond">
-	    <lhs>Cond</lhs>
-	    <rhs><quote>(</quote> <nonterminal def="#g-cond"/>
+      <production id="g-cond">
+        <lhs>Cond</lhs>
+        <rhs><quote>(</quote> <nonterminal def="#g-cond"/>
                  <quote>)</quote>
             </rhs>
             <rhs><quote>!</quote> <nonterminal def="#g-cond"/> |
@@ -381,67 +381,67 @@ $ runhaskell Setup.hs install</screen>
                  <nonterminal def="#g-cond"/> <quote>||</quote> <nonterminal
                  def="#g-cond"/>
             </rhs>
-	    <rhs> <quote>$active</quote> </rhs>
+        <rhs> <quote>$active</quote> </rhs>
             <rhs> <nonterminal def="#g-string"/> <nonterminal def="#g-cmpop"/>
-	   	 <nonterminal def="#g-string"/> </rhs>
+         <nonterminal def="#g-string"/> </rhs>
             <rhs> <nonterminal def="#g-string"/> <nonterminal def="#g-cmpop"/>
-	   	 <quote>[</quote> <nonterminal def="#g-listofstring"/>
+         <quote>[</quote> <nonterminal def="#g-listofstring"/>
                  <quote>]</quote>
                  </rhs>
             <rhs> <nonterminal def="#g-string"/> <quote>=~</quote>
-	    	 <nonterminal def="#g-regex"/></rhs>
+             <nonterminal def="#g-regex"/></rhs>
             <rhs> <nonterminal def="#g-string"/> <quote>=~</quote>
-	   	 <quote>[</quote> <nonterminal def="#g-listofregex"/>
+         <quote>[</quote> <nonterminal def="#g-listofregex"/>
                  <quote>]</quote>
                  </rhs>
             <rhs> <nonterminal def="#g-number"/> <nonterminal def="#g-cmpop"/>
-	   	 <nonterminal def="#g-number"/> </rhs>
+         <nonterminal def="#g-number"/> </rhs>
             <rhs> <nonterminal def="#g-timediff"/> <nonterminal def="#g-cmpop"/>
-	   	 <nonterminal def="#g-timediff"/> </rhs>
+         <nonterminal def="#g-timediff"/> </rhs>
             <rhs> <nonterminal def="#g-date"/> <nonterminal def="#g-cmpop"/>
-	   	 <nonterminal def="#g-date"/> </rhs>
+         <nonterminal def="#g-date"/> </rhs>
             <rhs> <quote>current window</quote> <nonterminal def="#g-cond"/> </rhs>
             <rhs> <quote>any window</quote> <nonterminal def="#g-cond"/> </rhs>
-	  </production>
+      </production>
 
-	  <production id="g-string">
-	    <lhs>String</lhs>
-	    <rhs> <quote>$title</quote> </rhs>
-	    <rhs> <quote>$program</quote> </rhs>
-	    <rhs> <quote>$desktop</quote> </rhs>
-	    <rhs> <quote>format</quote> <nonterminal def="#g-date" /> </rhs>
-	    <rhs> <quote>"</quote> string literal <quote>"</quote> </rhs>
-	  </production>
+      <production id="g-string">
+        <lhs>String</lhs>
+        <rhs> <quote>$title</quote> </rhs>
+        <rhs> <quote>$program</quote> </rhs>
+        <rhs> <quote>$desktop</quote> </rhs>
+        <rhs> <quote>format</quote> <nonterminal def="#g-date" /> </rhs>
+        <rhs> <quote>"</quote> string literal <quote>"</quote> </rhs>
+      </production>
 
-	  <production id="g-listofstring">
-	    <lhs>ListOfString</lhs>
-	    <rhs> <quote>"</quote> string literal <quote>"</quote> </rhs>
-	    <rhs> <quote>"</quote> string literal <quote>"</quote> , <nonterminal def="#g-listofstring"/> </rhs>
-	  </production>
+      <production id="g-listofstring">
+        <lhs>ListOfString</lhs>
+        <rhs> <quote>"</quote> string literal <quote>"</quote> </rhs>
+        <rhs> <quote>"</quote> string literal <quote>"</quote> , <nonterminal def="#g-listofstring"/> </rhs>
+      </production>
 
-	  <production id="g-number">
-	    <lhs>Number</lhs>
-	    <rhs> <quote>$idle</quote> </rhs>
-	    <rhs> <quote>day of week</quote> <nonterminal def="#g-date" /> </rhs>
-	    <rhs> <quote>day of month</quote> <nonterminal def="#g-date" /> </rhs>
-	    <rhs> <quote>month</quote> <nonterminal def="#g-date" /> </rhs>
-	    <rhs> <quote>year</quote> <nonterminal def="#g-date" /> </rhs>
-	    <rhs> number literal </rhs>
-	  </production>
+      <production id="g-number">
+        <lhs>Number</lhs>
+        <rhs> <quote>$idle</quote> </rhs>
+        <rhs> <quote>day of week</quote> <nonterminal def="#g-date" /> </rhs>
+        <rhs> <quote>day of month</quote> <nonterminal def="#g-date" /> </rhs>
+        <rhs> <quote>month</quote> <nonterminal def="#g-date" /> </rhs>
+        <rhs> <quote>year</quote> <nonterminal def="#g-date" /> </rhs>
+        <rhs> number literal </rhs>
+      </production>
 
-	  <production id="g-date">
-	    <lhs>Date</lhs>
-	    <rhs> <quote>$date</quote> </rhs>
-	    <!-- <rhs> <quote>$now</quote> </rhs> -->
-	  </production>
+      <production id="g-date">
+        <lhs>Date</lhs>
+        <rhs> <quote>$date</quote> </rhs>
+        <!-- <rhs> <quote>$now</quote> </rhs> -->
+      </production>
 
-	  <production id="g-timediff">
-	    <lhs>TimeDiff</lhs>
-	    <rhs> <quote>$time</quote> </rhs>
-	    <rhs> <quote>$sampleage</quote> </rhs>
-	    <!-- <rhs> <nonterminal def="#g-date"/> <quote>-</quote> <nonterminal def="#g-date"/></rhs> -->
+      <production id="g-timediff">
+        <lhs>TimeDiff</lhs>
+        <rhs> <quote>$time</quote> </rhs>
+        <rhs> <quote>$sampleage</quote> </rhs>
+        <!-- <rhs> <nonterminal def="#g-date"/> <quote>-</quote> <nonterminal def="#g-date"/></rhs> -->
             <rhs>( Digit )* Digit <quote>:</quote> Digit Digit</rhs>
-	  </production>
+      </production>
 
           <production id="g-tag">
             <lhs>Tag</lhs>
@@ -457,11 +457,11 @@ $ runhaskell Setup.hs install</screen>
               character.</lineannotation> </rhs>
           </production>
 
-	  <production id="g-listofregex">
-	    <lhs>ListOfRegex</lhs>
-	    <rhs> <quote>"</quote> <nonterminal def="#g-regex"/> <quote>"</quote> </rhs>
-	    <rhs> <quote>"</quote> <nonterminal def="#g-regex"/> <quote>"</quote> , <nonterminal def="#g-listofregex"/> </rhs>
-	  </production>
+      <production id="g-listofregex">
+        <lhs>ListOfRegex</lhs>
+        <rhs> <quote>"</quote> <nonterminal def="#g-regex"/> <quote>"</quote> </rhs>
+        <rhs> <quote>"</quote> <nonterminal def="#g-regex"/> <quote>"</quote> , <nonterminal def="#g-listofregex"/> </rhs>
+      </production>
 
           <production id="g-cmpop">
             <lhs>CmpOp</lhs>
@@ -469,7 +469,7 @@ $ runhaskell Setup.hs install</screen>
             | <quote>&gt;</quote> | <quote>&gt;=</quote></rhs>
           </production>
 
-	</productionset>
+    </productionset>
       </figure>
       <para>
         A <literal>String</literal> refers to a double-quoted string of
@@ -512,7 +512,7 @@ $ runhaskell Setup.hs install</screen>
 <sect1 id="effective-use">
   <title>Effective Use of Arbtt</title>
   <para>
-    Now that the syntax has been describedand the toolbox laid out,
+    Now that the syntax has been described and the toolbox laid out,
     how do you practically go about using and configuring arbtt?
   </para>
   <sect2>
@@ -528,7 +528,7 @@ arbtt-capture &amp;
       <filename>~/.xinitrc</filename> or similar.
     </para>
     <para>
-      Another trick is ad dit as a <ulink
+      Another trick is add it as a <ulink
       url="https://en.wikipedia.org/wiki/Cron"><literal>cron</literal></ulink>
       job. To do so, edit your crontab file (<literal>crontab -e</literal>) and
       add a line like this:
@@ -541,8 +541,8 @@ DISPLAY=:0
       At boot, <literal>arbtt-capture</literal> will be run in the
       background and will capture a snapshot of the X metadata for
       active windows every 60 seconds (the default). If you want more
-      fine-grained time data at the expense of doubling storage use
-      you could increase the sampling rate with a command like
+      fine-grained time data at the expense of doubling storage use,
+      you could increase the sampling rate with an option like
       <literal>--sample-rate=30</literal>. To be resilient to any errors
       or segfaults, you could also wrap it in an infinite loop to restart
       the daemon should it ever crash, with a command like
@@ -555,27 +555,28 @@ DISPLAY=:0
   <sect2>
     <title>Checking data availability</title>
     <para>
-      arbtt tracks X properties like window title, class, and running
-      program, and you write rules to classify the strings as
+      arbtt tracks <ulink url="https://en.wikipedia.org/wiki/X_Window_System_protocols_and_architecture#Attributes_and_properties"
+      >X</ulink> properties like window title, class, and running
+      program, and you write rules to classify those strings as
       you wish; but this assumes that the necessary data is present in
       those properties.
     </para>
     <para>
       For some programs, this is the case. For example, web browsers
       like Firefox typically set the X title to the
-      <literal>&lt;title&gt;</literal> of the web page in the
+      HTML <literal>&lt;title&gt;</literal> element of the web page in the
       currently-focused tab, which is enough for classification.
     </para>
     <para>
       Some programs do not set titles or class, and all arbtt sees is
-      empty strings like &quot;&quot;; or they may set the title/class
-      to a constant like &quot;Liferea&quot;, which may be acceptable if
+      empty strings like <literal>&quot;&quot;</literal>; or they may set the title/class
+      to a constant like <literal>&quot;Liferea&quot;</literal>, which may be acceptable if
       that program is used for only one purpose, but if it is used for
       many purposes, then you cannot write a rule matching it without
       producing highly-misleading time analyses. (For example, a web
       browser may be used for countless purposes, ranging from work to
       research to music to writing to programming; but if the web
-      browser's title/class were always just &quot;Web browser&quot;,
+      browser's title/class were always just <literal>&quot;Web browser&quot;</literal>,
       how would you classify 5 hours spent using the web browser? If the
       5 hours are classified as any or all of those purposes, then the
       results will be misleading garbage - you probably did not spend 5
@@ -586,7 +587,7 @@ DISPLAY=:0
       You should check for such problematic programs upon starting using
       arbtt. It would be unfortunate if you were to log for a few
       months, go back for a detailed report for some reason, and
-      discover that the necessary data was never actually available for
+      discover that the necessary data was never available for
       arbtt to log!
     </para>
     <para>
@@ -646,8 +647,11 @@ _NET_WM_NAME(UTF8_STRING) = &quot;/home/gwern/arbtt.page&quot;
 </programlisting>
       <para>
         With this, we can usefully classify all such time samples as
-        being “writing”.
+        being “writing”:
       </para>
+<programlisting>
+current window $title == &quot;/home/gwern/arbtt.page&quot; ==> tag Writing,
+</programlisting>
       <para>
         Another common gap is terminals/shells: they often do not
         include information in the title like the current working
@@ -678,10 +682,10 @@ trap 'echo -ne &quot;\033]2;$(pwd); $(history 1 | sed &quot;s/^[ ]*[0-9]*[ ]*//g
 _NET_WM_NAME(UTF8_STRING) = &quot;/home/gwern/wiki; 2014-09-03 13:39:32 arbtt-stats --help&quot;
 </programlisting>
       <para>
-	Some distributions (e.g. Debian) already provide the relevant
-	configuration for this to happen. If it does not work for you, you can try to add
-	<programlisting>. /etc/profile.d/vte.sh</programlisting>
-	to your <filename>~/.bashrc</filename>.
+    Some distributions (e.g. Debian) already provide the relevant
+    configuration for this to happen. If it does not work for you, you can try to add
+    <programlisting>. /etc/profile.d/vte.sh</programlisting>
+    to your <filename>~/.bashrc</filename>.
       </para>
       <para>
         A rule could classify based on the directory you are working in,
@@ -936,17 +940,17 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
         </para>
     </sect3>
     <sect3>
-	<title>
-	  Avoid large and microscopic tags
-	</title>
-	<para>
-	  If a tag takes up more than a third or so of your time, it is
-	  probably too large, masks variation, and can be broken down into more
-	  meaningful tags. Conversely, a tag too narrow to show up regularly in
-	  reports (because it is below the default 1% filter) may not be
-	  helpful because it is usually tiny, and can be combined with the most
-	  similar tag to yield more compact and easily interpreted reports.
-	</para>
+    <title>
+      Avoid large and microscopic tags
+    </title>
+    <para>
+      If a tag takes up more than a third or so of your time, it is
+      probably too large, masks variation, and can be broken down into more
+      meaningful tags. Conversely, a tag too narrow to show up regularly in
+      reports (because it is below the default 1% filter) may not be
+      helpful because it is usually tiny, and can be combined with the most
+      similar tag to yield more compact and easily interpreted reports.
+    </para>
     </sect3>
   </sect2>
   <sect2>
@@ -1404,7 +1408,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <term><option>-V</option></term>
         <term><option>--version</option></term>
         <listitem><simpara>shows the version number, and exists.</simpara></listitem>
-	</varlistentry>
+    </varlistentry>
         <varlistentry>
         <term><option>-f</option> <replaceable>FILE</replaceable></term>
         <term><option>--logfile</option> <replaceable>FILE</replaceable></term>
@@ -1414,7 +1418,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <term><option>-t</option> <replaceable>FORMAT</replaceable></term>
         <term><option>--format</option> <replaceable>FORMAT</replaceable></term>
         <listitem><simpara>dumping format to use, where <replaceable>FORMAT</replaceable> is one of <literal>human</literal> (the default), <literal>show</literal> or <literal>JSON</literal>. Case in-sensitive.</simpara></listitem>
-	</varlistentry>
+    </varlistentry>
         <varlistentry>
         <term><option>-l</option> <replaceable>NUMBER</replaceable></term>
         <term><option>--last</option> <replaceable>NUMBER</replaceable></term>
@@ -1536,7 +1540,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <term><option>-V</option></term>
         <term><option>--version</option></term>
         <listitem><simpara>shows the version number, and exists.</simpara></listitem>
-	</varlistentry>
+    </varlistentry>
         <varlistentry>
         <term><option>-f</option> <replaceable>FILE</replaceable></term>
         <term><option>--logfile</option> <replaceable>FILE</replaceable></term>
@@ -1602,7 +1606,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <term><option>-V</option></term>
         <term><option>--version</option></term>
         <listitem><simpara>shows the version number, and exists.</simpara></listitem>
-	</varlistentry>
+    </varlistentry>
         <varlistentry>
         <term><option>-i</option></term>
         <term><option>--infile</option></term>
@@ -1689,16 +1693,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <title>Version 0.9 (unreleased)</title>
     <itemizedlist>
       <listitem>
-	<para>
+    <para>
           The <option>--for-each</option> option of
           <command>arbtt-stats</command> now supports grouping results by
           minute or hour.
-	</para>
+    </para>
       </listitem>
       <listitem>
-	<para>
-	  Gwern Branwen contributed the <xref linkend="effective-use"/>.
-	</para>
+    <para>
+      Gwern Branwen contributed the <xref linkend="effective-use"/>.
+    </para>
       </listitem>
     </itemizedlist>
   </sect2>
@@ -1707,10 +1711,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <title>Version 0.8.1</title>
     <itemizedlist>
       <listitem>
-	<para>
-	  The syntax now allows for time differences larger than 99:99.
+    <para>
+      The syntax now allows for time differences larger than 99:99.
           (<ulink url="https://bitbucket.org/nomeata/arbtt/issue/14/improve-time-categorization-directives">issue #14</ulink>)
-	</para>
+    </para>
       </listitem>
     </itemizedlist>
   </sect2>
@@ -1719,12 +1723,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <title>Version 0.8</title>
     <itemizedlist>
       <listitem>
-	<para>
-	  <command>arbtt-dump</command> can now show the data in other formats
-	  as well, as suggested by Waldir Pimenta (option
-	  <option>--format</option>). This includes a human-readale output and
-	  JSON.
-	</para>
+    <para>
+      <command>arbtt-dump</command> can now show the data in other formats
+      as well, as suggested by Waldir Pimenta (option
+      <option>--format</option>). This includes a human-readale output and
+      JSON.
+    </para>
       </listitem>
       <listitem>
         <para>New option <option>--last</option> of <command>arbtt-dump</command>.</para>
@@ -1781,9 +1785,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <title>Version 0.6.4.1</title>
     <itemizedlist>
       <listitem>
-      	<para>
-      	Added missing module to the packages.
-      	</para>
+        <para>
+        Added missing module to the packages.
+        </para>
       </listitem>
     </itemizedlist>
   </sect2>
@@ -1866,7 +1870,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <title>Version 0.5 (The ZuriHac-Release)</title>
     <itemizedlist>
       <listitem>
-	<para>New command <command>arbtt-import</command>, which imports the output from <command>arbtt-dump</command>.
+    <para>New command <command>arbtt-import</command>, which imports the output from <command>arbtt-dump</command>.
         </para>
       </listitem>
       <listitem>
@@ -1885,14 +1889,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       </listitem>
       <listitem>
         <para>
-	  Unicode is handled correctly in regular expressions.
-	</para>
+      Unicode is handled correctly in regular expressions.
+    </para>
       </listitem>
       <listitem>
         <para>
-	  Improved date-handling functions for <filename>categorize.cfg</filename>.
+      Improved date-handling functions for <filename>categorize.cfg</filename>.
           (<xref linkend="sergey"/>)
-	</para>
+    </para>
       </listitem>
     </itemizedlist>
   </sect2>
@@ -1902,7 +1906,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <itemizedlist>
       <listitem>
         <para>Bugfix: Added missing modules to the cabal file.
-	</para>
+    </para>
       </listitem>
     </itemizedlist>
   </sect2>
@@ -1912,7 +1916,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <itemizedlist>
       <listitem>
         <para>Implement a custom compression method greatly reduce the file size of the log file. Run <command>arbtt-capture</command> to compress the previous samples as well.
-	</para>
+    </para>
       </listitem>
     </itemizedlist>
   </sect2>
@@ -1947,11 +1951,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <command>arbtt-dump</command>.</para>
       </listitem>
       <listitem>
-	<para>New command <command>arbtt-recover</command> to rescue data from
-	a proken data log file.</para>
+    <para>New command <command>arbtt-recover</command> to rescue data from
+    a proken data log file.</para>
       </listitem>
       <listitem>
-	<para>Actually include this documentation in the released tarball.</para>
+    <para>Actually include this documentation in the released tarball.</para>
       </listitem>
     </itemizedlist>
   </sect2>
