@@ -22,6 +22,7 @@ description:
     you understand the consequences of a full-time logger and be careful with this
     data.
 homepage:           http://arbtt.nomeata.de/
+bug-reports:        https://bitbucket.org/nomeata/arbtt/issues
 
 extra-source-files:
     categorize.cfg, arbtt-capture.desktop, README.md,
@@ -48,10 +49,10 @@ executable arbtt-capture
         TimeLog
         UpgradeLog1
         LeftFold
-    
+
     ghc-options: -rtsopts
 
-    if os(windows) 
+    if os(windows)
         extra-libraries: psapi
         cpp-options:    -DWIN32
         ghc-options:    -optl-mwindows
@@ -98,7 +99,7 @@ executable arbtt-stats
         Text.Regex.PCRE.Light.Text
         TermSize
     ghc-options: -rtsopts
-    if os(windows) 
+    if os(windows)
         cpp-options:    -DWIN32
     else
         other-modules:
@@ -127,7 +128,7 @@ executable arbtt-dump
         DumpFormat
         Data.List.TakeR
     ghc-options: -rtsopts
-    if os(windows) 
+    if os(windows)
         cpp-options:    -DWIN32
     else
         other-modules:
@@ -151,7 +152,7 @@ executable arbtt-import
         CommonStartup
         TimeLog
     ghc-options: -rtsopts
-    if os(windows) 
+    if os(windows)
         cpp-options:    -DWIN32
     else
         other-modules:
@@ -174,7 +175,7 @@ executable arbtt-recover
         CommonStartup
         TimeLog
     ghc-options: -rtsopts
-    if os(windows) 
+    if os(windows)
         cpp-options:    -DWIN32
     else
         other-modules:
