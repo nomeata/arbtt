@@ -178,11 +178,18 @@ processRepeater :: TimeZone -> Repeater -> LeftFold (Bool :!: TimeLogEntry (Ctx,
 processRepeater tz r rep = case repeaterImpl r of
     RepeaterImpl catR showR ->
         filterElems (\(b :!: _) -> b) $
-        pure (RepeatedReportResults "Day" . map (first showR) . M.toList) <*>
+        pure (RepeatedReportResults (repeaterTitle r) . map (first showR) . M.toList) <*>
         multiplex (catR . utcToLocalTime tz . tlTime . Strict.snd) rep
 
 data RepeaterImpl where
   RepeaterImpl :: Ord r => (LocalTime -> r) -> (r -> String) -> RepeaterImpl
+
+repeaterTitle :: Repeater -> String
+repeaterTitle ByMinute = "Minute"
+repeaterTitle ByHour   = "Hour"
+repeaterTitle ByDay    = "Day"
+repeaterTitle ByMonth  = "Month"
+repeaterTitle ByYear   = "Year"
 
 repeaterImpl :: Repeater -> RepeaterImpl
 repeaterImpl ByMinute = RepeaterImpl
