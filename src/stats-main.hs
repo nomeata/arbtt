@@ -49,7 +49,7 @@ defaultOptions dir = Options
     , optLogFile = dir </> "capture.log"
     , optCategorizeFile = dir </> "categorize.cfg"
     }
-    
+
 versionStr, header :: String
 versionStr = "arbtt-stats " ++ showVersion version
 header = "Usage: arbtt-stats [OPTIONS...]"
@@ -92,7 +92,7 @@ options =
               "only consider samples matching the condition"
      , Option "m"       ["min-percentage"]
               (ReqArg (\arg opt -> let ro = (optReportOptions opt) { roMinPercentage = read arg}
-                                   in  return opt { optReportOptions = ro }) "COND")
+                                   in  return opt { optReportOptions = ro }) "PERC")
               "do not show tags with a percentage lower than PERC% (default: 1)"
      , Option ""        ["output-exclude"]
               (ReqArg (\arg opt -> let filters = ExcludeActivity (parseActivityMatcher arg) : roActivityFilter (optReportOptions opt)
