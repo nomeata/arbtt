@@ -974,7 +974,7 @@ arbtt-stats --categorizefile=foo --filter='$sampleage &lt;24:00' --dump-samples 
       <literal>--logfile=/home/gwern/doc/arbtt/2013-2014.log</literal>
     </para>
   </sect2>
-  <sect2>
+  <sect2 id="external-processing">
     <title>External processing of arbtt statistics</title>
     <para>
       arbtt supports CSV export of time by category in various levels of
@@ -1003,6 +1003,26 @@ arbtt$Time &lt;- sapply(as.character(arbtt$Time), interval)
 library(reshape)
 arbtt &lt;- reshape(arbtt, v.names=&quot;Time&quot;, timevar=&quot;Tag&quot;, idvar=&quot;Day&quot;, direction=&quot;wide&quot;)
 </programlisting>
+  </sect2>
+</sect1>
+<sect1 id="contributed">
+  <title>Contributed tools</title>
+  <para>
+    Due to the export facilities of arbtt (as explained in <xref
+    linkend="external-processing"/>), tools analyzing arbtt’s data can be
+    developed independently. This section lists those that we are aware of. If
+    you create a tool of your own, or find one somewhere, pleas tell us on the
+    mailing list (see <xref linkend="copyright"/>).
+  </para>
+  <sect2>
+    <title>arbtt-graph</title>
+    <para>
+      Jayesh Kumar Gupta created a nice d3-based visualization of your arbtt
+      data, including daily pie charts and barcode graphs.
+    </para>
+    <para>
+      You can find his tool on <ulink url="https://github.com/rejuvyesh/arbtt-graph">https://github.com/rejuvyesh/arbtt-graph</ulink>.
+    </para>
   </sect2>
 </sect1>
 <sect1 id="references">
