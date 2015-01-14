@@ -1011,7 +1011,7 @@ arbtt &lt;- reshape(arbtt, v.names=&quot;Time&quot;, timevar=&quot;Tag&quot;, id
     Due to the export facilities of arbtt (as explained in <xref
     linkend="external-processing"/>), tools analyzing arbtt’s data can be
     developed independently. This section lists those that we are aware of. If
-    you create a tool of your own, or find one somewhere, pleas tell us on the
+    you create a tool of your own, or find one somewhere, please tell us on the
     mailing list (see <xref linkend="copyright"/>).
   </para>
   <sect2>
