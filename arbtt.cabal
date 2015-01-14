@@ -196,7 +196,7 @@ test-suite test
       , tasty-golden >= 2.2.0.2  && <= 2.3
       , tasty-hunit >= 0.2  && < 0.11
       , HUnit == 1.2.*
-      , process-extras == 0.2.*
+      , process-extras == 0.2.* || == 0.3.*
       , deepseq
       , binary >= 0.5
       , bytestring
