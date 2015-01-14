@@ -10,6 +10,7 @@ env:
 matrix:
   allow_failures:
    - env: CABALVER=head GHCVER=head
+   - env: CABALVER=1.22 GHCVER=7.10.1
 
 # Note: the distinction between `before_install` and `install` is not important.
 before_install:
