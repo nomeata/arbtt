@@ -568,6 +568,14 @@ DISPLAY=:0
       currently-focused tab, which is enough for classification.
     </para>
     <para>
+      Some programs have title-setting available as plugins. The IRC client <ulink url="http://www.irssi.org/">irssi</ulink>
+      in a GNU screen or X terminal usually sets the title to just "<literal>irssi</literal>",
+      which blocks more accurate time-classification based on IRC channel (one channel may be for
+      recreation, another for programming, and yet another for work), but can be easily configured
+      to set the title using the extension
+      <ulink url="http://scripts.irssi.org/scripts/title.pl"><literal>title.pl</literal></ulink>.
+    </para>
+    <para>
       Some programs do not set titles or class, and all arbtt sees is
       empty strings like <literal>&quot;&quot;</literal>; or they may set the title/class
       to a constant like <literal>&quot;Liferea&quot;</literal>, which may be acceptable if
