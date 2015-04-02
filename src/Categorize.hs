@@ -1,4 +1,4 @@
-{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE Rank2Types, CPP #-}
 module Categorize where
 
 import Data
@@ -31,7 +31,11 @@ import Data.Time.LocalTime
 import Data.Time.Calendar (toGregorian, fromGregorian)
 import Data.Time.Calendar.WeekDate (toWeekDate)
 import Data.Time.Format (formatTime)
+#if MIN_VERSION_time(1,5,0)
+import Data.Time.Format(defaultTimeLocale, iso8601DateFormat)
+#else
 import System.Locale (defaultTimeLocale, iso8601DateFormat)
+#endif
 import Debug.Trace
 import Control.Arrow (second)
 import Text.Printf

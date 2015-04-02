@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards, FlexibleInstances, CPP #-}
 module DumpFormat
     ( DumpFormat(..)
     , readDumpFormat
@@ -11,7 +11,11 @@ import Data.MyText (unpack, null, Text)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as LBS
 import Data.Time
-import System.Locale
+#if MIN_VERSION_time(1,5,0)
+import Data.Time.Format(defaultTimeLocale)
+#else
+import System.Locale (defaultTimeLocale)
+#endif
 import Data.Char
 
 import Data

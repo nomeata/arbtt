@@ -23,23 +23,35 @@ description:
     data.
 homepage:           http://arbtt.nomeata.de/
 bug-reports:        https://bitbucket.org/nomeata/arbtt/issues
-
 extra-source-files:
     categorize.cfg, arbtt-capture.desktop, README.md,
     doc/arbtt.xml, doc/fptools.css, doc/Makefile,
     setup.iss, modpath.iss,
     tests/*.log, tests/*.out, tests/*.in, tests/*.cfg
 
+flag old-locale
+  description:
+    If false then depend on time >= 1.5.
+    .
+    If true then depend on time < 1.5 together with old-locale.
+  default: False
+
 executable arbtt-capture
     main-is:            capture-main.hs
     hs-source-dirs:     src
     build-depends:
         base == 4.5.* || == 4.6.* || == 4.7.* || == 4.8.*,
-        filepath, directory, transformers, time >= 1.4, utf8-string,
+        filepath, directory, transformers, utf8-string,
         aeson == 0.6.* || == 0.7.* || == 0.8.*,
         array == 0.4.* || == 0.5.*,
         binary >= 0.5,
-        bytestring, deepseq, strict, old-locale
+        bytestring, deepseq, strict
+
+    if flag(old-locale)
+        build-depends: time == 1.4.*, old-locale
+    else
+        build-depends: time >= 1.5, old-locale
+
     other-modules:
         Data
         Data.MyText
@@ -79,13 +91,20 @@ executable arbtt-stats
         base == 4.5.* || == 4.6.* || == 4.7.* || == 4.8.*,
         parsec == 3.*,
         containers == 0.5.*,
-        pcre-light, old-locale,
+        pcre-light,
         binary >= 0.5,
-        deepseq, bytestring, utf8-string, time >= 1.4, strict,
+        deepseq, bytestring, utf8-string, strict,
         transformers, unix, directory, filepath,
         aeson == 0.6.* || == 0.7.* || == 0.8.*,
         array == 0.4.* || == 0.5.*,
-        terminal-progress-bar, bytestring-progress
+        terminal-progress-bar,
+        bytestring-progress
+
+    if flag(old-locale)
+        build-depends: time == 1.4.*, old-locale
+    else
+        build-depends: time >= 1.5, old-locale
+
     other-modules:
         Data
         Data.MyText
@@ -116,9 +135,14 @@ executable arbtt-dump
         aeson == 0.6.* || == 0.7.* || == 0.8.*,
         array == 0.4.* || == 0.5.*,
         binary >= 0.5,
-        deepseq, bytestring, utf8-string, time >= 1.4, strict,
-        transformers, unix, directory, filepath,
-        old-locale
+        deepseq, bytestring, utf8-string, strict,
+        transformers, unix, directory, filepath
+
+    if flag(old-locale)
+        build-depends: time == 1.4.*, old-locale
+    else
+        build-depends: time >= 1.5, old-locale
+
     other-modules:
         Data
         Data.MyText
@@ -143,8 +167,14 @@ executable arbtt-import
         parsec == 3.*,
         containers == 0.5.*,
         binary >= 0.5,
-        deepseq, bytestring, utf8-string, time >= 1.4, strict,
+        deepseq, bytestring, utf8-string, strict,
         transformers, unix, directory, filepath
+
+    if flag(old-locale)
+        build-depends: time == 1.4.*, old-locale
+    else
+        build-depends: time >= 1.5, old-locale
+
     other-modules:
         Data
         Data.MyText
@@ -166,8 +196,14 @@ executable arbtt-recover
         base == 4.5.* || == 4.6.* || == 4.7.* || == 4.8.*,
         parsec == 3.*, containers == 0.5.*,
         binary >= 0.5,
-        deepseq, bytestring, utf8-string, time >= 1.4, strict,
+        deepseq, bytestring, utf8-string, strict,
         transformers, unix, directory, filepath
+
+    if flag(old-locale)
+        build-depends: time == 1.4.*, old-locale
+    else
+        build-depends: time >= 1.5, old-locale
+
     other-modules:
         Data
         Data.MyText
@@ -201,13 +237,17 @@ test-suite test
       , binary >= 0.5
       , bytestring
       , utf8-string
-      , time
       , unix
       , directory
       , parsec == 3.*
       , containers == 0.5.*
-      , pcre-light, old-locale
+      , pcre-light
       , transformers
+
+  if flag(old-locale)
+        build-depends: time == 1.4.*, old-locale
+  else
+        build-depends: time >= 1.5, old-locale
   default-language: Haskell98
 
 source-repository head
