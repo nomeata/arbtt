@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, NamedFieldPuns, TypeOperators, TupleSections, GADTSyntax, ExistentialQuantification #-}
+{-# LANGUAGE RecordWildCards, NamedFieldPuns, TypeOperators, TupleSections, GADTSyntax, ExistentialQuantification, CPP #-}
 module Stats (
     Report(..),
     ReportOptions(..),
@@ -26,7 +26,11 @@ import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.MyText (Text,pack,unpack)
 import Data.Function (on)
+#if MIN_VERSION_time(1,5,0)
+import Data.Time.Format(defaultTimeLocale)
+#else
 import System.Locale (defaultTimeLocale)
+#endif
 import Control.Applicative
 import Data.Strict ((:!:), Pair(..))
 import qualified Data.Strict as Strict
