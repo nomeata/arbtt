@@ -43,14 +43,13 @@ executable arbtt-capture
         base == 4.5.* || == 4.6.* || == 4.7.* || == 4.8.*,
         filepath, directory, transformers, utf8-string,
         aeson == 0.6.* || == 0.7.* || == 0.8.*,
-        array == 0.4.* || == 0.5.*,
         binary >= 0.5,
-        bytestring, deepseq, strict
+        bytestring, deepseq
 
     if flag(old-locale)
         build-depends: time == 1.4.*, old-locale
     else
-        build-depends: time >= 1.5, old-locale
+        build-depends: time >= 1.5
 
     other-modules:
         Data
@@ -103,7 +102,7 @@ executable arbtt-stats
     if flag(old-locale)
         build-depends: time == 1.4.*, old-locale
     else
-        build-depends: time >= 1.5, old-locale
+        build-depends: time >= 1.5
 
     other-modules:
         Data
@@ -141,7 +140,7 @@ executable arbtt-dump
     if flag(old-locale)
         build-depends: time == 1.4.*, old-locale
     else
-        build-depends: time >= 1.5, old-locale
+        build-depends: time >= 1.5
 
     other-modules:
         Data
@@ -173,7 +172,7 @@ executable arbtt-import
     if flag(old-locale)
         build-depends: time == 1.4.*, old-locale
     else
-        build-depends: time >= 1.5, old-locale
+        build-depends: time >= 1.5
 
     other-modules:
         Data
@@ -194,15 +193,15 @@ executable arbtt-recover
     hs-source-dirs:     src
     build-depends:
         base == 4.5.* || == 4.6.* || == 4.7.* || == 4.8.*,
-        parsec == 3.*, containers == 0.5.*,
+        containers == 0.5.*,
         binary >= 0.5,
-        deepseq, bytestring, utf8-string, strict,
-        transformers, unix, directory, filepath
+        deepseq, bytestring, utf8-string,
+        unix, directory, filepath
 
     if flag(old-locale)
         build-depends: time == 1.4.*, old-locale
     else
-        build-depends: time >= 1.5, old-locale
+        build-depends: time >= 1.5
 
     other-modules:
         Data
@@ -231,7 +230,6 @@ test-suite test
       , tasty >= 0.7 && < 0.11
       , tasty-golden >= 2.2.0.2  && <= 2.4
       , tasty-hunit >= 0.2  && < 0.11
-      , HUnit == 1.2.*
       , process-extras == 0.2.* || == 0.3.*
       , deepseq
       , binary >= 0.5
@@ -247,7 +245,7 @@ test-suite test
   if flag(old-locale)
         build-depends: time == 1.4.*, old-locale
   else
-        build-depends: time >= 1.5, old-locale
+        build-depends: time >= 1.5
   default-language: Haskell98
 
 source-repository head
