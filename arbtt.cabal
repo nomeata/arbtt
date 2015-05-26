@@ -1,5 +1,5 @@
 name:               arbtt
-version:            0.9.0.2
+version:            0.9.0.3
 license:            GPL
 license-file:       LICENSE
 category:           Desktop
@@ -42,7 +42,7 @@ executable arbtt-capture
     build-depends:
         base == 4.5.* || == 4.6.* || == 4.7.* || == 4.8.*,
         filepath, directory, transformers, utf8-string,
-        aeson == 0.6.* || == 0.7.* || == 0.8.*,
+        aeson == 0.6.* || == 0.7.* || == 0.8.* || == 0.9.*,
         binary >= 0.5,
         bytestring, deepseq
 
