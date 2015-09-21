@@ -71,6 +71,9 @@ goldenTests = testGroup "Golden tests"
     , goldenVsString "stats small unicode"
         "tests/unicode_stats.out" $
         run "dist/build/arbtt-stats/arbtt-stats" ["--logfile", "tests/unicode.log", "--categorize", "tests/unicode.cfg"] B.empty
+    , goldenVsString "stats gap handling"
+        "tests/gap-handling.out" $
+        run "dist/build/arbtt-stats/arbtt-stats" ["--logfile", "tests/gap-handling.log", "--categorize", "tests/gap-handling.cfg", "--intervals", "Program:"] B.empty
     ]
 
 
