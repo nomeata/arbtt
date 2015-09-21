@@ -336,7 +336,7 @@ processIntervalReport opts title extr = runOnIntervals  go1 go2
             Just str -> Just
                 ( str
                 , showUtcTime (tlTime fe)
-                , showUtcTime (tlTime le)
+                , showUtcTime ((fromIntegral (tlRate le) / 1000) `addUTCTime` tlTime le)
                 , showTimeDiff opts $
                     tlTime le `diffUTCTime` tlTime fe + fromIntegral (tlRate fe)/1000
                 )
