@@ -36,6 +36,7 @@ import Data.Strict ((:!:), Pair(..))
 import qualified Data.Strict as Strict
 import Data.Traversable (sequenceA)
 import Control.Arrow
+import Debug.Trace
 
 import Data
 import Categorize
@@ -323,22 +324,28 @@ processCategoryReport opts ~(Calculations {..}) cat =
                 else []
                 )
 
+tlRateTimediff :: TimeLogEntry a -> NominalDiffTime
+tlRateTimediff tle = fromIntegral (tlRate tle) / 1000
+
 processIntervalReport :: ReportOptions -> String -> (ActivityData -> Maybe String) -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
 processIntervalReport opts title extr = runOnIntervals  go1 go2
   where
     go1 :: LeftFold (TimeLogEntry (Ctx, ActivityData)) [Interval]
     go1 = go3 `mapElems` fmap (extr . snd) 
     go3 :: LeftFold (TimeLogEntry (Maybe String)) [Interval]
-    go3 = runOnGroups ((==) `on` tlData) go4 (onJusts toList)
+    go3 = runOnGroups sameGroup go4 (onJusts toList)
+    sameGroup tl1 tl2 =
+        tlData tl1 == tlData tl2
+         && tlTime tl2 `diffUTCTime` tlTime tl1 < 2 * tlRateTimediff tl1
     go4 :: LeftFold (TimeLogEntry (Maybe String)) (Maybe Interval)
     go4 = pure (\fe le ->
         case tlData fe of
             Just str -> Just
                 ( str
                 , showUtcTime (tlTime fe)
-                , showUtcTime ((fromIntegral (tlRate le) / 1000) `addUTCTime` tlTime le)
+                , showUtcTime (tlRateTimediff le `addUTCTime` tlTime le)
                 , showTimeDiff opts $
-                    tlTime le `diffUTCTime` tlTime fe + fromIntegral (tlRate fe)/1000
+                    tlTime le `diffUTCTime` tlTime fe + tlRateTimediff le
                 )
             Nothing -> Nothing) <*>
         (fromJust <$> lfFirst) <*>
