@@ -14,7 +14,6 @@ import Control.DeepSeq
 import Control.Applicative
 import qualified Data.ByteString.Lazy as BS
 import Data.ByteString.Lazy.Progress
-import System.Posix.Files
 import System.ProgressBar
 import TermSize
 import qualified Data.MyText as T
@@ -178,13 +177,14 @@ main = do
      exitFailure
   categorizer <- readCategorizer (optCategorizeFile flags)
 
-  timelog <- BS.readFile (optLogFile flags)
+  timeloghandle <- openBinaryFile (optLogFile flags) ReadMode
+  size <- hFileSize timeloghandle
+  timelog <- BS.hGetContents timeloghandle
   isTerm <- hIsTerminalDevice stderr
 
   trackedTimelog <- case isTerm of
     True -> do
       hSetBuffering stderr NoBuffering
-      size <- fileSize <$> getFileStatus (optLogFile flags)
       trackProgressWithChunkSize (fromIntegral size `div` 100) (\_ b -> do
         (_height, width) <- getTermSize
         hPutChar stderr '\r'
