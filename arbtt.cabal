@@ -40,7 +40,7 @@ executable arbtt-capture
     main-is:            capture-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.5.* || == 4.6.* || == 4.7.* || == 4.8.*,
+        base == 4.7.* || == 4.8.*,
         filepath, directory, transformers, utf8-string,
         aeson >= 0.6  && < 0.11,
         binary >= 0.5,
@@ -90,7 +90,7 @@ executable arbtt-stats
     main-is:            stats-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.5.* || == 4.6.* || == 4.7.* || == 4.8.*,
+        base == 4.7.* || == 4.8.*,
         parsec == 3.*,
         containers == 0.5.*,
         pcre-light,
@@ -134,7 +134,7 @@ executable arbtt-dump
     main-is:            dump-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.5.* || == 4.6.* || == 4.7.* || == 4.8.*,
+        base == 4.7.* || == 4.8.*,
         parsec == 3.*,
         containers == 0.5.*,
         aeson >= 0.6  && < 0.11,
@@ -171,7 +171,7 @@ executable arbtt-import
     main-is:            import-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.5.* || == 4.6.* || == 4.7.* || == 4.8.*,
+        base == 4.7.* || == 4.8.*,
         parsec == 3.*,
         containers == 0.5.*,
         binary >= 0.5,
@@ -204,7 +204,7 @@ executable arbtt-recover
     main-is:            recover-main.hs
     hs-source-dirs:     src
     build-depends:
-        base == 4.5.* || == 4.6.* || == 4.7.* || == 4.8.*,
+        base == 4.7.* || == 4.8.*,
         containers == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string,
@@ -241,7 +241,7 @@ test-suite test
   Main-is:
     test.hs
   Build-depends:
-      base == 4.5.* || == 4.6.* || == 4.7.* || == 4.8.*
+      base == 4.7.* || == 4.8.*
       , tasty >= 0.7 && < 0.12
       , tasty-golden >= 2.2.0.2  && <= 2.4
       , tasty-hunit >= 0.2  && < 0.11
