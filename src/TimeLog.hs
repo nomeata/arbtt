@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module TimeLog where
 
 import Data
@@ -16,7 +17,9 @@ import System.Directory
 import Control.Exception
 import Prelude hiding (catch)
 import Control.DeepSeq
+#ifndef mingw32_HOST_OS
 import System.Posix.Files
+#endif
 import System.IO.Unsafe (unsafeInterleaveIO)
 
 import qualified Data.ByteString.Lazy as BS
@@ -38,7 +41,9 @@ runLogger filename delay action = flip fix Nothing $ \loop prev -> do
         tle <- mkTimeLogEntry delay entry
 
         createTimeLog False filename
+#ifndef mingw32_HOST_OS
         setFileMode filename (ownerReadMode `unionFileModes` ownerWriteMode)
+#endif
         appendTimeLog filename prev tle
         threadDelay (fromIntegral delay * 1000)
         loop (Just entry)
