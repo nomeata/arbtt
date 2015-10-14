@@ -63,6 +63,9 @@ executable arbtt-capture
 
     ghc-options: -rtsopts
 
+    if !os(windows)
+        build-depends: unix
+
     if os(windows)
         extra-libraries: psapi
         cpp-options:    -DWIN32
@@ -80,7 +83,7 @@ executable arbtt-capture
             Graphics.X11.XScreenSaver
             System.Locale.SetLocale
         build-depends:
-            X11 > 1.4.4, unix
+            X11 > 1.4.4
     default-language: Haskell98
 
 executable arbtt-stats
@@ -93,11 +96,14 @@ executable arbtt-stats
         pcre-light,
         binary >= 0.5,
         deepseq, bytestring, utf8-string, strict,
-        transformers, unix, directory, filepath,
+        transformers, directory, filepath,
         aeson >= 0.6  && < 0.11,
         array == 0.4.* || == 0.5.*,
         terminal-progress-bar,
         bytestring-progress
+
+    if !os(windows)
+        build-depends: unix
 
     if flag(old-locale)
         build-depends: time == 1.4.*, old-locale
@@ -135,7 +141,10 @@ executable arbtt-dump
         array == 0.4.* || == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string, strict,
-        transformers, unix, directory, filepath
+        transformers, directory, filepath
+
+    if !os(windows)
+        build-depends: unix
 
     if flag(old-locale)
         build-depends: time == 1.4.*, old-locale
@@ -167,7 +176,10 @@ executable arbtt-import
         containers == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string, strict,
-        transformers, unix, directory, filepath
+        transformers, directory, filepath
+
+    if !os(windows)
+        build-depends: unix
 
     if flag(old-locale)
         build-depends: time == 1.4.*, old-locale
@@ -196,7 +208,10 @@ executable arbtt-recover
         containers == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string,
-        unix, directory, filepath
+        directory, filepath
+
+    if !os(windows)
+        build-depends: unix
 
     if flag(old-locale)
         build-depends: time == 1.4.*, old-locale
@@ -235,12 +250,14 @@ test-suite test
       , binary >= 0.5
       , bytestring
       , utf8-string
-      , unix
       , directory
       , parsec == 3.*
       , containers == 0.5.*
       , pcre-light
       , transformers
+
+  if !os(windows)
+    build-depends: unix
 
   if flag(old-locale)
         build-depends: time == 1.4.*, old-locale

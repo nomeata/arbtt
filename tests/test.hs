@@ -10,7 +10,7 @@ import Control.Monad
 import Control.Exception
 import Data.Typeable
 import System.Exit
-import System.Posix.Env
+import System.Environment
 
 import Categorize
 import TimeLog
@@ -18,7 +18,7 @@ import Data
 import Data.Time.Clock
 
 main = do
-    putEnv "TZ=UTC" -- to make tests reproducible
+    setEnv "TZ" "UTC" -- to make tests reproducible
     defaultMain tests
 
 tests :: TestTree
