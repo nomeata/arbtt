@@ -13,9 +13,9 @@ matrix:
 
 # Note: the distinction between `before_install` and `install` is not important.
 before_install:
+ - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
  - if [ "$WINDOWS" = yes ]; then export W=wine; else export W=""; fi
  - if [ "$WINDOWS" = yes ]; then bash ./.travis-setup-windows.sh; else bash ./.travis-setup-linux.sh; fi
- - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
 
 install:
  - true
