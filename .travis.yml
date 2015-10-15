@@ -13,30 +13,12 @@ matrix:
 
 # Note: the distinction between `before_install` and `install` is not important.
 before_install:
- - if [ "$WINDOWS" != yes ]; then export W=wine; else export W=""; fi
- - [ "$WINDOWS" = yes ] || travis_retry sudo add-apt-repository -y ppa:hvr/ghc
- - [ "$WINDOWS" = yes ] || travis_retry sudo apt-get update
- - [ "$WINDOWS" = yes ] || travis_retry sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER # see note about happy/alex
- - [ "$WINDOWS" = yes ] || travis_retry sudo apt-get install libxss-dev
- - [ "$WINDOWS" != yes ]  || sudo add-apt-repository -y ppa:pipelight/stable
- - [ "$WINDOWS" != yes ]  || sudo apt-get update
- - [ "$WINDOWS" != yes ]  || sudo apt-get install --install-recommends wine-staging wine-staging-compat xvfb
- - [ "$WINDOWS" != yes ]  || wget https://github.com/fpco/minghc/releases/download/2015-10-15/minghc-7.10.2-i386.exe
- - [ "$WINDOWS" != yes ]  || wine minghc-7.10.2-i386.exe /S
- - [ "$WINDOWS" != yes ]  || wine cabal --version
- - [ "$WINDOWS" != yes ]  || wine cabal update
+ - if [ "$WINDOWS" = yes ]; then export W=wine; else export W=""; fi
+ - if [ "$WINDOWS" = yes ]; then bash ./.travis-setup-windows.sh; else bash ./.travis-setup-linux.sh; done
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
 
 install:
- - [ "$WINDOWS" = yes ] || cabal --version
- - [ "$WINDOWS" = yes ] || echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
- - [ "$WINDOWS" = yes ] || travis_retry cabal update
- - [ "$WINDOWS" = yes ] || cabal install --only-dependencies --enable-tests --enable-benchmarks
- - [ "$WINDOWS" != yes ]  || wget http://sourceforge.net/projects/gnuwin32/files/pcre/7.0/pcre-7.0.exe/download -O pcre-7.0.exe
- - [ "$WINDOWS" != yes ]  || xvfb-run -a wine ./pcre-7.0.exe /VERYSILENT
- - [ "$WINDOWS" != yes ]  || test -d ~/".wine/drive_c/Program Files (x86)/GnuWin32/include"
- - [ "$WINDOWS" != yes ]  || cp ~/".wine/drive_c/Program Files (x86)/GnuWin32/bin/"*.dll .
- - [ "$WINDOWS" != yes ]  || wine cabal install --only-dependencies --enable-tests --enable-benchmarks --extra-include-dirs='C:\Program Files (x86)\GnuWin32\include' --extra-lib-dirs='C:\Program Files (x86)\GnuWin32\lib'
+ - true
 
 script:
  - $W cabal configure --enable-tests --enable-benchmarks -v2
