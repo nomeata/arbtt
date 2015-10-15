@@ -82,7 +82,7 @@ run cmd args stdin = do
    (ex,stdout,stderr) <- readProcessWithExitCode cmd args stdin
    unless (B.null stderr) $ throwIO $ StderrException stderr
    case ex of
-     ExitSuccess   -> return stdout
+     ExitSuccess   -> return (B.filter (not . (==13)) stdout) -- windows compat
      ExitFailure r -> throwIO $ ExitCodeException r
 
 data StderrException = StderrException B.ByteString
