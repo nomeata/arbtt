@@ -11,6 +11,8 @@ import System.Win32.Types
 import System.Win32.Process
 import System.Win32.File    ( closeHandle )
 import System.IO
+import Control.Exception  (tryJust)
+import System.IO.Error (isPermissionError)
 import Control.Exception    ( bracket )
 import Control.Monad
 
@@ -67,12 +69,15 @@ instance Storable LASTINPUTINFO where
         t <- (#peek LASTINPUTINFO, dwTime) buf
         return $ LASTINPUTINFO t
 
+ignoreEPerm = tryJust (guard . isPermissionError)
+
 fetchWindowTitles :: IO [(HWND, String,String)]
 fetchWindowTitles = do
 	resultRef <- newIORef []
-	callback <- mkEnumWindowsProc $ \winh _ -> do
+	callback <- mkEnumWindowsProc $ \winh _ ->
+	 do ignoreEPerm $ do
                 v <- c_IsWindowVisible winh -- only consider visible windows
-                if not v then return True else do
+                when v $ do
                 proc <- alloca $ \pid_p -> do
                         c_GetWindowThreadProcessId winh pid_p 
                         pid <- peek pid_p
@@ -97,7 +102,7 @@ fetchWindowTitles = do
 			 else peekTString c_test
                 unless (str `elem` ["", "Default IME"]) $ do -- Ignore some windows by default
                         modifyIORef resultRef ((winh,str,proc):)
-                return True
+            return True
 	c_EnumWindows callback 0
 	readIORef resultRef
 
