@@ -20,6 +20,7 @@ import Text.Parsec.Token
 import Text.Parsec.Combinator
 import Text.Parsec.Language
 import Text.Parsec.ExprFail
+import System.IO
 import System.Exit
 import Control.Applicative ((<*>),(<$>))
 import Control.DeepSeq
@@ -77,7 +78,9 @@ newtype Cmp = Cmp (forall a. Ord a => a -> a -> Bool)
 
 readCategorizer :: FilePath -> IO Categorizer
 readCategorizer filename = do
-        content <- readFile filename
+        h <- openFile filename ReadMode
+        hSetEncoding h utf8
+        content <- hGetContents h
         time <- getCurrentTime
         tz <- getCurrentTimeZone
         case flip runReader tz $
