@@ -11,5 +11,4 @@ wine cabal update
 wget http://sourceforge.net/projects/gnuwin32/files/pcre/7.0/pcre-7.0.exe/download -O pcre-7.0.exe
 xvfb-run -a wine ./pcre-7.0.exe /VERYSILENT
 test -d ~/".wine/drive_c/Program Files (x86)/GnuWin32/include"
-cp ~/".wine/drive_c/Program Files (x86)/GnuWin32/bin/"*.dll .
 wine cabal install --only-dependencies --enable-tests --enable-benchmarks --extra-include-dirs='C:\Program Files (x86)\GnuWin32\include' --extra-lib-dirs='C:\Program Files (x86)\GnuWin32\lib'
