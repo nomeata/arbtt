@@ -77,13 +77,21 @@ executable arbtt-capture
         build-depends:
              Win32
     else
-        extra-libraries: Xss
-        other-modules:
-            Capture.X11
-            Graphics.X11.XScreenSaver
-            System.Locale.SetLocale
-        build-depends:
-            X11 > 1.4.4
+        if os(darwin)
+            cpp-options:    -DDARWIN
+            frameworks: Foundation Carbon IOKit
+            other-modules:
+                Capture.OSX
+                Graphics.OSX.Window
+                System.Locale.SetLocale
+        else
+            extra-libraries: Xss
+            other-modules:
+                Capture.X11
+                Graphics.X11.XScreenSaver
+                System.Locale.SetLocale
+            build-depends:
+                X11 > 1.4.4
     default-language: Haskell98
 
 executable arbtt-stats
