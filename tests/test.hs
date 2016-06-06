@@ -19,10 +19,11 @@ import Data.Time.Clock
 
 main = do
     setEnv "TZ" "UTC" -- to make tests reproducible
-    defaultMain tests
+    distDir <- fromMaybe "dist" `liftM` lookupEnv "HASKELL_DIST_DIR"
+    defaultMain (tests distDir)
 
-tests :: TestTree
-tests = testGroup "Tests" [goldenTests, regressionTests]
+tests :: FilePath -> TestTree
+tests distDir = testGroup "Tests" [goldenTests distDir, regressionTests]
 
 regressionTests :: TestTree
 regressionTests = testGroup "Regression tests"
@@ -50,30 +51,30 @@ regressionTests = testGroup "Regression tests"
     ]
 
 
-goldenTests :: TestTree
-goldenTests = testGroup "Golden tests"
+goldenTests :: FilePath -> TestTree
+goldenTests distDir = testGroup "Golden tests"
     [ goldenVsString "dump small"
         "tests/small_dump.out" $
-        run "dist/build/arbtt-dump/arbtt-dump" ["-f","tests/small.log", "-t", "Show"] B.empty
+        run (distDir ++ "/build/arbtt-dump/arbtt-dump") ["-f","tests/small.log", "-t", "Show"] B.empty
     , goldenVsFile "import small"
         "tests/small_import.out" "tests/small_import.out.actual" $ void $
         B.readFile "tests/small_import.in" >>=
-        run "dist/build/arbtt-import/arbtt-import" ["-f","tests/small_import.out.actual"]
+        run (distDir ++ "/build/arbtt-import/arbtt-import") ["-f","tests/small_import.out.actual"]
     , goldenVsFile "recover small"
         "tests/small_borked_recover.out" "tests/small_borked_recover.out.actual" $ void $
-        run "dist/build/arbtt-recover/arbtt-recover" ["-i","tests/small_borked_recover.out", "-o", "tests/small_borked_recover.out.actual"] B.empty
+        run (distDir ++ "/build/arbtt-recover/arbtt-recover") ["-i","tests/small_borked_recover.out", "-o", "tests/small_borked_recover.out.actual"] B.empty
     , goldenVsString "stats small"
         "tests/small_stats.out" $
-        run "dist/build/arbtt-stats/arbtt-stats" ["--logfile", "tests/small.log", "--categorize", "tests/small.cfg"] B.empty
+        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/small.log", "--categorize", "tests/small.cfg"] B.empty
     , goldenVsString "stats small csv"
         "tests/small_stats_csv.out" $
-        run "dist/build/arbtt-stats/arbtt-stats" ["--logfile", "tests/small.log", "--categorize", "tests/small.cfg", "--output-format", "csv"] B.empty
+        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/small.log", "--categorize", "tests/small.cfg", "--output-format", "csv"] B.empty
     , goldenVsString "stats small unicode"
         "tests/unicode_stats.out" $
-        run "dist/build/arbtt-stats/arbtt-stats" ["--logfile", "tests/unicode.log", "--categorize", "tests/unicode.cfg"] B.empty
+        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/unicode.log", "--categorize", "tests/unicode.cfg"] B.empty
     , goldenVsString "stats gap handling"
         "tests/gap-handling.out" $
-        run "dist/build/arbtt-stats/arbtt-stats" ["--logfile", "tests/gap-handling.log", "--categorize", "tests/gap-handling.cfg", "--intervals", "Program:"] B.empty
+        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/gap-handling.log", "--categorize", "tests/gap-handling.cfg", "--intervals", "Program:"] B.empty
     ]
 
 
