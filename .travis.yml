@@ -6,6 +6,8 @@ env:
  - CABALVER=1.22 GHCVER=7.10.2
  - CABALVER=head GHCVER=head  # see section about GHC HEAD snapshots
  - WINDOWS=yes
+ - STACK=LTS-6
+ - STACK=nightly
 
 matrix:
   allow_failures:
@@ -16,24 +18,31 @@ before_install:
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
  - export WINEPATH='C:\Program Files (x86)\GnuWin32\bin'
  - if [ "$WINDOWS" = yes ]; then export W=wine; else export W=""; fi
- - if [ "$WINDOWS" = yes ]; then bash ./.travis-setup-windows.sh; else bash ./.travis-setup-linux.sh; fi
+ - text -n "$WINDOWS"  && bash ./.travis-setup-windows.sh
+ - test -n "$CABALVER" && base ./.travis-setup-linux.sh
+ - test -n "$STACK" && stack setup --resolver $STACK
 
 install:
- - true
+ - test -n "$STACK" && stack init --resolver $STACK --force
+ - test -n "$STACK" && stack stack solver --update-config
+ - test -n "$STACK" && stack build --only-dependencies
 
 script:
- - $W cabal configure --enable-tests --enable-benchmarks -v2
- - $W cabal build
- - $W cabal test
- - $W cabal check
- - $W cabal sdist
+ - test -n "$CABALVER" && $W cabal configure --enable-tests --enable-benchmarks -v2
+ - test -n "$CABALVER" && $W cabal build
+ - test -n "$CABALVER" && $W cabal test
+ - test -n "$CABALVER" && $W cabal check
+ - test -n "$CABALVER" && $W cabal sdist
+ - test -n "$STACK" && stack build --test
 
 # The following scriptlet checks that the resulting source distribution can be built & installed
- - export SRC_TGZ=$($W cabal info . | awk '{print $2 ".tar.gz";exit}') ;
+ - test -n "$CABALVER" && {
+   export SRC_TGZ=$($W cabal info . | awk '{print $2 ".tar.gz";exit}') ;
    cd dist/;
    if [ -f "$SRC_TGZ" ]; then
       $W cabal install --force-reinstalls "$SRC_TGZ";
    else
       echo "expected '$SRC_TGZ' not found";
       exit 1;
-   fi
+   fi;
+   }
