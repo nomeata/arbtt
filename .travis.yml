@@ -22,6 +22,12 @@ before_install:
  - test -n "$CABALVER" && base ./.travis-setup-linux.sh
  - test -n "$STACK" && stack setup --resolver $STACK
 
+before_install:
+ - mkdir -p ~/.local/bin
+ - export PATH=~/.local/bin:$PATH
+ - test -n "$STACK" && travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+
+
 install:
  - test -n "$STACK" && stack init --resolver $STACK --force
  - test -n "$STACK" && stack stack solver --update-config
