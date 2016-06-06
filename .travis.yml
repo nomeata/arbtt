@@ -15,17 +15,16 @@ matrix:
 
 # Note: the distinction between `before_install` and `install` is not important.
 before_install:
+ - mkdir -p ~/.local/bin
+ - export PATH=~/.local/bin:$PATH
+ - test -z "$STACK" || { travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack' ; }
+
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
  - export WINEPATH='C:\Program Files (x86)\GnuWin32\bin'
  - if [ "$WINDOWS" = yes ]; then export W=wine; else export W=""; fi
  - text -z "$WINDOWS"  || bash ./.travis-setup-windows.sh
  - test -z "$CABALVER" || base ./.travis-setup-linux.sh
  - test -z "$STACK" || stack setup --resolver $STACK
-
-before_install:
- - mkdir -p ~/.local/bin
- - export PATH=~/.local/bin:$PATH
- - test -z "$STACK" || { travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack' ; }
 
 
 install:
