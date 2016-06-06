@@ -18,31 +18,31 @@ before_install:
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
  - export WINEPATH='C:\Program Files (x86)\GnuWin32\bin'
  - if [ "$WINDOWS" = yes ]; then export W=wine; else export W=""; fi
- - text -n "$WINDOWS"  && bash ./.travis-setup-windows.sh
- - test -n "$CABALVER" && base ./.travis-setup-linux.sh
- - test -n "$STACK" && stack setup --resolver $STACK
+ - text -z "$WINDOWS"  || bash ./.travis-setup-windows.sh
+ - test -z "$CABALVER" || base ./.travis-setup-linux.sh
+ - test -z "$STACK" || stack setup --resolver $STACK
 
 before_install:
  - mkdir -p ~/.local/bin
  - export PATH=~/.local/bin:$PATH
- - test -n "$STACK" && { travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack' ; }
+ - test -z "$STACK" || { travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack' ; }
 
 
 install:
- - test -n "$STACK" && stack init --resolver $STACK --force
- - test -n "$STACK" && stack stack solver --update-config
- - test -n "$STACK" && stack build --only-dependencies
+ - test -z "$STACK" || stack init --resolver $STACK --force
+ - test -z "$STACK" || stack stack solver --update-config
+ - test -z "$STACK" || stack build --only-dependencies
 
 script:
- - test -n "$CABALVER" && $W cabal configure --enable-tests --enable-benchmarks -v2
- - test -n "$CABALVER" && $W cabal build
- - test -n "$CABALVER" && $W cabal test
- - test -n "$CABALVER" && $W cabal check
- - test -n "$CABALVER" && $W cabal sdist
- - test -n "$STACK" && stack build --test
+ - test -z "$CABALVER" || $W cabal configure --enable-tests --enable-benchmarks -v2
+ - test -z "$CABALVER" || $W cabal build
+ - test -z "$CABALVER" || $W cabal test
+ - test -z "$CABALVER" || $W cabal check
+ - test -z "$CABALVER" || $W cabal sdist
+ - test -z "$STACK" || stack build --test
 
 # The following scriptlet checks that the resulting source distribution can be built & installed
- - test -n "$CABALVER" && {
+ - test -z "$CABALVER" || {
    export SRC_TGZ=$($W cabal info . | awk '{print $2 ".tar.gz";exit}') ;
    cd dist/;
    if [ -f "$SRC_TGZ" ]; then
