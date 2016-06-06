@@ -6,7 +6,7 @@ env:
  - CABALVER=1.22 GHCVER=7.10.2
  - CABALVER=head GHCVER=head  # see section about GHC HEAD snapshots
  - WINDOWS=yes
- - STACK=LTS-6
+ - STACK=lts-6
  - STACK=nightly
 
 matrix:
