@@ -29,7 +29,7 @@ before_install:
 
 install:
  - test -z "$STACK" || stack init --resolver $STACK --force
- - test -z "$STACK" || stack stack solver --update-config
+ - test -z "$STACK" || stack solver --update-config
  - test -z "$STACK" || stack build --only-dependencies
 
 script:
