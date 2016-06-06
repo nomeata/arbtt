@@ -11,6 +11,7 @@ import Control.Exception
 import Data.Typeable
 import System.Exit
 import System.Environment
+import Data.Maybe
 
 import Categorize
 import TimeLog
