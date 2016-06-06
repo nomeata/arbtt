@@ -23,7 +23,7 @@ before_install:
  - export WINEPATH='C:\Program Files (x86)\GnuWin32\bin'
  - if [ "$WINDOWS" = yes ]; then export W=wine; else export W=""; fi
  - text -z "$WINDOWS"  || bash ./.travis-setup-windows.sh
- - test -z "$CABALVER" || base ./.travis-setup-linux.sh
+ - test -z "$CABALVER" || bash ./.travis-setup-linux.sh
  - test -z "$STACK" || stack setup --resolver $STACK
 
 
