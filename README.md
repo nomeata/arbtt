@@ -22,10 +22,32 @@ You can build and install this program as any other Cabalized program:
     $ runhaskell Setup.hs install
 
 You also need to make sure that arbtt-capture is started with your X
-session. If you use GNOME or KDE, you can copy the file
-`arbtt-capture.desktop` to `~/.config/autostart/`. You might need to put the
-full path to arbtt-capture in the `Exec` line there, if you did not do a
-system wide installation.
+session:
+- If you use GNOME or KDE, you can copy the file
+  `arbtt-capture.desktop` to `~/.config/autostart/`. You might need to put the
+  full path to arbtt-capture in the `Exec` line there, if you did not do a
+  system wide installation.
+- If you use OS X, you can use `launchd` for this. Create a .plist file like:
+  
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+  <plist version="1.0">
+      <dict>
+          <key>Label</key>
+          <string>com.foo.arbtt</string>
+          <key>Program</key>
+          <string>/path/to/arbtt-capture</string>
+          <key>RunAtLoad</key>
+          <true/>
+          <key>KeepAlive</key>
+          <true/>
+      </dict>
+  </plist>
+  ```
+  and place it in `~/LaunchAgents/com.foo.arbtt.plist`.
+  To load it into launchd, use `launchd load ~/LaunchAgents/com.foo.arbtt.plist`.
+  It will then start `arbtt-capture` whenever you log in.
 
 If you want to record samples at a different rate than one per minute, you
 will have to pass the `--sample-rate` parameter to arbtt-capture.
