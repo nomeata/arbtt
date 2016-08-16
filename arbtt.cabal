@@ -1,5 +1,5 @@
 name:               arbtt
-version:            0.9.0.9
+version:            0.9.0.10
 license:            GPL
 license-file:       LICENSE
 category:           Desktop
@@ -42,7 +42,7 @@ executable arbtt-capture
     build-depends:
                 base >= 4.7 && < 4.10,
                 filepath, directory, transformers, utf8-string,
-                aeson >= 0.6  && < 0.12,
+                aeson >= 0.6  && < 1.1,
                 binary >= 0.5,
                 bytestring, deepseq
 
@@ -105,7 +105,7 @@ executable arbtt-stats
         binary >= 0.5,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath,
-        aeson >= 0.6  && < 0.12,
+        aeson >= 0.6  && < 1.1,
         array == 0.4.* || == 0.5.*,
         terminal-progress-bar,
         bytestring-progress
@@ -122,6 +122,8 @@ executable arbtt-stats
         Data
         Data.MyText
         Data.Binary.StringRef
+        DumpFormat
+        LeftFold
         CommonStartup
         Categorize
         TimeLog
@@ -145,7 +147,7 @@ executable arbtt-dump
         base >= 4.7 && < 4.10,
         parsec == 3.*,
         containers == 0.5.*,
-        aeson >= 0.6  && < 0.12,
+        aeson >= 0.6  && < 1.1,
         array == 0.4.* || == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string, strict,
@@ -248,6 +250,14 @@ test-suite test
     src
   Main-is:
     test.hs
+  other-modules:
+    Categorize
+    Data
+    Data.Binary.StringRef
+    Data.MyText
+    Text.Parsec.ExprFail
+    Text.Regex.PCRE.Light.Text
+    TimeLog
   Build-depends:
       base >= 4.7 && < 4.10
       , tasty >= 0.7 && < 0.12
