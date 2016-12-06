@@ -1,5 +1,5 @@
 name:               arbtt
-version:            0.9.0.10
+version:            0.9.0.11
 license:            GPL
 license-file:       LICENSE
 category:           Desktop
@@ -261,9 +261,9 @@ test-suite test
   Build-depends:
       base >= 4.7 && < 4.10
       , tasty >= 0.7 && < 0.12
-      , tasty-golden >= 2.2.0.2  && <= 2.4
+      , tasty-golden >= 2.2.0.2  && < 2.4
       , tasty-hunit >= 0.2  && < 0.11
-      , process-extras == 0.2.* || == 0.3.* || == 0.4.*
+      , process-extras >= 0.2 && < 0.8
       , deepseq
       , binary >= 0.5
       , bytestring
