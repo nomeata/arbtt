@@ -1,5 +1,5 @@
 name:               arbtt
-version:            0.9.0.11
+version:            0.9.0.12
 license:            GPL
 license-file:       LICENSE
 category:           Desktop
@@ -42,7 +42,7 @@ executable arbtt-capture
     build-depends:
                 base >= 4.7 && < 4.10,
                 filepath, directory, transformers, utf8-string,
-                aeson >= 0.6  && < 1.1,
+                aeson >= 0.6  && < 1.2,
                 binary >= 0.5,
                 bytestring, deepseq
 
@@ -105,7 +105,7 @@ executable arbtt-stats
         binary >= 0.5,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath,
-        aeson >= 0.6  && < 1.1,
+        aeson >= 0.6  && < 1.2,
         array == 0.4.* || == 0.5.*,
         terminal-progress-bar,
         bytestring-progress
@@ -147,7 +147,7 @@ executable arbtt-dump
         base >= 4.7 && < 4.10,
         parsec == 3.*,
         containers == 0.5.*,
-        aeson >= 0.6  && < 1.1,
+        aeson >= 0.6  && < 1.2,
         array == 0.4.* || == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string, strict,
