@@ -27,7 +27,9 @@ session:
   `arbtt-capture.desktop` to `~/.config/autostart/`. You might need to put the
   full path to arbtt-capture in the `Exec` line there, if you did not do a
   system wide installation.
-- If you use OS X, you can use `launchd` for this. Create a .plist file like:
+- If you use macOS, you can use `launchd` for this.
+  Create a .plist file like the following
+  (with the path changed to match where arbtt-capture is located in your system):
   
   ```xml
   <?xml version="1.0" encoding="UTF-8"?>
@@ -46,8 +48,8 @@ session:
   </plist>
   ```
   and place it in `~/LaunchAgents/com.foo.arbtt.plist`.
-  To load it into launchd, use `launchd load ~/LaunchAgents/com.foo.arbtt.plist`.
-  It will then start `arbtt-capture` whenever you log in.
+  (You can replace "foo" with anything, such as your username)
+  This will ensure `arbtt-capture` is started whenever you log in.
 
 If you want to record samples at a different rate than one per minute, you
 will have to pass the `--sample-rate` parameter to arbtt-capture.
