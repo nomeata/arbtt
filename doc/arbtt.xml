@@ -465,7 +465,8 @@ $ runhaskell Setup.hs install</screen>
 
           <production id="g-cmpop">
             <lhs>CmpOp</lhs>
-            <rhs><quote>&lt;=</quote> | <quote>&lt;</quote> | <quote>==</quote>
+            <rhs><quote>&lt;=</quote> | <quote>&lt;</quote> |
+            <quote>==</quote> | <quote>!=</quote>
             | <quote>&gt;</quote> | <quote>&gt;=</quote></rhs>
           </production>
 

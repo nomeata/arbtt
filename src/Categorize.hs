@@ -347,6 +347,7 @@ parseCmp = choice $ map (\(s,o) -> reservedOp lang s >> return o)
                          (">", Cmp (>)),
                          ("==",Cmp (==)),
                          ("=", Cmp (==)),
+                         ("!=",Cmp (/=)),
                          ("<", Cmp (<)),
                          ("<=",Cmp (<=))]
 
