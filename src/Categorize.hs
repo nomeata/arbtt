@@ -76,6 +76,12 @@ data CondPrim
 
 newtype Cmp = Cmp (forall a. Ord a => a -> a -> Bool)
 
+data DateVar = DvDate | DvNow
+
+data TimeVar = TvTime | TvSampleAge
+
+data NumVar = NvIdle
+
 readCategorizer :: FilePath -> IO Categorizer
 readCategorizer filename = do
         h <- openFile filename ReadMode
@@ -374,15 +380,15 @@ parseCondPrim = choice
                       , do guard $ varname == "active"
                            return $ CondCond checkActive
                       , do guard $ varname == "idle"
-                           return $ CondInteger (getNumVar "idle")
+                           return $ CondInteger (getNumVar NvIdle)
                       , do guard $ varname == "time"
-                           return $ CondTime (getTimeVar "time")
+                           return $ CondTime (getTimeVar TvTime)
                       , do guard $ varname == "sampleage"
-                           return $ CondTime (getTimeVar "sampleage")
+                           return $ CondTime (getTimeVar TvSampleAge)
                       , do guard $ varname == "date"
-                           return $ CondDate (getDateVar "date")
+                           return $ CondDate (getDateVar DvDate)
                       , do guard $ varname == "now"
-                           return $ CondDate (getDateVar "now")
+                           return $ CondDate (getDateVar DvNow)
                       , do guard $ varname == "desktop"
                            return $ CondString (getVar "desktop")
                      ]
@@ -535,21 +541,21 @@ getVar "desktop" ctx = do
                 return $ cDesktop (tlData (cNow ctx))
 getVar v ctx = error $ "Unknown variable " ++ v
 
-getNumVar :: String -> CtxFun Integer
-getNumVar "idle" ctx = Just $ cLastActivity (tlData (cNow ctx)) `div` 1000
+getNumVar :: NumVar -> CtxFun Integer
+getNumVar NvIdle ctx = Just $ cLastActivity (tlData (cNow ctx)) `div` 1000
 
-getTimeVar :: String -> CtxFun NominalDiffTime
-getTimeVar "time" ctx = Just $
+getTimeVar :: TimeVar -> CtxFun NominalDiffTime
+getTimeVar TvTime ctx = Just $
    let utc = tlTime . cNow $ ctx
        tz = cTimeZone ctx
        local = utcToLocalTime tz utc
        midnightUTC = localTimeToUTC tz $ local { localTimeOfDay = midnight }
     in utc `diffUTCTime` midnightUTC
-getTimeVar "sampleage" ctx = Just $ cCurrentTime ctx `diffUTCTime` tlTime (cNow ctx)
+getTimeVar TvSampleAge ctx = Just $ cCurrentTime ctx `diffUTCTime` tlTime (cNow ctx)
 
-getDateVar :: String -> CtxFun UTCTime
-getDateVar "date" = Just . tlTime . cNow
-getDateVar "now" = Just . cCurrentTime
+getDateVar :: DateVar -> CtxFun UTCTime
+getDateVar DvDate = Just . tlTime . cNow
+getDateVar DvNow = Just . cCurrentTime
 
 findActive :: [(Bool, t, t1)] -> Maybe (Bool, t, t1)
 findActive = find (\(a,_,_) -> a)                                 
