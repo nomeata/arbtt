@@ -432,7 +432,7 @@ $ runhaskell Setup.hs install</screen>
       <production id="g-date">
         <lhs>Date</lhs>
         <rhs> <quote>$date</quote> </rhs>
-        <!-- <rhs> <quote>$now</quote> </rhs> -->
+        <rhs> <quote>$now</quote> </rhs>
       </production>
 
       <production id="g-timediff">

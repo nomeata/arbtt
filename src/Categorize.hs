@@ -380,6 +380,8 @@ parseCondPrim = choice
                            return $ CondTime (getTimeVar "sampleage")
                       , do guard $ varname == "date"
                            return $ CondDate (getDateVar "date")
+                      , do guard $ varname == "now"
+                           return $ CondDate (getDateVar "now")
                       , do guard $ varname == "desktop"
                            return $ CondString (getVar "desktop")
                      ]
@@ -545,7 +547,8 @@ getTimeVar "time" ctx = Just $
 getTimeVar "sampleage" ctx = Just $ cCurrentTime ctx `diffUTCTime` tlTime (cNow ctx)
 
 getDateVar :: String -> CtxFun UTCTime
-getDateVar "date" ctx = Just $ tlTime (cNow ctx)
+getDateVar "date" = Just . tlTime . cNow
+getDateVar "now" = Just . cCurrentTime
 
 findActive :: [(Bool, t, t1)] -> Maybe (Bool, t, t1)
 findActive = find (\(a,_,_) -> a)                                 
