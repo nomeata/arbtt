@@ -1,22 +1,28 @@
-{-# LANGUAGE DeriveDataTypeable, OverloadedStrings #-}
+{-# LANGUAGE DeriveDataTypeable, OverloadedStrings, FlexibleContexts #-}
 
-import Test.Tasty hiding (defaultMain)
-import Test.Tasty.Golden.Manage
-import Test.Tasty.Golden
-import Test.Tasty.HUnit
-import System.Process.ByteString.Lazy
+import           Control.Exception
+import           Control.Monad
+import           Control.Monad.Trans.Reader
+import           Control.Monad.Trans.State.Strict
 import qualified Data.ByteString.Lazy as B
-import Control.Monad
-import Control.Exception
-import Data.Typeable
-import System.Exit
-import System.Environment
-import Data.Maybe
+import           Data.Functor.Identity
+import qualified Data.Map as Map
+import           Data.Maybe
+import           Data.Time.LocalTime (getCurrentTimeZone)
+import           Data.Typeable
+import           System.Environment
+import           System.Exit
+import           System.Process.ByteString.Lazy
+import           Test.Tasty hiding (defaultMain)
+import           Test.Tasty.Golden
+import           Test.Tasty.Golden.Manage
+import           Test.Tasty.HUnit
+import           Text.Parsec
 
-import Categorize
-import TimeLog
-import Data
-import Data.Time.Clock
+import           Categorize
+import           TimeLog
+import           Data
+import           Data.Time.Clock
 
 main = do
     setEnv "TZ" "UTC" -- to make tests reproducible
@@ -24,7 +30,7 @@ main = do
     defaultMain (tests distDir)
 
 tests :: FilePath -> TestTree
-tests distDir = testGroup "Tests" [goldenTests distDir, regressionTests]
+tests distDir = testGroup "Tests" [goldenTests distDir, regressionTests, parserTests]
 
 regressionTests :: TestTree
 regressionTests = testGroup "Regression tests"
@@ -76,8 +82,35 @@ goldenTests distDir = testGroup "Golden tests"
     , goldenVsString "stats gap handling"
         "tests/gap-handling.out" $
         run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/gap-handling.log", "--categorize", "tests/gap-handling.cfg", "--intervals", "Program:"] B.empty
+    , goldenVsString "let binding stats"
+        "tests/let_stats.out" $
+        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/small.log", "--categorize", "tests/let.cfg"] B.empty
     ]
 
+testParser env parser input = do
+  tz <- getCurrentTimeZone
+  return . runIdentity . flip runStateT env . flip runReaderT tz . runParserT parser () "" $ input
+
+parserTests :: TestTree
+parserTests = testGroup "Parser tests"
+    [ testCase "Parse let bindings" $ do
+        (result, env) <- testParser Map.empty parseLetBinding ("let foo = " ++ condText)
+        assertRight result
+        Map.member "foo" env @=? True
+    , testCase "Reference bound let variable" $ do
+        Right cond <- fst <$> testParser Map.empty parseCond condText
+        result <- fst <$> testParser (Map.fromList [("foo", cond)]) parseRule ("$foo ==> tag sometag")
+        assertRight result
+    , testCase "Parse let binding usage in rule" $ do
+        (result, env) <- testParser Map.empty parseRules ("let foo = " ++ condText ++ ",\n" ++ ruleText)
+        assertRight result
+    , testCase "Reference unbound let variable" $ do
+        Right cond <- fst <$> testParser Map.empty parseCond condText
+        result <- fst <$> testParser (Map.empty) parseRule ("$foo ==> tag sometag")
+        assertLeft result
+    ]
+  where condText = "current window $title == \"test\""
+        ruleText = "$foo ==> tag sometag"
 
 run :: FilePath -> [FilePath] -> B.ByteString -> IO B.ByteString
 run cmd args stdin = do
@@ -94,3 +127,11 @@ data ExitCodeException = ExitCodeException Int
 
 instance Exception StderrException
 instance Exception ExitCodeException
+
+assertRight :: Show a => Either a b -> Assertion
+assertRight (Left r) = assertFailure $ "expected a Right\n but got a Left with: " ++ show r
+assertRight _ = return ()
+
+assertLeft :: Show b => Either a b -> Assertion
+assertLeft (Right r) = assertFailure $ "expected a Left\n but got a Right with: " ++ show r
+assertLeft _ = return ()

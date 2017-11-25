@@ -1,51 +1,50 @@
-{-# LANGUAGE Rank2Types, CPP #-}
+{-# LANGUAGE Rank2Types, CPP, FlexibleContexts #-}
 module Categorize where
 
 import Data
 
 import qualified Text.Regex.PCRE.Light.Text as RE
-import qualified Data.Map as M
 import qualified Data.MyText as T
 import Data.MyText (Text)
+import Control.Applicative (empty)
 import Control.Monad
-import Control.Monad.Instances
+import Control.Monad.Instances()
 import Control.Monad.Trans.Reader
+import Control.Monad.Trans.State.Strict (StateT, evalStateT, modify')
+import qualified Control.Monad.Trans.State.Strict as StateT
 import Control.Monad.Trans.Class
 import Data.Functor.Identity
 
-
-import Text.Parsec
-import Text.Parsec.Char
-import Text.Parsec.Token
-import Text.Parsec.Combinator
-import Text.Parsec.Language
-import Text.Parsec.ExprFail
-import System.IO
-import System.Exit
-import Control.Applicative ((<*>),(<$>))
+import Control.Applicative ((<$>))
 import Control.DeepSeq
-import Data.List
-import Data.Maybe
 import Data.Char
-import Data.Time.Clock
-import Data.Time.LocalTime
+import Data.List
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+import Data.Maybe
 import Data.Time.Calendar (toGregorian, fromGregorian)
 import Data.Time.Calendar.WeekDate (toWeekDate)
+import Data.Time.Clock
 import Data.Time.Format (formatTime)
+import Data.Time.LocalTime
+import System.Exit
+import System.IO
+import Text.Show.Functions
+import Text.Parsec
+import Text.Parsec.ExprFail
+import Text.Parsec.Token
 #if MIN_VERSION_time(1,5,0)
 import Data.Time.Format(defaultTimeLocale, iso8601DateFormat)
 #else
 import System.Locale (defaultTimeLocale, iso8601DateFormat)
 #endif
 import Debug.Trace
-import Control.Arrow (second)
 import Text.Printf
 
 type Categorizer = TimeLog CaptureData -> TimeLog (Ctx, ActivityData)
 type Rule = Ctx -> ActivityData
 
-type Parser = ParsecT String () (ReaderT TimeZone Identity)
-
+type Parser = ParsecT String () (ReaderT TimeZone (StateT (Map String Cond) Identity))
 
 data Ctx = Ctx
         { cNow :: TimeLogEntry CaptureData
@@ -54,11 +53,11 @@ data Ctx = Ctx
         , cSubsts :: [Text]
         , cCurrentTime :: UTCTime
         , cTimeZone :: TimeZone
-        }
-  deriving (Show)
+        , letBindings :: Map String Cond
+        } deriving Show
 
 instance NFData Ctx where
-    rnf (Ctx a b c d e f) = a `deepseq` b `deepseq` c `deepseq` e `deepseq` e `deepseq` f `deepseq` ()
+    rnf (Ctx a b c d e f g) = a `deepseq` b `deepseq` c `deepseq` d `deepseq` e `deepseq` f `deepseq` g `deepseq` ()
 
 type Cond = CtxFun [Text]
 
@@ -82,31 +81,38 @@ data TimeVar = TvTime | TvSampleAge
 
 data NumVar = NvIdle
 
+runParserStack :: Stream s (ReaderT r (StateT (Map k v) Identity)) t
+               => r
+               -> ParsecT s () (ReaderT r (StateT (Map k v) Identity)) a
+               -> SourceName
+               -> s
+               -> Either ParseError a
+runParserStack env p filename =
+  runIdentity . flip evalStateT Map.empty . flip runReaderT env . runParserT p () filename
+
 readCategorizer :: FilePath -> IO Categorizer
-readCategorizer filename = do
-        h <- openFile filename ReadMode
+readCategorizer filename = withFile filename ReadMode $ \h -> do
         hSetEncoding h utf8
         content <- hGetContents h
         time <- getCurrentTime
         tz <- getCurrentTimeZone
-        case flip runReader tz $
-            runParserT (between (return ()) eof parseRules) () filename content of
+        case runParserStack tz (between (return ()) eof parseRules) filename content of
           Left err -> do
                 putStrLn "Parser error:"
                 print err
                 exitFailure
-          Right cat -> return $
+          Right cat -> return
                 (map (fmap (mkSecond (postpare . cat))) . prepare time tz)
 
 applyCond :: String -> TimeZone -> TimeLogEntry (Ctx, ActivityData) -> Bool
-applyCond s tz = 
-        case flip runReader tz $ runParserT (do {c <- parseCond; eof ; return c}) () "commad line parameter" s of
+applyCond s tz =
+        case runParserStack tz (parseCond <* eof) "command line parameter" s of
           Left err -> error (show err)
           Right c  -> isJust . c . fst . tlData
 
 prepare :: UTCTime -> TimeZone -> TimeLog CaptureData -> TimeLog Ctx
 prepare time tz = map go
-  where go now  = now {tlData = Ctx now (findActive (cWindows (tlData now))) Nothing [] time tz }
+  where go now  = now {tlData = Ctx now (findActive (cWindows (tlData now))) Nothing [] time tz Map.empty }
 
 -- | Here, we filter out tags appearing twice, and make sure that only one of
 --   each category survives
@@ -115,23 +121,23 @@ postpare = nubBy go
   where go (Activity (Just c1) _) (Activity (Just c2) _) = c1 == c2
         go a1                     a2                     = a1 == a2
 
-lang :: GenTokenParser String () (ReaderT TimeZone Identity)
-lang = makeTokenParser $ LanguageDef
+lang :: GenTokenParser String () (ReaderT TimeZone (StateT (Map String Cond) Identity))
+lang = makeTokenParser LanguageDef
                 { commentStart   = "{-"
                 , commentEnd     = "-}"
                 , commentLine    = "--"
                 , nestedComments = True
                 , identStart     = letter
-                , identLetter	 = alphaNum <|> oneOf "_'"
-                , opStart	 = oneOf ":!#$%&*+./<=>?@\\^|-~"
-                , opLetter	 = oneOf ":!#$%&*+./<=>?@\\^|-~"
+                , identLetter    = alphaNum <|> oneOf "_'"
+                , opStart        = oneOf ":!#$%&*+./<=>?@\\^|-~"
+                , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
                 , reservedOpNames= []
                 , reservedNames  = []
                 , caseSensitive  = True
                 }
 
 parseRules :: Parser Rule
-parseRules = do 
+parseRules = do
         whiteSpace lang
         a <- option id (reserved lang "aliases" >> parens lang parseAliasSpecs)
         rb <- parseRulesBody
@@ -153,16 +159,25 @@ parseAliasSpec = do s1 <- T.pack <$> stringLiteral lang
                     return (s1,s2)
 
 parseRulesBody :: Parser Rule
-parseRulesBody = do 
+parseRulesBody = do
         x <- parseRule
-        choice [ do comma lang
+        choice [ do _ <- comma lang
                     xs <- parseRule `sepEndBy1` comma lang
                     return (matchAny (x:xs))
-               , do semi lang
+               , do _ <- semi lang
                     xs <- parseRule `sepEndBy1` semi lang
                     return (matchFirst (x:xs))
                ,    return x
                ]
+
+parseLetBinding :: Parser Rule
+parseLetBinding = do
+  _ <- reserved lang "let"
+  varname <- identifier lang
+  _ <- reservedOp lang "="
+  cond <- parseCond
+  _ <- lift . lift $ modify' (Map.insert varname cond)
+  return (const [])
 
 parseRule :: Parser Rule
 parseRule = choice
@@ -180,13 +195,14 @@ parseRule = choice
              return (ifThenElse cond rule1 rule2)
         , do reserved lang "tag"
              parseSetTag
+        , parseLetBinding
         ]
 
 parseCond :: Parser Cond
 parseCond = do cp <- parseCondExpr
                case cp of
                 CondCond c -> return c
-                cp         -> fail $ printf "Expression of type %s" (cpType cp)
+                _          -> fail $ printf "Expression of type %s" (cpType cp)
 
 parseCondExpr :: Parser CondPrim
 parseCondExpr = buildExpressionParser [
@@ -196,7 +212,7 @@ parseCondExpr = buildExpressionParser [
                 , Prefix (reserved lang "month" >> return evalMonth)
                 , Prefix (reserved lang "year" >> return evalYear)
                 , Prefix (reserved lang "format" >> return formatDate) ],
-                [ Infix (reservedOp lang "=~" >> return checkRegex) AssocNone 
+                [ Infix (reservedOp lang "=~" >> return checkRegex) AssocNone
                 , Infix (checkCmp <$> parseCmp) AssocNone
                 ],
                 [ Prefix (reserved lang "current window" >> return checkCurrentwindow)
@@ -248,8 +264,7 @@ checkOr cp1 cp2 = Left $
                (cpType cp1) (cpType cp2)
 
 checkNot :: CondPrim -> Erring CondPrim
-checkNot (CondCond getCnd) = Right $ CondCond $ do
-        liftM (maybe (Just []) (const Nothing)) getCnd
+checkNot (CondCond getCnd) = Right . CondCond $ fmap (maybe (Just []) (const Nothing)) getCnd
 checkNot cp = Left $
         printf "Cannot apply ! to an expression of type %s"
                (cpType cp)
@@ -285,7 +300,7 @@ checkCmp _ cp1 cp2 = Left $
                (cpType cp1) (cpType cp2)
 
 checkCurrentwindow :: CondPrim -> Erring CondPrim
-checkCurrentwindow (CondCond cond) = Right $ CondCond $ \ctx -> 
+checkCurrentwindow (CondCond cond) = Right $ CondCond $ \ctx ->
         cond (ctx { cWindowInScope = cCurrentWindow ctx })
 checkCurrentwindow cp = Left $
         printf "Cannot apply current window to an expression of type %s"
@@ -299,15 +314,20 @@ checkAnyWindow cp = Left $
         printf "Cannot apply current window to an expression of type %s"
                (cpType cp)
 
+fst3 :: (a,b,c) -> a
 fst3 (a,_,_) = a
+
+snd3 :: (a,b,c) -> b
 snd3 (_,b,_) = b
+
+trd3 :: (a,b,c) -> c
 trd3 (_,_,c) = c
 
 -- Day of week is an integer in [1..7].
 evalDayOfWeek :: CondPrim -> Erring CondPrim
 evalDayOfWeek (CondDate df) = Right $ CondInteger $ \ctx ->
   let tz = cTimeZone ctx in
-  (toInteger . trd3 . toWeekDate . localDay . utcToLocalTime tz) `liftM` df ctx
+  (toInteger . trd3 . toWeekDate . localDay . utcToLocalTime tz) `fmap` df ctx
 evalDayOfWeek cp = Left $ printf
   "Cannot apply day of week to an expression of type %s, only to $date."
   (cpType cp)
@@ -316,7 +336,7 @@ evalDayOfWeek cp = Left $ printf
 evalDayOfMonth :: CondPrim -> Erring CondPrim
 evalDayOfMonth (CondDate df) = Right $ CondInteger $ \ctx ->
   let tz = cTimeZone ctx in
-  (toInteger . trd3 . toGregorian . localDay . utcToLocalTime tz) `liftM` df ctx
+  (toInteger . trd3 . toGregorian . localDay . utcToLocalTime tz) `fmap` df ctx
 evalDayOfMonth cp = Left $ printf
   "Cannot apply day of month to an expression of type %s, only to $date."
   (cpType cp)
@@ -325,7 +345,7 @@ evalDayOfMonth cp = Left $ printf
 evalMonth :: CondPrim -> Erring CondPrim
 evalMonth (CondDate df) = Right $ CondInteger $ \ctx ->
   let tz = cTimeZone ctx in
-  (toInteger . snd3 . toGregorian . localDay . utcToLocalTime tz) `liftM` df ctx
+  (toInteger . snd3 . toGregorian . localDay . utcToLocalTime tz) `fmap` df ctx
 evalMonth cp = Left $ printf
   "Cannot apply month to an expression of type %s, only to $date."
   (cpType cp)
@@ -333,7 +353,7 @@ evalMonth cp = Left $ printf
 evalYear :: CondPrim -> Erring CondPrim
 evalYear (CondDate df) = Right $ CondInteger $ \ctx ->
   let tz = cTimeZone ctx in
-  (fst3 . toGregorian . localDay . utcToLocalTime tz) `liftM` df ctx
+  (fst3 . toGregorian . localDay . utcToLocalTime tz) `fmap` df ctx
 evalYear cp = Left $ printf
   "Cannot apply year to an expression of type %s, only to $date."
   (cpType cp)
@@ -342,7 +362,7 @@ evalYear cp = Left $ printf
 formatDate :: CondPrim -> Erring CondPrim
 formatDate (CondDate df) = Right $ CondString $ \ctx ->
   let tz = cTimeZone ctx
-      local = utcToLocalTime tz `liftM` df ctx
+      local = utcToLocalTime tz `fmap` df ctx
    in T.pack . formatTime defaultTimeLocale (iso8601DateFormat Nothing) <$> local
 formatDate cp = Left $ printf
   "Cannot format an expression of type %s, only $date." (cpType cp)
@@ -368,11 +388,11 @@ parseCondPrim = choice
                 return $ CondRegexList (const (Just list))
             ) <?> "list of regular expressions"
             ])
-        , char '$' >> choice 
+        , char '$' >> choice
              [ do backref <- read <$> many1 digit
                   return $ CondString (getBackref backref)
-             , do varname <- identifier lang 
-                  choice 
+             , do varname <- identifier lang
+                  choice
                       [ do guard $ varname == "title"
                            return $ CondString (getVar "title")
                       , do guard $ varname == "program"
@@ -391,6 +411,10 @@ parseCondPrim = choice
                            return $ CondDate (getDateVar DvNow)
                       , do guard $ varname == "desktop"
                            return $ CondString (getVar "desktop")
+                      , do inEnvironment <- lift (lift (StateT.gets (Map.lookup varname)))
+                           case inEnvironment of
+                             Nothing -> fail ("Reference to unbound variable: '" ++ varname ++ "'")
+                             Just cond -> return (CondCond cond)
                      ]
               ] <?> "variable"
         , do regex <- parseRegex <?> "regular expression"
@@ -404,53 +428,22 @@ parseCondPrim = choice
         , do num <- natural lang <?> "number"
              return $ CondInteger (const (Just num))
         ]
-{-
-                     choice
-                        [ do reservedOp lang "=~"
-                             regex <- parseRegex
-                             return $ checkRegex varname (RE.compile regex [])
-                        , do reservedOp lang "==" <|> reservedOp lang "="
-                             str <- stringLiteral lang
-                             return $ checkEq varname str
-                        , do reservedOp lang "/=" <|> reservedOp lang "!="
-                             str <- stringLiteral lang
-                             return $ checkNot (checkEq varname str)
-                        ]
-                , do guard $ varname == "idle"
-                     op <- parseCmp
-                     num <- natural lang
-                     return $ checkNumCmp op varname num
-                , do guard $ varname `elem` ["time","sampleage"]
-                     op <- parseCmp 
-                     time <- parseTime
-                     return $ checkTimeCmp op varname time
-                , do guard $ varname == "active"
-                     return checkActive
-                ]
-        , do reserved lang "current window"
-             cond <- parseCond
-             return $ checkCurrentwindow cond
-        , do reserved lang "any window"
-             cond <- parseCond
-             return $ checkAnyWindow cond
-        ]
--}
 
 parseRegex :: Parser RE.Regex
 parseRegex = fmap (flip RE.compile [] . T.pack) $ lexeme lang $ choice
         [ between (char '/') (char '/') (many1 (noneOf "/"))
-        , do char 'm'
+        , do _ <- char 'm'
              c <- anyChar
              str <- many1 (noneOf [c])
-             char c
+             _ <- char c
              return str
         ]
-             
+
 -- | Parses a day-of-time specification (hh:mm)
 parseTime :: Parser NominalDiffTime
 parseTime = fmap fromIntegral $ lexeme lang $ do
                hour <- read <$> many1 digit
-               char ':'
+               _ <- char ':'
                minute <- read <$> count 2 digit
                return $ (hour * 60 + minute) * 60
 
@@ -458,9 +451,9 @@ parseDate :: Parser UTCTime
 parseDate = lexeme lang $ do
     tz <- lift ask
     year <- read <$> count 4 digit
-    char '-'
+    _ <- char '-'
     month <- read <$> count 2 digit
-    char '-'
+    _ <- char '-'
     day <- read <$> count 2 digit
     time <- option 0 parseTime
     let date = LocalTime (fromGregorian year month day) (TimeOfDay 0 0 0)
@@ -469,7 +462,7 @@ parseDate = lexeme lang $ do
 
 parseSetTag :: Parser Rule
 parseSetTag = lexeme lang $ do
-                 firstPart <- parseTagPart 
+                 firstPart <- parseTagPart
                  choice [ do char ':'
                              secondPart <- parseTagPart
                              return $ do cat <- firstPart
@@ -485,7 +478,7 @@ parseSetTag = lexeme lang $ do
                         ]
 
 replaceForbidden :: Maybe Text -> Maybe Text
-replaceForbidden = liftM $ T.map go
+replaceForbidden = fmap $ T.map go
   where
     go c | isAlphaNum c  = c
          | c `elem` "-_" = c
@@ -507,12 +500,12 @@ parseTagPart = do parts <- many1 (choice
 
 ifThenElse :: Cond -> Rule -> Rule -> Rule
 ifThenElse cond r1 r2 = do res <- cond
-                           case res of 
+                           case res of
                             Just substs -> r1 . setSubsts substs
                             Nothing -> r2
   where setSubsts :: [Text] -> Ctx -> Ctx
         setSubsts substs ctx = ctx { cSubsts = substs }
-        
+
 
 matchAny :: [Rule] -> Rule
 matchAny rules = concat <$> sequence rules
@@ -520,7 +513,7 @@ matchFirst :: [Rule] -> Rule
 matchFirst rules = takeFirst <$> sequence rules
   where takeFirst [] = []
         takeFirst ([]:xs) = takeFirst xs
-        takeFirst (x:xs) = x
+        takeFirst (x:_) = x
 
 
 getBackref :: Integer -> CtxFun Text
@@ -537,9 +530,8 @@ getVar "title"   ctx = do
 getVar "program" ctx = do
                 (_,_,p) <- cWindowInScope ctx
                 return p
-getVar "desktop" ctx = do
-                return $ cDesktop (tlData (cNow ctx))
-getVar v ctx = error $ "Unknown variable " ++ v
+getVar "desktop" ctx = return $ cDesktop (tlData (cNow ctx))
+getVar v _ = error $ "Unknown variable " ++ v
 
 getNumVar :: NumVar -> CtxFun Integer
 getNumVar NvIdle ctx = Just $ cLastActivity (tlData (cNow ctx)) `div` 1000
@@ -558,7 +550,7 @@ getDateVar DvDate = Just . tlTime . cNow
 getDateVar DvNow = Just . cCurrentTime
 
 findActive :: [(Bool, t, t1)] -> Maybe (Bool, t, t1)
-findActive = find (\(a,_,_) -> a)                                 
+findActive = find (\(a,_,_) -> a)
 
 checkActive :: Cond
 checkActive ctx = do (a,_,_) <- cWindowInScope ctx
@@ -570,7 +562,7 @@ matchNone = const []
 
 justIf :: a -> Bool -> Maybe a
 justIf x True = Just x
-justIf x False = Nothing
+justIf _ False = Nothing
 
 mkSecond :: (a -> b) -> a -> (a, b)
 mkSecond f a = (a, f a)
