@@ -132,7 +132,16 @@ lang = makeTokenParser LanguageDef
                 , opStart        = oneOf ":!#$%&*+./<=>?@\\^|-~"
                 , opLetter       = oneOf ":!#$%&*+./<=>?@\\^|-~"
                 , reservedOpNames= []
-                , reservedNames  = []
+                , reservedNames  = [ "title"
+                                   , "program"
+                                   , "active"
+                                   , "idle"
+                                   , "time"
+                                   , "sampleage"
+                                   , "date"
+                                   , "now"
+                                   , "desktop"
+                                   ]
                 , caseSensitive  = True
                 }
 
@@ -391,31 +400,21 @@ parseCondPrim = choice
         , char '$' >> choice
              [ do backref <- read <$> many1 digit
                   return $ CondString (getBackref backref)
-             , do varname <- identifier lang
-                  choice
-                      [ do guard $ varname == "title"
-                           return $ CondString (getVar "title")
-                      , do guard $ varname == "program"
-                           return $ CondString (getVar "program")
-                      , do guard $ varname == "active"
-                           return $ CondCond checkActive
-                      , do guard $ varname == "idle"
-                           return $ CondInteger (getNumVar NvIdle)
-                      , do guard $ varname == "time"
-                           return $ CondTime (getTimeVar TvTime)
-                      , do guard $ varname == "sampleage"
-                           return $ CondTime (getTimeVar TvSampleAge)
-                      , do guard $ varname == "date"
-                           return $ CondDate (getDateVar DvDate)
-                      , do guard $ varname == "now"
-                           return $ CondDate (getDateVar DvNow)
-                      , do guard $ varname == "desktop"
-                           return $ CondString (getVar "desktop")
-                      , do inEnvironment <- lift (lift (StateT.gets (Map.lookup varname)))
+             , choice [ reserved lang "title" >> return (CondString (getVar "title"))
+                      , reserved lang "program" >> return (CondString (getVar "program"))
+                      , reserved lang "active" >> return (CondCond checkActive)
+                      , reserved lang "idle" >> return (CondInteger (getNumVar NvIdle))
+                      , reserved lang "time" >> return (CondTime (getTimeVar TvTime))
+                      , reserved lang "sampleage" >> return (CondTime (getTimeVar TvSampleAge))
+                      , reserved lang "date" >> return (CondDate (getDateVar DvDate))
+                      , reserved lang "now" >> return (CondDate (getDateVar DvNow))
+                      , reserved lang "desktop" >> return (CondString (getVar "desktop"))
+                      , do varname <- identifier lang
+                           inEnvironment <- lift (lift (StateT.gets (Map.lookup varname)))
                            case inEnvironment of
                              Nothing -> fail ("Reference to unbound variable: '" ++ varname ++ "'")
                              Just cond -> return (CondCond cond)
-                     ]
+                      ]
               ] <?> "variable"
         , do regex <- parseRegex <?> "regular expression"
              return $ CondRegex (const (Just regex))

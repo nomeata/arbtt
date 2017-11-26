@@ -97,6 +97,10 @@ parserTests = testGroup "Parser tests"
         (result, env) <- testParser Map.empty parseLetBinding ("let foo = " ++ condText)
         assertRight result
         Map.member "foo" env @=? True
+    , testCase "Trying to bind reserved identifiers" $ do
+        (result, env) <- testParser Map.empty parseLetBinding ("let title = " ++ condText)
+        assertLeft result
+        Map.member "title" env @=? False
     , testCase "Reference bound let variable" $ do
         Right cond <- fst <$> testParser Map.empty parseCond condText
         result <- fst <$> testParser (Map.fromList [("foo", cond)]) parseRule ("$foo ==> tag sometag")
