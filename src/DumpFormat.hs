@@ -37,7 +37,7 @@ instance ToJSON (TimeLogEntry CaptureData) where
         "date" .= tlTime,
         "rate" .= tlRate,
         "inactive" .= cLastActivity tlData,
-        "windows" .= map (\(a,p,t) -> object ["active" .= a, "program" .= p, "title" .= t]) (cWindows tlData),
+        "windows" .= map (\(a,t,p) -> object ["active" .= a, "title" .= t, "program" .= p]) (cWindows tlData),
         "desktop" .= cDesktop tlData
         ]
 
