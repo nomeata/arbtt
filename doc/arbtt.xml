@@ -322,9 +322,10 @@ $ runhaskell Setup.hs install</screen>
       You can assign conditions to variables using
       <literal>let</literal>:
       <programlisting>
-        let arbtt = current window $title =~ m/arbtt/,
-        $arbtt &amp;&amp; $time &lt; 14:00 ==&gt; tag arbtt-morning,
-        $arbtt &amp;&amp; $time &gt; 14:00 ==&gt; tag arbtt-afternoon
+        let arbtt = current window $title =~ m/arbtt/ in {
+          $arbtt &amp;&amp; $time &lt; 14:00 ==&gt; tag arbtt-morning,
+          $arbtt &amp;&amp; $time &gt; 14:00 ==&gt; tag arbtt-afternoon
+        }
       </programlisting>
       Everything that is a valid condition is assignable and you can
       reference bound variables in rules by prefixing them with a
@@ -488,7 +489,7 @@ $ runhaskell Setup.hs install</screen>
 
       <production id="g-let">
         <lhs>LetBinding</lhs>
-        <rhs><quote>let</quote> Literal <quote>=</quote> <nonterminal def="#g-cond"/></rhs>
+        <rhs><quote>let</quote> Literal <quote>=</quote> <nonterminal def="#g-cond"/> <quote>in</quote> <nonterminal def="#g-rule"/></rhs>
       </production>
 
     </productionset>
