@@ -89,28 +89,30 @@ goldenTests distDir = testGroup "Golden tests"
 
 testParser env parser input = do
   tz <- getCurrentTimeZone
-  return . runIdentity . flip runStateT env . flip runReaderT tz . runParserT parser () "" $ input
+  return . runIdentity . flip runReaderT (tz, env) . runParserT parser () "" $ input
 
 parserTests :: TestTree
 parserTests = testGroup "Parser tests"
     [ testCase "Parse let bindings" $ do
-        (result, env) <- testParser Map.empty parseLetBinding ("let foo = " ++ condText)
+        result <- testParser Map.empty parseLetBinding ("let foo = " ++ condText ++ " in 1 == 1 ==> tag foo")
         assertRight result
-        Map.member "foo" env @=? True
     , testCase "Trying to bind reserved identifiers" $ do
-        (result, env) <- testParser Map.empty parseLetBinding ("let title = " ++ condText)
+        result <- testParser Map.empty parseLetBinding ("let title = " ++ condText)
         assertLeft result
-        Map.member "title" env @=? False
     , testCase "Reference bound let variable" $ do
-        Right cond <- fst <$> testParser Map.empty parseCond condText
-        result <- fst <$> testParser (Map.fromList [("foo", cond)]) parseRule ("$foo ==> tag sometag")
+        Right cond <- testParser Map.empty parseCond condText
+        result <- testParser (Map.fromList [("foo", cond)]) parseRule ("$foo ==> tag sometag")
         assertRight result
     , testCase "Parse let binding usage in rule" $ do
-        (result, env) <- testParser Map.empty parseRules ("let foo = " ++ condText ++ ",\n" ++ ruleText)
+        result <- testParser Map.empty parseRules ("let foo = " ++ condText ++ " in " ++ ruleText)
         assertRight result
     , testCase "Reference unbound let variable" $ do
-        Right cond <- fst <$> testParser Map.empty parseCond condText
-        result <- fst <$> testParser (Map.empty) parseRule ("$foo ==> tag sometag")
+        result <- testParser Map.empty parseRule ("$foo ==> tag sometag")
+        assertLeft result
+    , testCase "Variables are only accessible within the let-body" $ do
+        result <- testParser Map.empty parseRules ("let foo = " ++ condText ++ " in "
+                                                ++ ruleText ++ ", "
+                                                ++ ruleText)
         assertLeft result
     ]
   where condText = "current window $title == \"test\""

@@ -9,7 +9,8 @@ import Data.MyText (Text)
 import Control.Applicative (empty)
 import Control.Monad
 import Control.Monad.Instances()
-import Control.Monad.Trans.Reader
+import Control.Monad.Trans.Reader hiding (local)
+import Control.Monad.Reader.Class (local)
 import Control.Monad.Trans.State.Strict (StateT, evalStateT, modify')
 import qualified Control.Monad.Trans.State.Strict as StateT
 import Control.Monad.Trans.Class
@@ -43,8 +44,9 @@ import Text.Printf
 
 type Categorizer = TimeLog CaptureData -> TimeLog (Ctx, ActivityData)
 type Rule = Ctx -> ActivityData
+type Environment = Map String Cond
 
-type Parser = ParsecT String () (ReaderT TimeZone (StateT (Map String Cond) Identity))
+type Parser = ParsecT String () (ReaderT (TimeZone, Environment) Identity)
 
 data Ctx = Ctx
         { cNow :: TimeLogEntry CaptureData
@@ -81,14 +83,14 @@ data TimeVar = TvTime | TvSampleAge
 
 data NumVar = NvIdle
 
-runParserStack :: Stream s (ReaderT r (StateT (Map k v) Identity)) t
+runParserStack :: Stream s (ReaderT r Identity) t
                => r
-               -> ParsecT s () (ReaderT r (StateT (Map k v) Identity)) a
+               -> ParsecT s () (ReaderT r Identity) a
                -> SourceName
                -> s
                -> Either ParseError a
 runParserStack env p filename =
-  runIdentity . flip evalStateT Map.empty . flip runReaderT env . runParserT p () filename
+  runIdentity . flip runReaderT env . runParserT p () filename
 
 readCategorizer :: FilePath -> IO Categorizer
 readCategorizer filename = withFile filename ReadMode $ \h -> do
@@ -96,7 +98,7 @@ readCategorizer filename = withFile filename ReadMode $ \h -> do
         content <- hGetContents h
         time <- getCurrentTime
         tz <- getCurrentTimeZone
-        case runParserStack tz (between (return ()) eof parseRules) filename content of
+        case runParserStack (tz, Map.empty) (between (return ()) eof parseRules) filename content of
           Left err -> do
                 putStrLn "Parser error:"
                 print err
@@ -104,9 +106,9 @@ readCategorizer filename = withFile filename ReadMode $ \h -> do
           Right cat -> return
                 (map (fmap (mkSecond (postpare . cat))) . prepare time tz)
 
-applyCond :: String -> TimeZone -> TimeLogEntry (Ctx, ActivityData) -> Bool
-applyCond s tz =
-        case runParserStack tz (parseCond <* eof) "command line parameter" s of
+applyCond :: String -> TimeZone -> Environment -> TimeLogEntry (Ctx, ActivityData) -> Bool
+applyCond s tz env =
+        case runParserStack (tz, env) (parseCond <* eof) "command line parameter" s of
           Left err -> error (show err)
           Right c  -> isJust . c . fst . tlData
 
@@ -121,7 +123,7 @@ postpare = nubBy go
   where go (Activity (Just c1) _) (Activity (Just c2) _) = c1 == c2
         go a1                     a2                     = a1 == a2
 
-lang :: GenTokenParser String () (ReaderT TimeZone (StateT (Map String Cond) Identity))
+lang :: GenTokenParser String () (ReaderT (TimeZone, Environment) Identity)
 lang = makeTokenParser LanguageDef
                 { commentStart   = "{-"
                 , commentEnd     = "-}"
@@ -179,14 +181,17 @@ parseRulesBody = do
                ,    return x
                ]
 
+withBinding :: String -> Cond -> Parser a -> Parser a
+withBinding k v = local (\(tz,env) -> (tz, Map.insert k v env))
+
 parseLetBinding :: Parser Rule
 parseLetBinding = do
   _ <- reserved lang "let"
   varname <- identifier lang
   _ <- reservedOp lang "="
   cond <- parseCond
-  _ <- lift . lift $ modify' (Map.insert varname cond)
-  return (const [])
+  _ <- reserved lang "in"
+  withBinding varname cond parseRule
 
 parseRule :: Parser Rule
 parseRule = choice
@@ -410,7 +415,7 @@ parseCondPrim = choice
                       , reserved lang "now" >> return (CondDate (getDateVar DvNow))
                       , reserved lang "desktop" >> return (CondString (getVar "desktop"))
                       , do varname <- identifier lang
-                           inEnvironment <- lift (lift (StateT.gets (Map.lookup varname)))
+                           inEnvironment <- (lift (asks (Map.lookup varname . snd)))
                            case inEnvironment of
                              Nothing -> fail ("Reference to unbound variable: '" ++ varname ++ "'")
                              Just cond -> return (CondCond cond)
@@ -448,7 +453,7 @@ parseTime = fmap fromIntegral $ lexeme lang $ do
 
 parseDate :: Parser UTCTime
 parseDate = lexeme lang $ do
-    tz <- lift ask
+    tz <- lift (asks fst)
     year <- read <$> count 4 digit
     _ <- char '-'
     month <- read <$> count 2 digit

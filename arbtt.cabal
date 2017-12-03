@@ -108,7 +108,8 @@ executable arbtt-stats
         aeson >= 0.6  && < 1.3,
         array == 0.4.* || == 0.5.*,
         terminal-progress-bar,
-        bytestring-progress
+        bytestring-progress,
+        mtl
 
     if !os(windows)
         build-depends: unix
@@ -273,6 +274,7 @@ test-suite test
       , containers == 0.5.*
       , pcre-light
       , transformers
+      , mtl
 
   if !os(windows)
     build-depends: unix
