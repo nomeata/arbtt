@@ -319,7 +319,7 @@ $ runhaskell Setup.hs install</screen>
     </para>
 
     <para>
-      You can assign conditions to variables using
+      You can define short-hand names for conditions using
       <literal>condition</literal>:
       <programlisting>
         condition arbtt = current window $title =~ m/arbtt/ in {
