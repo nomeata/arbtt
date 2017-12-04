@@ -82,9 +82,9 @@ goldenTests distDir = testGroup "Golden tests"
     , goldenVsString "stats gap handling"
         "tests/gap-handling.out" $
         run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/gap-handling.log", "--categorize", "tests/gap-handling.cfg", "--intervals", "Program:"] B.empty
-    , goldenVsString "let binding stats"
-        "tests/let_stats.out" $
-        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/small.log", "--categorize", "tests/let.cfg"] B.empty
+    , goldenVsString "condition binding stats"
+        "tests/condition_bindings_stats.out" $
+        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/small.log", "--categorize", "tests/condition_bindings.cfg"] B.empty
     ]
 
 testParser env parser input = do
@@ -93,7 +93,7 @@ testParser env parser input = do
 
 parserTests :: TestTree
 parserTests = testGroup "Parser tests"
-    [ testCase "Parse let bindings" $ do
+    [ testCase "Parse condition bindings" $ do
         result <- testParser Map.empty parseConditionBinding ("condition foo = " ++ condText ++ " in 1 == 1 ==> tag foo")
         assertRight result
     , testCase "Trying to bind reserved identifiers" $ do
