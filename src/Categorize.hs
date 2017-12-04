@@ -55,7 +55,7 @@ data Ctx = Ctx
         , cSubsts :: [Text]
         , cCurrentTime :: UTCTime
         , cTimeZone :: TimeZone
-        , letBindings :: Map String Cond
+        , conditionBindings :: Map String Cond
         } deriving Show
 
 instance NFData Ctx where
@@ -184,9 +184,9 @@ parseRulesBody = do
 withBinding :: String -> Cond -> Parser a -> Parser a
 withBinding k v = local (\(tz,env) -> (tz, Map.insert k v env))
 
-parseLetBinding :: Parser Rule
-parseLetBinding = do
-  _ <- reserved lang "let"
+parseConditionBinding :: Parser Rule
+parseConditionBinding = do
+  _ <- reserved lang "condition"
   varname <- identifier lang
   _ <- reservedOp lang "="
   cond <- parseCond
@@ -209,7 +209,7 @@ parseRule = choice
              return (ifThenElse cond rule1 rule2)
         , do reserved lang "tag"
              parseSetTag
-        , parseLetBinding
+        , parseConditionBinding
         ]
 
 parseCond :: Parser Cond

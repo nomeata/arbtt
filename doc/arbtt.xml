@@ -320,9 +320,9 @@ $ runhaskell Setup.hs install</screen>
 
     <para>
       You can assign conditions to variables using
-      <literal>let</literal>:
+      <literal>condition</literal>:
       <programlisting>
-        let arbtt = current window $title =~ m/arbtt/ in {
+        condition arbtt = current window $title =~ m/arbtt/ in {
           $arbtt &amp;&amp; $time &lt; 14:00 ==&gt; tag arbtt-morning,
           $arbtt &amp;&amp; $time &gt; 14:00 ==&gt; tag arbtt-afternoon
         }
@@ -382,7 +382,7 @@ $ runhaskell Setup.hs install</screen>
             <rhs>
               <quote>tag</quote> <nonterminal def="#g-tag"/>
             </rhs>
-            <rhs><nonterminal def="#g-let"/></rhs>
+            <rhs><nonterminal def="#g-condition"/></rhs>
       </production>
 
       <production id="g-cond">
@@ -487,9 +487,9 @@ $ runhaskell Setup.hs install</screen>
         | <quote>&gt;</quote> | <quote>&gt;=</quote></rhs>
       </production>
 
-      <production id="g-let">
-        <lhs>LetBinding</lhs>
-        <rhs><quote>let</quote> Literal <quote>=</quote> <nonterminal def="#g-cond"/> <quote>in</quote> <nonterminal def="#g-rule"/></rhs>
+      <production id="g-condition">
+        <lhs>ConditionBinding</lhs>
+        <rhs><quote>condition</quote> Literal <quote>=</quote> <nonterminal def="#g-cond"/> <quote>in</quote> <nonterminal def="#g-rule"/></rhs>
       </production>
 
     </productionset>

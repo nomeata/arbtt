@@ -94,23 +94,23 @@ testParser env parser input = do
 parserTests :: TestTree
 parserTests = testGroup "Parser tests"
     [ testCase "Parse let bindings" $ do
-        result <- testParser Map.empty parseLetBinding ("let foo = " ++ condText ++ " in 1 == 1 ==> tag foo")
+        result <- testParser Map.empty parseConditionBinding ("condition foo = " ++ condText ++ " in 1 == 1 ==> tag foo")
         assertRight result
     , testCase "Trying to bind reserved identifiers" $ do
-        result <- testParser Map.empty parseLetBinding ("let title = " ++ condText)
+        result <- testParser Map.empty parseConditionBinding ("condition title = " ++ condText)
         assertLeft result
-    , testCase "Reference bound let variable" $ do
+    , testCase "Reference bound condition identifiers" $ do
         Right cond <- testParser Map.empty parseCond condText
         result <- testParser (Map.fromList [("foo", cond)]) parseRule ("$foo ==> tag sometag")
         assertRight result
-    , testCase "Parse let binding usage in rule" $ do
-        result <- testParser Map.empty parseRules ("let foo = " ++ condText ++ " in " ++ ruleText)
+    , testCase "Parse condition binding usage in rule" $ do
+        result <- testParser Map.empty parseRules ("condition foo = " ++ condText ++ " in " ++ ruleText)
         assertRight result
-    , testCase "Reference unbound let variable" $ do
+    , testCase "Reference unbound condition identifier" $ do
         result <- testParser Map.empty parseRule ("$foo ==> tag sometag")
         assertLeft result
-    , testCase "Variables are only accessible within the let-body" $ do
-        result <- testParser Map.empty parseRules ("let foo = " ++ condText ++ " in "
+    , testCase "Variables are only accessible within the condition assignment body" $ do
+        result <- testParser Map.empty parseRules ("condition foo = " ++ condText ++ " in "
                                                 ++ ruleText ++ ", "
                                                 ++ ruleText)
         assertLeft result
