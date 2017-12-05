@@ -6,7 +6,7 @@ import Data
 import qualified Text.Regex.PCRE.Light.Text as RE
 import qualified Data.MyText as T
 import Data.MyText (Text)
-import Control.Applicative (empty)
+import Control.Applicative (empty, (<*))
 import Control.Monad
 import Control.Monad.Instances()
 import Control.Monad.Trans.Reader hiding (local)
