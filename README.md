@@ -61,21 +61,16 @@ Full documentation is now provided in the user manual in the doc/
 directory. If you have the docbook xsl toolchain installed, you can
 generate the HTML documentation by entering "make" in that directory.
 Otherwise, you can use the
-[online version of the User’s Guide](http://darcs.nomeata.de/arbtt/doc/users_guide/)
+[online version of the User’s Guide](http://arbtt.nomeata.de/doc/users_guide/index.html)
 Beware that this will also reflect the latest development version.
 
 Development
 -----------
 
 You are very welcome to help the developement of arbtt. You can find the
-latest source at the darcs repository at
-  http://darcs.nomeata.de/arbtt
-
-Git mirrors are available at
-
- * http://git.nomeata.de/?p=darcs-mirror-arbtt.git
- * https://github.com/nomeata/darcs-mirror-arbtt
- * https://bitbucket.org/nomeata/arbtt
+latest source at the git repository at
+<https://github.com/nomeata/arbtt> or
+<https://bitbucket.org/nomeata/arbtt>.
 
 User and Developer discussion happens on the arbtt mailing list:
   arbtt@lists.nomeata.de
@@ -83,7 +78,7 @@ To subscribe to the list, visit:
   http://lists.nomeata.de/mailman/listinfo/arbtt
 
 The issue tracker is hosted on bitbucket:
-  https://bitbucket.org/nomeata/arbtt/issues
+  <https://bitbucket.org/nomeata/arbtt/issues>
 Why Bitbucket and not GitHub? Why not, and we need diversitiy even in the
 cloud! (Don’t worry, you can use your GitHub account there.)
 
