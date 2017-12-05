@@ -286,5 +286,5 @@ test-suite test
   default-language: Haskell98
 
 source-repository head
-    type:     darcs
-    location: http://darcs.nomeata.de/arbtt
+  type:     git
+  location: https://github.com/nomeata/arbtt
