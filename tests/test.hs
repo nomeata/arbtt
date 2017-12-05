@@ -1,22 +1,28 @@
-{-# LANGUAGE DeriveDataTypeable, OverloadedStrings #-}
+{-# LANGUAGE DeriveDataTypeable, OverloadedStrings, FlexibleContexts #-}
 
-import Test.Tasty hiding (defaultMain)
-import Test.Tasty.Golden.Manage
-import Test.Tasty.Golden
-import Test.Tasty.HUnit
-import System.Process.ByteString.Lazy
+import           Control.Exception
+import           Control.Monad
+import           Control.Monad.Trans.Reader
+import           Control.Monad.Trans.State.Strict
 import qualified Data.ByteString.Lazy as B
-import Control.Monad
-import Control.Exception
-import Data.Typeable
-import System.Exit
-import System.Environment
-import Data.Maybe
+import           Data.Functor.Identity
+import qualified Data.Map as Map
+import           Data.Maybe
+import           Data.Time.LocalTime (getCurrentTimeZone)
+import           Data.Typeable
+import           System.Environment
+import           System.Exit
+import           System.Process.ByteString.Lazy
+import           Test.Tasty hiding (defaultMain)
+import           Test.Tasty.Golden
+import           Test.Tasty.Golden.Manage
+import           Test.Tasty.HUnit
+import           Text.Parsec
 
-import Categorize
-import TimeLog
-import Data
-import Data.Time.Clock
+import           Categorize
+import           TimeLog
+import           Data
+import           Data.Time.Clock
 
 main = do
     setEnv "TZ" "UTC" -- to make tests reproducible
@@ -24,7 +30,7 @@ main = do
     defaultMain (tests distDir)
 
 tests :: FilePath -> TestTree
-tests distDir = testGroup "Tests" [goldenTests distDir, regressionTests]
+tests distDir = testGroup "Tests" [goldenTests distDir, regressionTests, parserTests]
 
 regressionTests :: TestTree
 regressionTests = testGroup "Regression tests"
@@ -76,8 +82,41 @@ goldenTests distDir = testGroup "Golden tests"
     , goldenVsString "stats gap handling"
         "tests/gap-handling.out" $
         run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/gap-handling.log", "--categorize", "tests/gap-handling.cfg", "--intervals", "Program:"] B.empty
+    , goldenVsString "condition binding stats"
+        "tests/condition_bindings_stats.out" $
+        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/small.log", "--categorize", "tests/condition_bindings.cfg"] B.empty
     ]
 
+testParser env parser input = do
+  tz <- getCurrentTimeZone
+  return . runIdentity . flip runReaderT (tz, env) . runParserT parser () "" $ input
+
+parserTests :: TestTree
+parserTests = testGroup "Parser tests"
+    [ testCase "Parse condition bindings" $ do
+        result <- testParser Map.empty parseConditionBinding ("condition foo = " ++ condText ++ " in 1 == 1 ==> tag foo")
+        assertRight result
+    , testCase "Trying to bind reserved identifiers" $ do
+        result <- testParser Map.empty parseConditionBinding ("condition title = " ++ condText)
+        assertLeft result
+    , testCase "Reference bound condition identifiers" $ do
+        Right cond <- testParser Map.empty parseCond condText
+        result <- testParser (Map.fromList [("foo", cond)]) parseRule ("$foo ==> tag sometag")
+        assertRight result
+    , testCase "Parse condition binding usage in rule" $ do
+        result <- testParser Map.empty parseRules ("condition foo = " ++ condText ++ " in " ++ ruleText)
+        assertRight result
+    , testCase "Reference unbound condition identifier" $ do
+        result <- testParser Map.empty parseRule ("$foo ==> tag sometag")
+        assertLeft result
+    , testCase "Variables are only accessible within the condition assignment body" $ do
+        result <- testParser Map.empty parseRules ("condition foo = " ++ condText ++ " in "
+                                                ++ ruleText ++ ", "
+                                                ++ ruleText)
+        assertLeft result
+    ]
+  where condText = "current window $title == \"test\""
+        ruleText = "$foo ==> tag sometag"
 
 run :: FilePath -> [FilePath] -> B.ByteString -> IO B.ByteString
 run cmd args stdin = do
@@ -94,3 +133,11 @@ data ExitCodeException = ExitCodeException Int
 
 instance Exception StderrException
 instance Exception ExitCodeException
+
+assertRight :: Show a => Either a b -> Assertion
+assertRight (Left r) = assertFailure $ "expected a Right\n but got a Left with: " ++ show r
+assertRight _ = return ()
+
+assertLeft :: Show b => Either a b -> Assertion
+assertLeft (Right r) = assertFailure $ "expected a Left\n but got a Right with: " ++ show r
+assertLeft _ = return ()

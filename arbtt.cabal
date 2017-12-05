@@ -40,7 +40,7 @@ executable arbtt-capture
     main-is:            capture-main.hs
     hs-source-dirs:     src
     build-depends:
-                base >= 4.7 && < 4.10,
+                base >= 4.7 && < 4.11,
                 filepath, directory, transformers, utf8-string,
                 aeson >= 0.6  && < 1.3,
                 binary >= 0.5,
@@ -98,7 +98,7 @@ executable arbtt-stats
     main-is:            stats-main.hs
     hs-source-dirs:     src
     build-depends:
-        base >= 4.7 && < 4.10,
+        base >= 4.7 && < 4.11,
         parsec == 3.*,
         containers == 0.5.*,
         pcre-light,
@@ -108,7 +108,8 @@ executable arbtt-stats
         aeson >= 0.6  && < 1.3,
         array == 0.4.* || == 0.5.*,
         terminal-progress-bar,
-        bytestring-progress
+        bytestring-progress,
+        mtl
 
     if !os(windows)
         build-depends: unix
@@ -144,7 +145,7 @@ executable arbtt-dump
     main-is:            dump-main.hs
     hs-source-dirs:     src
     build-depends:
-        base >= 4.7 && < 4.10,
+        base >= 4.7 && < 4.11,
         parsec == 3.*,
         containers == 0.5.*,
         aeson >= 0.6  && < 1.3,
@@ -181,7 +182,7 @@ executable arbtt-import
     main-is:            import-main.hs
     hs-source-dirs:     src
     build-depends:
-        base >= 4.7 && < 4.10,
+        base >= 4.7 && < 4.11,
         parsec == 3.*,
         containers == 0.5.*,
         binary >= 0.5,
@@ -214,7 +215,7 @@ executable arbtt-recover
     main-is:            recover-main.hs
     hs-source-dirs:     src
     build-depends:
-        base >= 4.7 && < 4.10,
+        base >= 4.7 && < 4.11,
         containers == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string,
@@ -259,7 +260,7 @@ test-suite test
     Text.Regex.PCRE.Light.Text
     TimeLog
   Build-depends:
-      base >= 4.7 && < 4.10
+      base >= 4.7 && < 4.11
       , tasty >= 0.7 && < 0.12
       , tasty-golden >= 2.2.0.2  && < 2.4
       , tasty-hunit >= 0.2  && < 0.11
@@ -273,6 +274,7 @@ test-suite test
       , containers == 0.5.*
       , pcre-light
       , transformers
+      , mtl
 
   if !os(windows)
     build-depends: unix

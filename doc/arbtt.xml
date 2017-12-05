@@ -265,7 +265,7 @@ $ runhaskell Setup.hs install</screen>
     </para>
 
     <para>
-      The variable <literal>$date</literal> referes to the date and time of the
+      The variable <literal>$date</literal> refers to the date and time of the
       recorded sample. It can be compared with date literals in the form
       YYYY-MM-DD (which stand for midnight, so <programlisting>$date ==
       2001-01-01</programlisting> will not do what you want, but
@@ -318,6 +318,20 @@ $ runhaskell Setup.hs install</screen>
       parentheses.
     </para>
 
+    <para>
+      You can define short-hand names for conditions using
+      <literal>condition</literal>:
+      <programlisting>
+        condition arbtt = current window $title =~ m/arbtt/ in {
+          $arbtt &amp;&amp; $time &lt; 14:00 ==&gt; tag arbtt-morning,
+          $arbtt &amp;&amp; $time &gt; 14:00 ==&gt; tag arbtt-afternoon
+        }
+      </programlisting>
+      Everything that is a valid condition is assignable and you can
+      reference bound variables in rules by prefixing them with a
+      dollar (<literal>$</literal>).
+    </para>
+
   </sect2>
 
   <sect2>
@@ -368,6 +382,7 @@ $ runhaskell Setup.hs install</screen>
             <rhs>
               <quote>tag</quote> <nonterminal def="#g-tag"/>
             </rhs>
+            <rhs><nonterminal def="#g-condition"/></rhs>
       </production>
 
       <production id="g-cond">
@@ -402,6 +417,7 @@ $ runhaskell Setup.hs install</screen>
          <nonterminal def="#g-date"/> </rhs>
             <rhs> <quote>current window</quote> <nonterminal def="#g-cond"/> </rhs>
             <rhs> <quote>any window</quote> <nonterminal def="#g-cond"/> </rhs>
+            <rhs> <quote>$</quote> Literal </rhs>
       </production>
 
       <production id="g-string">
@@ -414,7 +430,8 @@ $ runhaskell Setup.hs install</screen>
       </production>
 
       <production id="g-listofstring">
-        <lhs>ListOfString</lhs>
+        <lhs>
+        ListOfString</lhs>
         <rhs> <quote>"</quote> string literal <quote>"</quote> </rhs>
         <rhs> <quote>"</quote> string literal <quote>"</quote> , <nonterminal def="#g-listofstring"/> </rhs>
       </production>
@@ -463,12 +480,17 @@ $ runhaskell Setup.hs install</screen>
         <rhs> <quote>"</quote> <nonterminal def="#g-regex"/> <quote>"</quote> , <nonterminal def="#g-listofregex"/> </rhs>
       </production>
 
-          <production id="g-cmpop">
-            <lhs>CmpOp</lhs>
-            <rhs><quote>&lt;=</quote> | <quote>&lt;</quote> |
-            <quote>==</quote> | <quote>!=</quote>
-            | <quote>&gt;</quote> | <quote>&gt;=</quote></rhs>
-          </production>
+      <production id="g-cmpop">
+        <lhs>CmpOp</lhs>
+        <rhs><quote>&lt;=</quote> | <quote>&lt;</quote> |
+        <quote>==</quote> | <quote>!=</quote>
+        | <quote>&gt;</quote> | <quote>&gt;=</quote></rhs>
+      </production>
+
+      <production id="g-condition">
+        <lhs>ConditionBinding</lhs>
+        <rhs><quote>condition</quote> Literal <quote>=</quote> <nonterminal def="#g-cond"/> <quote>in</quote> <nonterminal def="#g-rule"/></rhs>
+      </production>
 
     </productionset>
       </figure>
