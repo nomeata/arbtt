@@ -11,8 +11,6 @@ import Control.Monad
 import Control.Monad.Instances()
 import Control.Monad.Trans.Reader hiding (local)
 import Control.Monad.Reader.Class (local)
-import Control.Monad.Trans.State.Strict (StateT, evalStateT, modify')
-import qualified Control.Monad.Trans.State.Strict as StateT
 import Control.Monad.Trans.Class
 import Data.Functor.Identity
 
