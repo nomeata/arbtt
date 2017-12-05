@@ -2,7 +2,7 @@
 
 # The following enables several GHC versions to be tested; often it's enough to test only against the last release in a major GHC version. Feel free to omit lines listings versions you don't need/want testing for.
 env:
- - CABALVER=1.18 GHCVER=7.8.4
+ - CABALVER=1.18 GHCVER=7.8.4 DOCS=yes
  - CABALVER=1.22 GHCVER=7.10.2
  - CABALVER=head GHCVER=head  # see section about GHC HEAD snapshots
  - WINDOWS=yes
@@ -30,6 +30,9 @@ before_install:
  - test -z "$STACK" || sudo apt-get install cabal-install-1.24
  - test -z "$STACK" || export PATH=/opt/cabal/1.24/bin:$PATH
 
+ # docs
+ - test -z "$DOCS" || sudo apt-get install xsltproc docbook-xsl
+
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
  - export WINEPATH='C:\Program Files (x86)\GnuWin32\bin'
  - if [ "$WINDOWS" = yes ]; then export W=wine; else export W=""; fi
@@ -51,6 +54,8 @@ script:
  - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal check
  - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal sdist
  - test -z "$STACK" || stack build --test
+ # build the docs on only one of them
+ - test -z "$DOCS" || make -C doc html
 
 # The following scriptlet checks that the resulting source distribution can be built & installed
  - test -z "$CABALVER" -a -z "$WINDOWS" || {
