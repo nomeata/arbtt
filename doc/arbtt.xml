@@ -33,6 +33,12 @@
       <contrib>Contributor</contrib>
       <email>muharem@linux.com</email>
     </author>
+    <author id="hauck">
+      <firstname>Markus</firstname>
+      <surname>Hauck</surname>
+      <contrib>Contributor</contrib>
+      <email>markus1189@gmail.com</email>
+    </author>
     <author id="waldir">
       <firstname>Waldir</firstname>
       <surname>Pimenta</surname>
@@ -1740,14 +1746,20 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   The version history with changes relevant for the user is documented here.
   </para>
 
-  <sect2 id="release-notes-0.9.1">
-    <title>Version 0.9.1</title>
+  <sect2 id="release-notes-0.10">
+    <title>Version 0.10</title>
     <itemizedlist>
       <listitem>
         <para>
-	  Markus Hauck contributed the <literal>!=</literal> operator and the
-	  <quote>$now</quote> variable.
+	  Markus Hauck contributed the <literal>!=</literal> operator, the
+	  <quote>$now</quote> variable and the <literal>condition</literal>
+	  construct (as well as other code cleanup).
          </para>
+      </listitem>
+      <listitem>
+        <para>
+	  The development repository migrated from darcs to git.
+	</para>
       </listitem>
     </itemizedlist>
   </sect2>
