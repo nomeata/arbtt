@@ -68,3 +68,6 @@ script:
       exit 1;
    fi;
    }
+
+after_success:
+  - 'test -z "$DOCS" || [ "$TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_SECURE_ENV_VARS" = "true" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && ./.travis-push-gh-pages.sh'
