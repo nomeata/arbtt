@@ -84,9 +84,9 @@ options =
 
 parseConduit :: DumpFormat -> Conduit BS.ByteString IO (TimeLogEntry CaptureData)
 parseConduit DFHuman = error "Cannot read back human format"
-parseConduit DFShow = C.lines .| C.map BS.unpack .| C.map read
+parseConduit DFShow = C.lines =$= C.map BS.unpack =$= C.map read
 parseConduit DFJSON =
-    conduitParser (json <* skipSpace) .| C.map snd .| tlConduit
+    conduitParser (json <* skipSpace) =$= C.map snd =$= tlConduit
   where
     tlConduit = C.mapM $ \ v -> case parseEither parseJSON v of
             Left e -> do
@@ -124,10 +124,10 @@ main = do
 
   h <- openBinaryFile (optLogFile flags) AppendMode
   runConduit $ C.sourceHandle stdin
-    .| parseConduit (optFormat flags)
-    .| stutter
-    .| binaryConduit
-    .| C.sinkHandle h
+    =$= parseConduit (optFormat flags)
+    =$= stutter
+    =$= binaryConduit
+    =$= C.sinkHandle h
   hClose h
 
 
