@@ -186,6 +186,7 @@ executable arbtt-import
         parsec == 3.*,
         containers == 0.5.*,
         binary >= 0.5,
+        aeson >= 0.6  && < 1.3,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath
 

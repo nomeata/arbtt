@@ -7,7 +7,7 @@ module DumpFormat
     , dumpSamples
     ) where
 
-import Data.MyText (unpack, null, Text)
+import Data.MyText (unpack, null, pack, Text)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as LBS
 import Data.Time
@@ -17,6 +17,7 @@ import Data.Time.Format(defaultTimeLocale)
 import System.Locale (defaultTimeLocale)
 #endif
 import Data.Char
+import Data.Foldable (toList)
 
 import Data
 import Text.Printf
@@ -26,11 +27,13 @@ import Prelude hiding (null)
 data DumpFormat
     = DFShow
     | DFHuman
-    | DFJSON 
+    | DFJSON
     deriving (Show, Eq)
 
 instance ToJSON Text where
     toJSON = toJSON . unpack
+instance FromJSON Text where
+    parseJSON x = pack <$> parseJSON x
 
 instance ToJSON (TimeLogEntry CaptureData) where
     toJSON (TimeLogEntry {..}) = object [
@@ -40,6 +43,20 @@ instance ToJSON (TimeLogEntry CaptureData) where
         "windows" .= map (\(a,t,p) -> object ["active" .= a, "title" .= t, "program" .= p]) (cWindows tlData),
         "desktop" .= cDesktop tlData
         ]
+
+instance FromJSON (TimeLogEntry CaptureData) where
+    parseJSON = withObject "TimeLogEntry" $ \v -> do
+        tlTime <- v .: "date"
+        tlRate <- v .: "rate"
+        cLastActivity <- v .: "inactive"
+        cWindows  <- (v .: "windows") >>=
+            withArray "windows" (mapM (withObject "window" $ \v ->
+                (,,) <$> v .: "active" <*> v .: "title" <*> v .: "program"
+            ) . toList)
+        cDesktop <- v .: "desktop"
+        let tlData = CaptureData {..}
+        let entry = TimeLogEntry {..}
+        pure entry
 
 readDumpFormat :: String -> Maybe DumpFormat
 readDumpFormat arg =
