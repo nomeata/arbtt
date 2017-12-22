@@ -86,13 +86,11 @@ executable arbtt-capture
                 Graphics.OSX.Window
                 System.Locale.SetLocale
         else
-            extra-libraries: Xss
             other-modules:
                 Capture.X11
-                Graphics.X11.XScreenSaver
                 System.Locale.SetLocale
             build-depends:
-                X11 > 1.4.4
+                X11 > 1.6.0
     default-language: Haskell98
 
 executable arbtt-stats
