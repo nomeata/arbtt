@@ -60,6 +60,7 @@ executable arbtt-capture
         TimeLog
         UpgradeLog1
         LeftFold
+        LockFile
 
     ghc-options: -rtsopts
 
@@ -187,6 +188,10 @@ executable arbtt-import
         containers == 0.5.*,
         binary >= 0.5,
         aeson >= 0.6  && < 1.3,
+        conduit == 1.2.*,
+        conduit-extra == 1.2.*,
+        exceptions == 0.8.*,
+        attoparsec == 0.13.*,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath
 
@@ -204,6 +209,7 @@ executable arbtt-import
         Data.Binary.StringRef
         CommonStartup
         TimeLog
+        LockFile
     ghc-options: -rtsopts
     if os(windows)
         cpp-options:    -DWIN32

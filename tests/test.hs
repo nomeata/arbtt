@@ -11,7 +11,9 @@ import           Data.Maybe
 import           Data.Time.LocalTime (getCurrentTimeZone)
 import           Data.Typeable
 import           System.Environment
+import           System.Directory
 import           System.Exit
+import           System.IO.Error
 import           System.Process.ByteString.Lazy
 import           Test.Tasty hiding (defaultMain)
 import           Test.Tasty.Golden
@@ -64,9 +66,18 @@ goldenTests distDir = testGroup "Golden tests"
         "tests/small_dump.out" $
         run (distDir ++ "/build/arbtt-dump/arbtt-dump") ["-f","tests/small.log", "-t", "Show"] B.empty
     , goldenVsFile "import small"
-        "tests/small_import.out" "tests/small_import.out.actual" $ void $
+        "tests/small_import.out" "tests/small_import.out.actual" $ void $ do
+        tryIOError $ removeFile "tests/small_import.out.actual"
         B.readFile "tests/small_import.in" >>=
-        run (distDir ++ "/build/arbtt-import/arbtt-import") ["-f","tests/small_import.out.actual"]
+            run (distDir ++ "/build/arbtt-import/arbtt-import") ["-f","tests/small_import.out.actual"]
+    , goldenVsString "dump small JSON"
+        "tests/small_dump_json.out" $
+        run (distDir ++ "/build/arbtt-dump/arbtt-dump") ["-f","tests/small.log", "-t", "JSON"] B.empty
+    , goldenVsFile "import small JSON"
+        "tests/small_import_json.out" "tests/small_import_json.out.actual" $ void $ do
+        tryIOError $ removeFile "tests/small_import_json.out.actual"
+        B.readFile "tests/small_import_json.in" >>=
+            run (distDir ++ "/build/arbtt-import/arbtt-import") ["-f","tests/small_import_json.out.actual", "-t", "JSON"]
     , goldenVsFile "recover small"
         "tests/small_borked_recover.out" "tests/small_borked_recover.out.actual" $ void $
         run (distDir ++ "/build/arbtt-recover/arbtt-recover") ["-i","tests/small_borked_recover.out", "-o", "tests/small_borked_recover.out.actual"] B.empty
