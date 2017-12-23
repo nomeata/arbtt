@@ -95,10 +95,10 @@ parseConduit DFJSON =
             Right x -> pure x
 
 binaryConduit :: ListOfStringable a =>
-    Conduit (TimeLogEntry a, Maybe a) IO BS.ByteString
-binaryConduit = C.map go
+    Conduit (TimeLogEntry a, Maybe a) IO (Flush BS.ByteString)
+binaryConduit = C.concatMap go
   where
-    go (x,prev) = BSL.toStrict $ ls_encode strs x
+    go (x,prev) = [Chunk $ BSL.toStrict $ ls_encode strs x, Flush]
         where strs = maybe [] listOfStrings prev
 
 main = do
@@ -127,7 +127,7 @@ main = do
     =$= parseConduit (optFormat flags)
     =$= stutter
     =$= binaryConduit
-    =$= C.sinkHandle h
+    =$= C.sinkHandleFlush h
   hClose h
 
 
