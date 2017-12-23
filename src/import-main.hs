@@ -114,13 +114,13 @@ main = do
   flags <- foldl (>>=) (return (defaultOptions dir)) actions
 
   lockFile (optLogFile flags)
-  unless (optAppend flags) $ do
-      ex <- doesFileExist (optLogFile flags)
-      when ex $ do
-          putStrLn $ "File at " ++ (optLogFile flags) ++ " does already exist. Please delete this"
-          putStrLn $ "file before running arbtt-import."
-          exitFailure
-      createTimeLog True (optLogFile flags)
+
+  ex <- doesFileExist (optLogFile flags)
+  when (ex && not (optAppend flags)) $ do
+      putStrLn $ "File at " ++ (optLogFile flags) ++ " does already exist. Please delete this"
+      putStrLn $ "file before running arbtt-import."
+      exitFailure
+  createTimeLog False (optLogFile flags)
 
   h <- openBinaryFile (optLogFile flags) AppendMode
   runConduit $ C.sourceHandle stdin
