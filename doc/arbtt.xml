@@ -1045,11 +1045,11 @@ arbtt &lt;- reshape(arbtt, v.names=&quot;Time&quot;, timevar=&quot;Tag&quot;, id
 <sect1 id="contributed">
   <title>Contributed tools</title>
   <para>
-    Due to the export facilities of arbtt (as explained in <xref
-    linkend="external-processing"/>), tools analyzing arbtt’s data can be
-    developed independently. This section lists those that we are aware of. If
-    you create a tool of your own, or find one somewhere, please tell us on the
-    mailing list (see <xref linkend="copyright"/>).
+    Due to the import and export facilities of arbtt (as explained in <xref
+    linkend="external-processing"/>), tools producing and analyzing arbtt’s
+    data can be developed independently. This section lists those that we are
+    aware of. If you create a tool of your own, or find one somewhere, please
+    tell us on the mailing list (see <xref linkend="copyright"/>).
   </para>
   <sect2>
     <title>arbtt-graph</title>
@@ -1059,6 +1059,15 @@ arbtt &lt;- reshape(arbtt, v.names=&quot;Time&quot;, timevar=&quot;Tag&quot;, id
     </para>
     <para>
       You can find his tool on <ulink url="https://github.com/rejuvyesh/arbtt-graph">https://github.com/rejuvyesh/arbtt-graph</ulink>.
+    </para>
+  </sect2>
+  <sect2>
+    <title>arbtt-capture for GNOME Shell</title>
+    <para>
+      An arbtt-capture implemented as a GNOME Shell extension. Its main value
+      proposition is compatibility with Wayland (but it is compatible with
+      traditional X Window System as well). You can find it on
+      <ulink url="https://github.com/tmiasko/arbtt-capture">https://github.com/tmiasko/arbtt-capture</ulink>.
     </para>
   </sect2>
 </sect1>
