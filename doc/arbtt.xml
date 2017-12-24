@@ -1107,8 +1107,8 @@ arbtt &lt;- reshape(arbtt, v.names=&quot;Time&quot;, timevar=&quot;Tag&quot;, id
     linkend="arbtt-dump"/>.</para>
 
     <para>The textual form can be imported back using
-    <command>arbtt-stats</command>. Its command line reference is given in
-    <xref linkend="arbtt-dump"/>.</para>
+    <command>arbtt-import</command>. Its command line reference is given in
+    <xref linkend="arbtt-import"/>.</para>
 
     <para>If <command>arbtt-capture</command> crashes it might be that the log
     file is not readable any more. In some cases, this can be fixed using the
@@ -1570,7 +1570,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
     </refsect1>
   </refentry>
 
-  <refentry>
+  <refentry id="arbtt-import">
     <refnamediv>
       <refname>arbtt-import</refname>
       <refpurpose>imports dumped arbtt data samples</refpurpose>
