@@ -17,7 +17,7 @@ import Data.Conduit
 import Data.Aeson (parseJSON, json)
 import Data.Aeson.Types (parseEither)
 import Data.Binary.StringRef
-import Data.Attoparsec.ByteString.Char8 (skipSpace)
+import Data.Attoparsec.ByteString.Char8 (skipSpace, option)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Conduit.List as C
@@ -86,13 +86,18 @@ parseConduit :: DumpFormat -> Conduit BS.ByteString IO (TimeLogEntry CaptureData
 parseConduit DFHuman = error "Cannot read back human format"
 parseConduit DFShow = C.lines =$= C.map BS.unpack =$= C.map read
 parseConduit DFJSON =
-    conduitParser (json <* skipSpace) =$= C.map snd =$= tlConduit
+        conduitParser (ignoreWhiteSpace json)
+    =$= C.map snd
+    =$= C.catMaybes
+    =$= tlConduit
   where
     tlConduit = C.mapM $ \ v -> case parseEither parseJSON v of
             Left e -> do
                 hPutStrLn stderr ("Cannot parse log entry: " ++ e)
                 exitFailure
             Right x -> pure x
+
+    ignoreWhiteSpace p = skipSpace *> option Nothing (Just <$> p)
 
 binaryConduit :: ListOfStringable a =>
     Conduit (TimeLogEntry a, Maybe a) IO (Flush BS.ByteString)
