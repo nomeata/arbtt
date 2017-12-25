@@ -90,7 +90,7 @@ executable arbtt-capture
                 Capture.X11
                 System.Locale.SetLocale
             build-depends:
-                X11 > 1.6.0
+                X11 > 1.6.1
     default-language: Haskell98
 
 executable arbtt-stats
