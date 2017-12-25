@@ -78,6 +78,11 @@ goldenTests distDir = testGroup "Golden tests"
         tryIOError $ removeFile "tests/small_import_json.out.actual"
         B.readFile "tests/small_import_json.in" >>=
             run (distDir ++ "/build/arbtt-import/arbtt-import") ["-f","tests/small_import_json.out.actual", "-t", "JSON"]
+    , goldenVsFile "import small JSON (list)"
+        "tests/small_import_json_list.out" "tests/small_import_json_list.out.actual" $ void $ do
+        tryIOError $ removeFile "tests/small_import_json_list.out.actual"
+        B.readFile "tests/small_import_json_list.in" >>=
+            run (distDir ++ "/build/arbtt-import/arbtt-import") ["-f","tests/small_import_json_list.out.actual", "-t", "JSON"]
     , goldenVsFile "recover small"
         "tests/small_borked_recover.out" "tests/small_borked_recover.out.actual" $ void $
         run (distDir ++ "/build/arbtt-recover/arbtt-recover") ["-i","tests/small_borked_recover.out", "-o", "tests/small_borked_recover.out.actual"] B.empty

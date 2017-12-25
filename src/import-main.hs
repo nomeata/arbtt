@@ -82,29 +82,34 @@ options =
                "output format, one of Show (default) or JSON "
      ]
 
-parseConduit :: DumpFormat -> Conduit BS.ByteString IO (TimeLogEntry CaptureData)
+parseConduit :: DumpFormat -> Conduit BS.ByteString IO [TimeLogEntry CaptureData]
 parseConduit DFHuman = error "Cannot read back human format"
-parseConduit DFShow = C.lines =$= C.map BS.unpack =$= C.map read
+parseConduit DFShow = C.lines =$= C.map ( (:[]) . read . BS.unpack)
 parseConduit DFJSON =
         conduitParser (ignoreWhiteSpace json)
     =$= C.map snd
     =$= C.catMaybes
     =$= tlConduit
   where
-    tlConduit = C.mapM $ \ v -> case parseEither parseJSON v of
+    tlConduit = C.mapM $ \ v ->
+        case parseEither oneOrMany v of
             Left e -> do
                 hPutStrLn stderr ("Cannot parse log entry: " ++ e)
                 exitFailure
             Right x -> pure x
 
+    oneOrMany v = parseJSON v
+            <|> ((:[]) <$> parseJSON v)
+
     ignoreWhiteSpace p = skipSpace *> option Nothing (Just <$> p)
 
 binaryConduit :: ListOfStringable a =>
-    Conduit (TimeLogEntry a, Maybe a) IO (Flush BS.ByteString)
-binaryConduit = C.concatMap go
+    Conduit [(TimeLogEntry a, Maybe a)] IO (Flush BS.ByteString)
+binaryConduit = C.map (map go) =$= C.concatMap chunk
   where
-    go (x,prev) = [Chunk $ BSL.toStrict $ ls_encode strs x, Flush]
+    go (x,prev) = BSL.toStrict $ ls_encode strs x
         where strs = maybe [] listOfStrings prev
+    chunk xs = map Chunk xs ++ [Flush]
 
 main = do
   commonStartup
@@ -130,7 +135,7 @@ main = do
   h <- openBinaryFile (optLogFile flags) AppendMode
   runConduit $ C.sourceHandle stdin
     =$= parseConduit (optFormat flags)
-    =$= stutter
+    =$= stutterList
     =$= binaryConduit
     =$= C.sinkHandleFlush h
   hClose h
@@ -147,3 +152,16 @@ stutter =
             Just x -> do
                 yield (x, prev)
                 loop (Just (tlData x))
+
+stutterList :: Monad m => Conduit [TimeLogEntry a] m [(TimeLogEntry a, Maybe a)]
+stutterList =
+    loop Nothing
+  where
+    loop prev = do
+        mx <- await
+        case mx of
+            Nothing -> return ()
+            Just xs -> do
+                let xs' = zip xs (prev : map (Just . tlData) xs)
+                yield xs'
+                loop (Just (tlData (last xs)))
