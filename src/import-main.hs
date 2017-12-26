@@ -50,13 +50,13 @@ options :: [OptDescr (Options -> IO Options)]
 options =
      [ Option "h?"     ["help"]
               (NoArg $ \_ -> do
-                    hPutStr stderr (usageInfo header options)
+                    putStr (usageInfo header options)
                     exitSuccess
               )
               "show this help"
      , Option "V"      ["version"]
               (NoArg $ \_ -> do
-                    hPutStrLn stderr versionStr
+                    putStrLn versionStr
                     exitSuccess
               )
               "show the version number"
