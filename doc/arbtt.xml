@@ -1561,7 +1561,7 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
     </refsect1>
   </refentry>
 
-  <refentry>
+  <refentry id="arbtt-import">
     <refnamediv>
       <refname>arbtt-import</refname>
       <refpurpose>imports dumped arbtt data samples</refpurpose>
@@ -1576,15 +1576,19 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
 
     <refsect1><title>Description</title>
       <para>
-      <command>arbtt-import</command> expects the output of
-      <command>arbtt-dump</command> on the standard input and saves them as the
-      logfile or the specified file.
+      <command>arbtt-import</command> reads data from standard input and adds
+      the entries to the logfile. It supports the <literal>Show</literal>
+      format as well as the <literal>JSON</literal> format, and can be used in
+      a streaming fashion (i.e. it will write entries as they are read from
+      standard input).
       </para>
+
       <para>
-      This program would completely override the existing file, therefore it
+      By default, this program completely overrides the existing file, therefore it
       will refuse to work if the log file already exists. If you want to
       overwrite a file, please delete it before running
-      <command>arbtt-import</command>.
+      <command>arbtt-import</command>. If you want to extend an existing file,
+      use the <option>--append</option> option.
       </para>
     </refsect1>
 
@@ -1602,12 +1606,22 @@ arbtt-stats -f '$sampleage &lt; 1:00'</screen>
         <term><option>--version</option></term>
         <listitem><simpara>shows the version number, and exists.</simpara></listitem>
     </varlistentry>
-        <varlistentry>
+    <varlistentry>
         <term><option>-f</option> <replaceable>FILE</replaceable></term>
         <term><option>--logfile</option> <replaceable>FILE</replaceable></term>
         <listitem><simpara>logfile to use instead of <filename>~/.arbtt/capture.log</filename></simpara></listitem>
-        </varlistentry>
-      </variablelist>
+    </varlistentry>
+    <varlistentry>
+        <term><option>-a</option></term>
+	<term><option>--append</option></term>
+        <listitem><simpara>append the log file, if it already exists</simpara></listitem>
+    </varlistentry>
+    <varlistentry>
+        <term><option>-t</option> <replaceable>FORMAT</replaceable></term>
+        <term><option>--format</option> <replaceable>FORMAT</replaceable></term>
+        <listitem><simpara>format to use, where <replaceable>FORMAT</replaceable> is one of <literal>show</literal> (the default) or <literal>JSON</literal>. The JSON format can either be a list of records (as dumped by <xref linkend="arbtt-dump"/>), or just one record after another (useful in streaming mode).</simpara></listitem>
+    </varlistentry>
+    </variablelist>
     </refsect1>
     <refsect1><title>Files</title>
       <variablelist>
@@ -1763,6 +1777,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <listitem>
         <para>
 	  The development repository migrated from darcs to git.
+	</para>
+      </listitem>
+      <listitem>
+        <para>
+	  The command <xref linkend="arbtt-import"/> now supports reading JSON
+	  records, and can be used to append to an exising log file in a
+	  steaming fasion.
 	</para>
       </listitem>
     </itemizedlist>
