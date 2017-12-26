@@ -18,6 +18,7 @@ import System.Locale (defaultTimeLocale)
 #endif
 import Data.Char
 import Data.Foldable (toList)
+import Control.Applicative ((<$>), (<|>), pure)
 
 import Data
 import Text.Printf
