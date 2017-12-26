@@ -8,11 +8,11 @@ env:
  - CABALVER=1.24 GHCVER=8.2.2
  - CABALVER=head GHCVER=head  # see section about GHC HEAD snapshots
  - WINDOWS=yes
- - STACK=lts-2
- - STACK=lts-3
- - STACK=lts-4
- - STACK=lts-5
  - STACK=lts-6
+ - STACK=lts-7
+ - STACK=lts-8
+ - STACK=lts-9
+ - STACK=lts-10
  - STACK=nightly
 
 matrix:
