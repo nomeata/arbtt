@@ -7,7 +7,6 @@ env:
  - CABALVER=1.24 GHCVER=8.0.2
  - CABALVER=2.0 GHCVER=8.2.2
  - CABALVER=head GHCVER=head  # see section about GHC HEAD snapshots
- - WINDOWS=yes
  - STACK=lts-6
  - STACK=lts-7
  - STACK=lts-8
@@ -85,3 +84,5 @@ jobs:
          local_dir: website
          on:
            branch: master
+    - stage: windows
+      env: WINDOWS=yes
