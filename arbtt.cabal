@@ -41,7 +41,7 @@ executable arbtt-capture
     hs-source-dirs:     src
     build-depends:
                 base >= 4.7 && < 4.11,
-                filepath, directory, transformers, utf8-string, strict,
+                filepath, directory, transformers, utf8-string, strict, containers,
                 aeson >= 0.6  && < 1.3,
                 binary >= 0.5,
                 bytestring, deepseq
