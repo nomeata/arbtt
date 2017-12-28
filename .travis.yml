@@ -18,6 +18,7 @@ matrix:
   allow_failures:
    - env: CABALVER=head GHCVER=head
    - env: STACK=nightly
+   - env: WINDOWS=yes
 
 # Note: the distinction between `before_install` and `install` is not important.
 before_install:
