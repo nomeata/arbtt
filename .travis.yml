@@ -1,4 +1,4 @@
-# NB: don't set `language: haskell` here
+language: generic
 
 # The following enables several GHC versions to be tested; often it's enough to test only against the last release in a major GHC version. Feel free to omit lines listings versions you don't need/want testing for.
 env:
@@ -7,6 +7,10 @@ env:
  - CABALVER=1.24 GHCVER=8.0.2
  - CABALVER=2.0 GHCVER=8.2.2
  - CABALVER=head GHCVER=head  # see section about GHC HEAD snapshots
+ - STACK=lts-2
+ - STACK=lts-3
+ - STACK=lts-4
+ - STACK=lts-5
  - STACK=lts-6
  - STACK=lts-7
  - STACK=lts-8
