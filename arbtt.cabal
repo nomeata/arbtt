@@ -221,8 +221,9 @@ executable arbtt-import
     other-modules:
         Data.Conduit.Attoparsec
         Data.Conduit.Binary
+        Data.Streaming.FileRead
     build-depends:
-        text, resourcet, streaming-commons, unliftio-core
+        text, resourcet, unliftio-core
 
 executable arbtt-recover
     main-is:            recover-main.hs
