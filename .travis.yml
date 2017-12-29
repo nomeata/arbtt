@@ -39,6 +39,7 @@ before_install:
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
  - export WINEPATH='C:\Program Files (x86)\GnuWin32\bin'
  - if [ "$WINDOWS" = yes ]; then export W=wine; else export W=""; fi
+ - if [ "$GHCVER" = HEAD ]; then export ALLOW="--allow-newer base --allow-newer template-haskell"; else export ALLOW=""; fi
  - test -z "$WINDOWS"  || bash ./.travis-setup-windows.sh
  - test -z "$CABALVER" || bash ./.travis-setup-linux.sh
  - test -z "$STACK" || sudo apt-get install g++ gcc libc6-dev libffi-dev libgmp-dev make xz-utils zlib1g-dev libwww-perl libx11-dev libxrandr-dev libxinerama-dev
@@ -48,7 +49,6 @@ before_install:
 install:
  - 'test -z "$STACK" || echo "resolver: $RESOLVER" > stack.yaml'
  - test -z "$STACK" || stack solver --update-config
- - if [ "$GHCVER" = HEAD ]; then export ALLOW="--allow-newer base --allow-newer template-haskell"; else export ALLOW=""; fi
  - test -z "$STACK" || stack build --only-dependencies "$ALLOW"
 
 script:

@@ -8,4 +8,4 @@ sudo apt-get install libxss-dev libx11-dev libxrandr-dev libxinerama-dev
 cabal --version
 echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
 cabal update
-cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls
+cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls $ALLOW
