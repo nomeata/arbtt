@@ -48,7 +48,8 @@ before_install:
 install:
  - 'test -z "$STACK" || echo "resolver: $RESOLVER" > stack.yaml'
  - test -z "$STACK" || stack solver --update-config
- - test -z "$STACK" || stack build --only-dependencies
+ - if [ "$GHCVER" = HEAD ]; then export ALLOW="--allow-newer base --allow-newer template-haskell"; else export ALLOW=""; fi
+ - test -z "$STACK" || stack build --only-dependencies "$ALLOW"
 
 script:
  - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal configure --enable-tests --enable-benchmarks -v2
