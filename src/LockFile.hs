@@ -7,6 +7,7 @@ import System.IO.Error
 
 #ifdef WIN32
 import System.Win32.Mutex
+import Control.Monad (unless)
 #else
 import System.Posix.IO
 #endif
