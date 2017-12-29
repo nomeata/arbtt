@@ -187,7 +187,6 @@ executable arbtt-import
         binary >= 0.5,
         aeson >= 0.6  && < 1.3,
         conduit == 1.2.*,
-        conduit-extra == 1.2.*,
         exceptions == 0.8.*,
         attoparsec == 0.13.*,
         deepseq, bytestring, utf8-string, strict,
@@ -215,6 +214,15 @@ executable arbtt-import
         other-modules:
             System.Locale.SetLocale
     default-language: Haskell98
+
+    -- We inline Data.Conduit.Attoparsec, copied
+    -- from conduit-extra to avoid dependencies on network etc.
+    -- The build-depends below are exclusively used by these modules
+    other-modules:
+        Data.Conduit.Attoparsec
+        Data.Conduit.Binary
+    build-depends:
+        text, resourcet, streaming-commons, unliftio-core
 
 executable arbtt-recover
     main-is:            recover-main.hs
