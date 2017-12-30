@@ -77,7 +77,7 @@ jobs:
   include:
     - stage: deploy
       env: DOCS=yes
-      before_install: sudo travis_retry apt-get install xsltproc docbook-xsl
+      before_install: travis_retry sudo apt-get install xsltproc docbook-xsl
       script:
        - make -C doc html
        - mkdir -p website/doc
