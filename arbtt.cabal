@@ -212,6 +212,8 @@ executable arbtt-import
     ghc-options: -rtsopts
     if os(windows)
         cpp-options:    -DWIN32
+        other-modules:
+            System.Win32.Mutex
     else
         other-modules:
             System.Locale.SetLocale
