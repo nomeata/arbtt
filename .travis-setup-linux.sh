@@ -2,10 +2,10 @@
 
 set -xe
 sudo add-apt-repository -y ppa:hvr/ghc
-sudo apt-get update
-sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER # see note about happy/alex
-sudo apt-get install libxss-dev libx11-dev libxrandr-dev libxinerama-dev
+travis_retry sudo apt-get update
+travis_retry sudo apt-get install cabal-install-$CABALVER ghc-$GHCVER # see note about happy/alex
+travis_retry sudo apt-get install libxss-dev libx11-dev libxrandr-dev libxinerama-dev
 cabal --version
 echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
-cabal update
+travis_retry cabal update
 cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls
