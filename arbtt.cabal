@@ -107,7 +107,7 @@ executable arbtt-stats
         transformers, directory, filepath,
         aeson >= 0.10  && < 1.3,
         array == 0.4.* || == 0.5.*,
-        terminal-progress-bar,
+        terminal-progress-bar < 0.2,
         bytestring-progress,
         mtl
 
