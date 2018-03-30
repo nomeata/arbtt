@@ -189,7 +189,8 @@ main = do
         (_height, width) <- getTermSize
         hPutChar stderr '\r'
         hPutStr stderr $
-            mkProgressBar (msg "Processing data") percentage (fromIntegral width) (fromIntegral b) (fromIntegral size)
+            mkProgressBar (msg "Processing data") percentage (fromIntegral width) $
+                Progress (fromIntegral b) (fromIntegral size)
         when  (fromIntegral b >= fromIntegral size) $ do
             hPutChar stderr '\r'
             hPutStr stderr (replicate width ' ')

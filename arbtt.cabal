@@ -107,7 +107,7 @@ executable arbtt-stats
         transformers, directory, filepath,
         aeson >= 0.10  && < 1.3,
         array == 0.4.* || == 0.5.*,
-        terminal-progress-bar < 0.2,
+        terminal-progress-bar >= 0.2 && < 0.3,
         bytestring-progress,
         mtl
 
@@ -187,7 +187,7 @@ executable arbtt-import
         containers == 0.5.*,
         binary >= 0.5,
         aeson >= 0.10  && < 1.3,
-        conduit == 1.2.*,
+        conduit >= 1.2 && < 1.4,
         exceptions == 0.8.*,
         attoparsec == 0.13.*,
         deepseq, bytestring, utf8-string, strict,
@@ -227,7 +227,9 @@ executable arbtt-import
         Data.Conduit.Binary
         Data.Streaming.FileRead
     build-depends:
-        text, resourcet, unliftio-core
+        text,
+        resourcet >= 1.2,
+        unliftio-core
 
 executable arbtt-recover
     main-is:            recover-main.hs
@@ -279,7 +281,7 @@ test-suite test
     TimeLog
   Build-depends:
       base >= 4.7 && < 4.11
-      , tasty >= 0.7 && < 0.13
+      , tasty >= 0.7 && < 1.1
       , tasty-golden >= 2.2.0.2  && < 2.4
       , tasty-hunit >= 0.2  && < 0.11
       , process-extras >= 0.2 && < 0.8
