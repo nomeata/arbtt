@@ -227,7 +227,9 @@ executable arbtt-import
         Data.Conduit.Binary
         Data.Streaming.FileRead
     build-depends:
-        text, resourcet, unliftio-core
+        text,
+        resourcet >= 1.2,
+        unliftio-core
 
 executable arbtt-recover
     main-is:            recover-main.hs
