@@ -1,6 +1,6 @@
 name:               arbtt
 version:            0.10.0.1
-license:            GPL
+license:            GPL-2
 license-file:       LICENSE
 category:           Desktop
 cabal-version:      >= 1.10
