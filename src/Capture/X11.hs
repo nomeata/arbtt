@@ -13,12 +13,10 @@ import System.IO
 import qualified Data.MyText as T
 
 import System.Locale.SetLocale
-import Graphics.X11.XScreenSaver (getXIdleTime, compiledWithXScreenSaver)
+import Graphics.X11.XScreenSaver (getXIdleTime)
 
 setupCapture :: IO ()
 setupCapture = do
-        unless compiledWithXScreenSaver $
-                hPutStrLn stderr "arbtt [Warning]: X11 was compiled without support for XScreenSaver"
         loc <- supportsLocale
         unless loc $ hPutStrLn stderr "arbtt [Warning]: locale unsupported"
         dpy <- openDisplay ""
