@@ -40,7 +40,7 @@ executable arbtt-capture
     main-is:            capture-main.hs
     hs-source-dirs:     src
     build-depends:
-                base >= 4.7 && < 4.11,
+                base >= 4.7 && < 5,
                 filepath, directory, transformers, utf8-string, strict, containers,
                 aeson >= 0.10  && < 1.3,
                 binary >= 0.5,
@@ -91,14 +91,14 @@ executable arbtt-capture
                 Capture.X11
                 System.Locale.SetLocale
             build-depends:
-                X11 > 1.9
+                X11 >= 1.9
     default-language: Haskell98
 
 executable arbtt-stats
     main-is:            stats-main.hs
     hs-source-dirs:     src
     build-depends:
-        base >= 4.7 && < 4.11,
+        base >= 4.7 && < 5,
         parsec == 3.*,
         containers == 0.5.*,
         pcre-light,
@@ -145,7 +145,7 @@ executable arbtt-dump
     main-is:            dump-main.hs
     hs-source-dirs:     src
     build-depends:
-        base >= 4.7 && < 4.11,
+        base >= 4.7 && < 5,
         parsec == 3.*,
         containers == 0.5.*,
         aeson >= 0.10  && < 1.3,
@@ -182,7 +182,7 @@ executable arbtt-import
     main-is:            import-main.hs
     hs-source-dirs:     src
     build-depends:
-        base >= 4.7 && < 4.11,
+        base >= 4.7 && < 5,
         parsec == 3.*,
         containers == 0.5.*,
         binary >= 0.5,
@@ -235,7 +235,7 @@ executable arbtt-recover
     main-is:            recover-main.hs
     hs-source-dirs:     src
     build-depends:
-        base >= 4.7 && < 4.11,
+        base >= 4.7 && < 5,
         containers == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string,
@@ -280,7 +280,7 @@ test-suite test
     Text.Regex.PCRE.Light.Text
     TimeLog
   Build-depends:
-      base >= 4.7 && < 4.11
+      base >= 4.7 && < 5
       , tasty >= 0.7 && < 1.1
       , tasty-golden >= 2.2.0.2  && < 2.4
       , tasty-hunit >= 0.2  && < 0.11
