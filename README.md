@@ -48,7 +48,7 @@ session:
   </plist>
   ```
   and place it in `~/Library/LaunchAgents/com.foo.arbtt.plist`.
-  (You can replace "foo" with anything, such as your username)
+  You can replace "foo" with anything, such as your username, in both file name and content.
   This will ensure `arbtt-capture` is started whenever you log in.
 
 If you want to record samples at a different rate than one per minute, you
