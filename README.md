@@ -50,6 +50,7 @@ session:
   and place it in `~/Library/LaunchAgents/com.foo.arbtt.plist`.
   You can replace "foo" with anything, such as your username, in both file name and content.
   This will ensure `arbtt-capture` is started whenever you log in.
+  To start the service without needing a new login, you can run `launchctl load ~/Library/LaunchAgents/com.foo.arbtt.plist`.
 
 If you want to record samples at a different rate than one per minute, you
 will have to pass the `--sample-rate` parameter to arbtt-capture.
