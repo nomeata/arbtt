@@ -47,7 +47,7 @@ session:
       </dict>
   </plist>
   ```
-  and place it in `~/LaunchAgents/com.foo.arbtt.plist`.
+  and place it in `~/Library/LaunchAgents/com.foo.arbtt.plist`.
   (You can replace "foo" with anything, such as your username)
   This will ensure `arbtt-capture` is started whenever you log in.
 
