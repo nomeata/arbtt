@@ -1,0 +1,5 @@
+resolver: lts-12.4
+
+extra-deps:
+  - bytestring-progress-1.2
+  - terminal-progress-bar-0.2
