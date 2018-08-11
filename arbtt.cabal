@@ -42,7 +42,7 @@ executable arbtt-capture
     build-depends:
                 base >= 4.7 && < 5,
                 filepath, directory, transformers, utf8-string, strict, containers,
-                aeson >= 0.10  && < 1.4,
+                aeson >= 0.10  && < 1.5,
                 binary >= 0.5,
                 bytestring, deepseq
 
@@ -100,12 +100,12 @@ executable arbtt-stats
     build-depends:
         base >= 4.7 && < 5,
         parsec == 3.*,
-        containers == 0.5.*,
+        containers >= 0.5 && < 0.7,
         pcre-light,
         binary >= 0.5,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath,
-        aeson >= 0.10  && < 1.4,
+        aeson >= 0.10  && < 1.5,
         array == 0.4.* || == 0.5.*,
         terminal-progress-bar >= 0.2 && < 0.3,
         bytestring-progress,
@@ -147,8 +147,8 @@ executable arbtt-dump
     build-depends:
         base >= 4.7 && < 5,
         parsec == 3.*,
-        containers == 0.5.*,
-        aeson >= 0.10  && < 1.4,
+        containers >= 0.5 && < 0.7,
+        aeson >= 0.10  && < 1.5,
         array == 0.4.* || == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string, strict,
@@ -184,9 +184,9 @@ executable arbtt-import
     build-depends:
         base >= 4.7 && < 5,
         parsec == 3.*,
-        containers == 0.5.*,
+        containers >= 0.5 && < 0.7,
         binary >= 0.5,
-        aeson >= 0.10  && < 1.4,
+        aeson >= 0.10  && < 1.5,
         conduit >= 1.2 && < 1.4,
         exceptions >= 0.8,
         attoparsec == 0.13.*,
@@ -236,7 +236,7 @@ executable arbtt-recover
     hs-source-dirs:     src
     build-depends:
         base >= 4.7 && < 5,
-        containers == 0.5.*,
+        containers >= 0.5 && < 0.7,
         binary >= 0.5,
         deepseq, bytestring, utf8-string,
         directory, filepath
@@ -291,7 +291,7 @@ test-suite test
       , utf8-string
       , directory
       , parsec == 3.*
-      , containers == 0.5.*
+      , containers >= 0.5 && < 0.7
       , pcre-light
       , transformers
       , mtl
