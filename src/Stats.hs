@@ -214,8 +214,8 @@ repeaterImpl ByYear = RepeaterImpl
     ((\(y,_,_) -> y) . toGregorian . localDay)
     show
 
-processReport :: ReportOptions -> Report -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
-processReport opts GeneralInfos =
+processReport :: TimeZone -> ReportOptions -> Report -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
+processReport tz opts GeneralInfos =
    pure (\n firstDate lastDate ttr tts ->
     let timeDiff = diffUTCTime lastDate firstDate
         fractionRec = realToFrac ttr / (realToFrac timeDiff) :: Double
@@ -237,7 +237,7 @@ processReport opts GeneralInfos =
     onAll calcTotalTime <*>
     onSelected calcTotalTime
 
-processReport opts  TotalTime =
+processReport tz opts  TotalTime =
     onSelected $
         pure (\totalTimeSel sums -> 
             ListOfTimePercValues "Total time per tag" .
@@ -257,27 +257,27 @@ processReport opts  TotalTime =
     calcTotalTime <*>
     calcSums 
 
-processReport opts (Category cat) = pure (\c -> processCategoryReport opts c cat) <*>
+processReport tz opts (Category cat) = pure (\c -> processCategoryReport opts c cat) <*>
     prepareCalculations
 
-processReport opts EachCategory = 
+processReport tz opts EachCategory = 
     pure (\c cats -> MultipleReportResults $ map (processCategoryReport opts c) cats) <*>
     prepareCalculations <*>
     onSelected calcCategories
 
-processReport opts (IntervalCategory cat) =
-    processIntervalReport opts ("Intervals for category " ++ show cat) (extractCat cat) 
+processReport tz opts (IntervalCategory cat) =
+    processIntervalReport tz opts ("Intervals for category " ++ show cat) (extractCat cat) 
     where
         extractCat :: Category -> ActivityData -> Maybe String
         extractCat cat = fmap (unpack . activityName) . listToMaybe . filter ( (==Just cat) . activityCategory )
 
-processReport opts (IntervalTag tag) =
-    processIntervalReport opts ("Intervals for category " ++ show tag) (extractTag tag) 
+processReport tz opts (IntervalTag tag) =
+    processIntervalReport tz opts ("Intervals for category " ++ show tag) (extractTag tag) 
     where
         extractTag :: Activity -> ActivityData -> Maybe String
         extractTag tag = fmap show . listToMaybe . filter ( (==tag) )
 
-processReport opts DumpSamples =
+processReport tz opts DumpSamples =
     DumpResult <$> onSelected (mapElems toList $ fmap $
         \(cd,ad) -> (tlData (cNow cd), cTimeZone cd, filterActivity (roActivityFilter opts) ad)
         )
@@ -327,8 +327,8 @@ processCategoryReport opts ~(Calculations {..}) cat =
 tlRateTimediff :: TimeLogEntry a -> NominalDiffTime
 tlRateTimediff tle = fromIntegral (tlRate tle) / 1000
 
-processIntervalReport :: ReportOptions -> String -> (ActivityData -> Maybe String) -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
-processIntervalReport opts title extr = runOnIntervals  go1 go2
+processIntervalReport :: TimeZone -> ReportOptions -> String -> (ActivityData -> Maybe String) -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
+processIntervalReport tz opts title extr = runOnIntervals  go1 go2
   where
     go1 :: LeftFold (TimeLogEntry (Ctx, ActivityData)) [Interval]
     go1 = go3 `mapElems` fmap (extr . snd) 
@@ -342,8 +342,8 @@ processIntervalReport opts title extr = runOnIntervals  go1 go2
         case tlData fe of
             Just str -> Just
                 ( str
-                , showUtcTime (tlTime fe)
-                , showUtcTime (tlRateTimediff le `addUTCTime` tlTime le)
+                , showAsLocalTime tz (tlTime fe)
+                , showAsLocalTime tz (tlRateTimediff le `addUTCTime` tlTime le)
                 , showTimeDiff opts $
                     tlTime le `diffUTCTime` tlTime fe + tlRateTimediff le
                 )
@@ -362,12 +362,12 @@ processIntervalReport opts title extr = runOnIntervals  go1 go2
 
 
 {-
-intervalReportToTable :: String -> (ActivityData -> Maybe String) -> ReportResults
-intervalReportToTable title extr = ListOfIntervals title $
+intervalReportToTable :: TimeZone -> String -> (ActivityData -> Maybe String) -> ReportResults
+intervalReportToTable tz title extr = ListOfIntervals title $
     map (\tles ->
         let str = fromJust (tlData (head tles))
-            firstE = showUtcTime (tlTime (head tles))
-            lastE = showUtcTime (tlTime (last tles))
+            firstE = showAsLocalTime tz (tlTime (head tles))
+            lastE = showAsLocalTime tz (tlTime (last tles))
             timeLength = showTimeDiff $
                 tlTime (last tles) `diffUTCTime` tlTime (head tles) +
                 fromIntegral (tlRate (last tles))/1000
@@ -377,8 +377,8 @@ intervalReportToTable title extr = ListOfIntervals title $
     fmap (groupBy ((==) `on` tlData) .
          (fmap.fmap) (extr . snd)) $
     tags
--}           
-            
+-}
+
 renderReport :: ReportOptions -> ReportResults -> IO ()
 renderReport opts (DumpResult samples) =
     dumpActivity samples
@@ -477,8 +477,8 @@ showTimeDiffMachine t = printf "%d:%02d:%02d" hours mins secs
         mins  = (s `div` 60) `mod` 60
         secs  =  s `mod` 60 
 
-showUtcTime :: UTCTime -> String
-showUtcTime = formatTime defaultTimeLocale "%x %X"
+showAsLocalTime :: TimeZone -> UTCTime -> String
+showAsLocalTime tz = formatTime defaultTimeLocale "%x %X" . utcToZonedTime tz
 
 underline :: String -> String
 underline str = unlines 
