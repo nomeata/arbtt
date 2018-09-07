@@ -214,7 +214,7 @@ main = do
   let repeater = foldr (.) id $ map (processRepeater tz) (optRepeater flags)
 
   let opts = optReportOptions flags
-  let fold = filterPredicate filters `adjoin` repeater (processReport opts rep)
+  let fold = filterPredicate filters `adjoin` repeater (processReport tz opts rep)
   let result = runLeftFold fold allTags
 
   -- Force the results a bit, to ensure the progress bar to be shown before the title
