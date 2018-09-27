@@ -7,9 +7,9 @@ The Automatic Rule-Based Time Tracker is a desktop daemon that runs in the
 background and, every minute, records what windows are open on your
 desktop, what their titles are, which one is active. The accompanied
 statistics program lets you derive information from this log file, i.e.
-what how much of your time have you been spending with e-Mail, or what
+what how much of your time have you been spending with e-mail, or what
 projects are your largest time wasters. The mapping from the raw window
-titles to sensible „tags“ is done by a configuration file with an powerful
+titles to sensible "tags" is done by a configuration file with an powerful
 syntax.
 
 Installation
@@ -21,7 +21,7 @@ You can build and install this program as any other Cabalized program:
     $ runhaskell Setup.hs build
     $ runhaskell Setup.hs install
 
-You also need to make sure that arbtt-capture is started with your X
+You also need to make sure that `arbtt-capture` is started with your X
 session:
 - If you use GNOME or KDE, you can copy the file
   `arbtt-capture.desktop` to `~/.config/autostart/`. You might need to put the
@@ -58,11 +58,11 @@ will have to pass the `--sample-rate` parameter to arbtt-capture.
 Documentation
 ------------
 
-Full documentation is now provided in the user manual in the doc/
+Full documentation is now provided in the user manual in the [doc/](doc/)
 directory. If you have the docbook xsl toolchain installed, you can
 generate the HTML documentation by entering "make" in that directory.
 Otherwise, you can use the
-[online version of the User’s Guide](http://arbtt.nomeata.de/doc/users_guide/index.html)
+[online version of the User’s Guide](http://arbtt.nomeata.de/doc/users_guide/index.html).
 Beware that this will also reflect the latest development version.
 
 Development
@@ -76,7 +76,7 @@ latest source at the git repository at
 User and Developer discussion happens on the arbtt mailing list:
   arbtt@lists.nomeata.de
 To subscribe to the list, visit:
-  http://lists.nomeata.de/mailman/listinfo/arbtt
+  <http://lists.nomeata.de/mailman/listinfo/arbtt>
 
 The issue tracker is hosted on bitbucket:
   <https://bitbucket.org/nomeata/arbtt/issues>
