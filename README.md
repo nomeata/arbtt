@@ -7,9 +7,9 @@ The Automatic Rule-Based Time Tracker is a desktop daemon that runs in the
 background and, every minute, records what windows are open on your
 desktop, what their titles are, which one is active. The accompanied
 statistics program lets you derive information from this log file, i.e.
-what how much of your time have you been spending with e-Mail, or what
+what how much of your time have you been spending with e-mail, or what
 projects are your largest time wasters. The mapping from the raw window
-titles to sensible „tags“ is done by a configuration file with an powerful
+titles to sensible "tags" is done by a configuration file with an powerful
 syntax.
 
 Installation
@@ -20,15 +20,17 @@ You can build and install this program as any other Cabalized program:
     $ runhaskell Setup.hs configure
     $ runhaskell Setup.hs build
     $ runhaskell Setup.hs install
+    
+Other installation options are described in the [website](http://arbtt.nomeata.de/#install).
 
-You also need to make sure that arbtt-capture is started with your X
+You also need to make sure that `arbtt-capture` is started with your X
 session:
 - If you use GNOME or KDE, you can copy the file
   `arbtt-capture.desktop` to `~/.config/autostart/`. You might need to put the
-  full path to arbtt-capture in the `Exec` line there, if you did not do a
+  full path to `arbtt-capture` in the `Exec` line there, if you did not do a
   system wide installation.
 - If you use macOS, you can use `launchd` for this.
-  Create a .plist file like the following
+  Create a `.plist` file like the following
   (with the path changed to match where arbtt-capture is located in your system):
   
   ```xml
@@ -37,7 +39,7 @@ session:
   <plist version="1.0">
       <dict>
           <key>Label</key>
-          <string>com.foo.arbtt</string>
+          <string>de.nomeata.arbtt</string>
           <key>Program</key>
           <string>/path/to/arbtt-capture</string>
           <key>RunAtLoad</key>
@@ -47,10 +49,10 @@ session:
       </dict>
   </plist>
   ```
-  and place it in `~/Library/LaunchAgents/com.foo.arbtt.plist`.
-  You can replace "foo" with anything, such as your username, in both file name and content.
+  and place it in `~/Library/LaunchAgents/de.nomeata.arbtt.plist`.
   This will ensure `arbtt-capture` is started whenever you log in.
-  To start the service without needing a new login, you can run `launchctl load ~/Library/LaunchAgents/com.foo.arbtt.plist`.
+  To start the service without needing a new login,
+  you can run `launchctl load ~/Library/LaunchAgents/de.nomeata.arbtt.plist`.
 
 If you want to record samples at a different rate than one per minute, you
 will have to pass the `--sample-rate` parameter to arbtt-capture.
@@ -58,11 +60,11 @@ will have to pass the `--sample-rate` parameter to arbtt-capture.
 Documentation
 ------------
 
-Full documentation is now provided in the user manual in the doc/
+Full documentation is now provided in the user manual in the [doc/](doc/)
 directory. If you have the docbook xsl toolchain installed, you can
 generate the HTML documentation by entering "make" in that directory.
 Otherwise, you can use the
-[online version of the User’s Guide](http://arbtt.nomeata.de/doc/users_guide/index.html)
+[online version of the User’s Guide](http://arbtt.nomeata.de/doc/users_guide/index.html).
 Beware that this will also reflect the latest development version.
 
 Development
@@ -76,7 +78,7 @@ latest source at the git repository at
 User and Developer discussion happens on the arbtt mailing list:
   arbtt@lists.nomeata.de
 To subscribe to the list, visit:
-  http://lists.nomeata.de/mailman/listinfo/arbtt
+  <http://lists.nomeata.de/mailman/listinfo/arbtt>
 
 The issue tracker is hosted on bitbucket:
   <https://bitbucket.org/nomeata/arbtt/issues>
