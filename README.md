@@ -27,10 +27,10 @@ You also need to make sure that `arbtt-capture` is started with your X
 session:
 - If you use GNOME or KDE, you can copy the file
   `arbtt-capture.desktop` to `~/.config/autostart/`. You might need to put the
-  full path to arbtt-capture in the `Exec` line there, if you did not do a
+  full path to `arbtt-capture` in the `Exec` line there, if you did not do a
   system wide installation.
 - If you use macOS, you can use `launchd` for this.
-  Create a .plist file like the following
+  Create a `.plist` file like the following
   (with the path changed to match where arbtt-capture is located in your system):
   
   ```xml
@@ -39,7 +39,7 @@ session:
   <plist version="1.0">
       <dict>
           <key>Label</key>
-          <string>com.foo.arbtt</string>
+          <string>de.nomeata.arbtt</string>
           <key>Program</key>
           <string>/path/to/arbtt-capture</string>
           <key>RunAtLoad</key>
@@ -49,10 +49,10 @@ session:
       </dict>
   </plist>
   ```
-  and place it in `~/Library/LaunchAgents/com.foo.arbtt.plist`.
-  You can replace "foo" with anything, such as your username, in both file name and content.
+  and place it in `~/Library/LaunchAgents/de.nomeata.arbtt.plist`.
   This will ensure `arbtt-capture` is started whenever you log in.
-  To start the service without needing a new login, you can run `launchctl load ~/Library/LaunchAgents/com.foo.arbtt.plist`.
+  To start the service without needing a new login,
+  you can run `launchctl load ~/Library/LaunchAgents/de.nomeata.arbtt.plist`.
 
 If you want to record samples at a different rate than one per minute, you
 will have to pass the `--sample-rate` parameter to arbtt-capture.
