@@ -20,6 +20,8 @@ You can build and install this program as any other Cabalized program:
     $ runhaskell Setup.hs configure
     $ runhaskell Setup.hs build
     $ runhaskell Setup.hs install
+    
+Other installation options are described in the [website](http://arbtt.nomeata.de/#install).
 
 You also need to make sure that `arbtt-capture` is started with your X
 session:
