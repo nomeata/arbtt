@@ -34,7 +34,7 @@ rm -f ${HOME}/.cabal/config
 
 travis_retry cabal update
 
-if [ "$GHCVER" = HEAD ]
+if [ "$GHCVER" = head ]
 then
   echo 'repository head.hackage'                                                        >> ${HOME}/.cabal/config
   echo '   url: http://head.hackage.haskell.org/'                                       >> ${HOME}/.cabal/config
