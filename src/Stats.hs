@@ -22,8 +22,8 @@ import Data.Maybe
 import Data.List
 import Data.Ord
 import Text.Printf
-import qualified Data.Map as M
-import qualified Data.Set as S
+import qualified Data.Map.Strict as M
+import qualified Data.Set.Strict as S
 import Data.MyText (Text,pack,unpack)
 import Data.Function (on)
 #if MIN_VERSION_time(1,5,0)
@@ -145,15 +145,15 @@ data Calculations = Calculations
 
 prepareCalculations :: LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) Calculations
 prepareCalculations =
-    pure (\fd ld ttr tts s -> 
+    pure (\fd ld ttr tts s ->
         let c = Calculations
                   { firstDate = fd
                   , lastDate = ld
                   , timeDiff = diffUTCTime (lastDate c) (firstDate c)
                   , totalTimeRec = ttr
                   , totalTimeSel = tts
-                  , fractionRec = realToFrac (totalTimeRec c) / (realToFrac (timeDiff c))
-                  , fractionSel = realToFrac (totalTimeSel c) / (realToFrac (timeDiff c))
+                  , fractionRec = realToFrac (totalTimeRec c) / realToFrac (timeDiff c)
+                  , fractionSel = realToFrac (totalTimeSel c) / realToFrac (timeDiff c)
                   , fractionSelRec = realToFrac (totalTimeSel c) / realToFrac (totalTimeRec c)
                   , sums = s
                   } in c) <*>
@@ -161,8 +161,7 @@ prepareCalculations =
     onAll calcLastDate <*>
     onAll calcTotalTime <*>
     onSelected calcTotalTime <*>
-    onSelected calcSums 
-  where
+    onSelected calcSums
 
 calcFirstDate :: LeftFold (TimeLogEntry a) UTCTime
 calcFirstDate = fromJust <$> lfFirst `mapElems` tlTime
@@ -176,7 +175,7 @@ calcTotalTime = (/1000) <$> LeftFold 0 (+) fromInteger `mapElems` tlRate
 calcSums :: LeftFold (TimeLogEntry (a, [Activity])) (M.Map Activity NominalDiffTime)
 calcSums = LeftFold M.empty
             (\m tl ->
-                let go' m act = M.insertWith' (+) act (fromInteger (tlRate tl)/1000) m
+                let go' m act = M.insertWith (+) act (fromInteger (tlRate tl)/1000) m
                 in foldl' go' m (snd (tlData tl))) id
 
 processRepeater :: TimeZone -> Repeater -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
