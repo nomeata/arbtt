@@ -43,6 +43,8 @@ echo '              8f79fd2389ab2967354407ec852cbe73f2e8635793ac446d09461ffb9952
 echo '   key-threshold: 3'                                                            >> ${HOME}/.cabal.config
 sed -i 's/-- allow-newer: .*/allow-newer: *:base/' ${HOME}/.cabal/config
 
+ecat ${HOME}/.cabal/config
+
 travis_retry cabal update
 
 cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls
