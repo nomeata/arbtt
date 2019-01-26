@@ -50,4 +50,4 @@ cat ${HOME}/.cabal/config
 
 travis_retry cabal update
 
-cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls
+cabal install --only-dependencies --force-reinstalls
