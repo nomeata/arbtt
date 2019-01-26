@@ -1059,6 +1059,13 @@ library(reshape)
 arbtt &lt;- reshape(arbtt, v.names=&quot;Time&quot;, timevar=&quot;Tag&quot;, idvar=&quot;Day&quot;, direction=&quot;wide&quot;)
 </programlisting>
   </sect2>
+  <sect2 id="current-day">
+    <title>Selecting the current day</title>
+    <para>
+      This can be done easily with a bit of help from the command line:
+    </para>
+    <programlisting>arbtt-stats  --filter='$date>='`date +"%Y-%m-%d"`</programlisting>
+  </sect2>
 </sect1>
 <sect1 id="contributed">
   <title>Contributed tools</title>
