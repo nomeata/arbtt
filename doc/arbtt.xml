@@ -57,6 +57,18 @@
       <contrib>Documentation writer</contrib>
       <email>gwern@gwern.net</email>
     </author>
+    <author id="paolo">
+      <firstname>Paolo G.</firstname>
+      <surname>Giarrusso</surname>
+      <contrib>Contributor</contrib>
+      <email>p.giarrusso@gmail.com</email>
+    </author>
+    <author id="michal">
+      <firstname>Michal J.</firstname>
+      <surname>Gajda</surname>
+      <contrib>Contributor</contrib>
+      <email>migamake@migamake.com</email>
+    </author>
   </authorgroup>
 </articleinfo>
 <abstract>
@@ -1778,6 +1790,38 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   <para>
   The version history with changes relevant for the user is documented here.
   </para>
+
+  <sect2 id="release-notes-0.10.2">
+    <title>Version 0.10.2</title>
+    <itemizedlist>
+      <listitem>
+        <para>
+	  The category report now also has an entry <literal>(total time)</literal>, especially useful with <option>--for-each</option>.
+	</para>
+      </listitem>
+      <listitem>
+        <para>
+	  Michal J. Gajda ensured that intervals are also printed as local times.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
+  <sect2 id="release-notes-0.10.1">
+    <title>Version 0.10.1</title>
+    <itemizedlist>
+      <listitem>
+        <para>
+	  Rodney Lorrimar contributed fixed to build against newer versions of dependencies.
+	</para>
+      </listitem>
+      <listitem>
+        <para>
+	  Michal J. Gajda ensured that intervals are also printed as local times.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
 
   <sect2 id="release-notes-0.10">
     <title>Version 0.10</title>
