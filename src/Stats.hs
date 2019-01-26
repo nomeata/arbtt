@@ -218,8 +218,8 @@ processReport :: TimeZone -> ReportOptions -> Report -> LeftFold (Bool :!: TimeL
 processReport tz opts GeneralInfos =
    pure (\n firstDate lastDate ttr tts ->
     let timeDiff = diffUTCTime lastDate firstDate
-        fractionRec = realToFrac ttr / (realToFrac timeDiff) :: Double
-        fractionSel = realToFrac tts / (realToFrac timeDiff) :: Double
+        fractionRec = realToFrac ttr / realToFrac timeDiff :: Double
+        fractionSel = realToFrac tts / realToFrac timeDiff :: Double
         fractionSelRec = realToFrac tts / realToFrac ttr :: Double
     in ListOfFields "General Information"
         [ ("FirstRecord", show firstDate)
@@ -239,43 +239,39 @@ processReport tz opts GeneralInfos =
 
 processReport tz opts  TotalTime =
     onSelected $
-        pure (\totalTimeSel sums -> 
+        pure (\totalTimeSel sums ->
             ListOfTimePercValues "Total time per tag" .
             mapMaybe (\(tag,time) ->
                   let perc = realToFrac time/realToFrac totalTimeSel
                       pick = applyActivityFilter (roActivityFilter opts) tag
                   in if pick && perc*100 >= roMinPercentage opts
-                  then Just $ ( show tag
-                              , showTimeDiff opts time
-                              , perc)
+                  then Just ( show tag , showTimeDiff opts time , perc)
                   else Nothing
                   ) .
-            reverse .
-            sortBy (comparing snd) $
-            M.toList $
-            sums) <*>
+            sortOn (Down . snd) $
+            M.toList sums) <*>
     calcTotalTime <*>
-    calcSums 
+    calcSums
 
 processReport tz opts (Category cat) = pure (\c -> processCategoryReport opts c cat) <*>
     prepareCalculations
 
-processReport tz opts EachCategory = 
+processReport tz opts EachCategory =
     pure (\c cats -> MultipleReportResults $ map (processCategoryReport opts c) cats) <*>
     prepareCalculations <*>
     onSelected calcCategories
 
 processReport tz opts (IntervalCategory cat) =
-    processIntervalReport tz opts ("Intervals for category " ++ show cat) (extractCat cat) 
+    processIntervalReport tz opts ("Intervals for category " ++ show cat) (extractCat cat)
     where
         extractCat :: Category -> ActivityData -> Maybe String
         extractCat cat = fmap (unpack . activityName) . listToMaybe . filter ( (==Just cat) . activityCategory )
 
 processReport tz opts (IntervalTag tag) =
-    processIntervalReport tz opts ("Intervals for category " ++ show tag) (extractTag tag) 
+    processIntervalReport tz opts ("Intervals for category " ++ show tag) (extractTag tag)
     where
         extractTag :: Activity -> ActivityData -> Maybe String
-        extractTag tag = fmap show . listToMaybe . filter ( (==tag) )
+        extractTag tag = fmap show . listToMaybe . filter (==tag)
 
 processReport tz opts DumpSamples =
     DumpResult <$> onSelected (mapElems toList $ fmap $
@@ -288,41 +284,35 @@ calcCategories = fmap S.toList $ leftFold S.empty $ \s tl ->
           where go' s (Activity (Just cat) _) = S.insert cat s
                 go' s _                       = s
 
-processCategoryReport opts ~(Calculations {..}) cat =
+processCategoryReport opts ~Calculations{..} cat =
         PieChartOfTimePercValues ("Statistics for category " ++ show cat) $
                 let filteredSums = M.filterWithKey (\a _ -> isCategory cat a) sums
                     uncategorizedTime = totalTimeSel - M.fold (+) 0 filteredSums
                     tooSmallSums = M.filter (\t -> realToFrac t / realToFrac totalTimeSel * 100 < roMinPercentage opts) filteredSums
                     tooSmallTimes = M.fold (+) 0 tooSmallSums
                 in
-
-                mapMaybe (\(tag,time) ->
-                      let perc = realToFrac time/realToFrac totalTimeSel
-                          pick = applyActivityFilter (roActivityFilter opts) tag
-                      in if pick && perc*100 >= roMinPercentage opts
-                      then Just ( show tag
-                                , showTimeDiff opts time
-                                , perc)
-                      else Nothing
-                      )
-                      (reverse $ sortBy (comparing snd) $ M.toList filteredSums)
+                [ (show tag, showTimeDiff opts time, perc)
+                | (tag,time) <- sortOn (Down . snd) $ M.toList filteredSums
+                , applyActivityFilter (roActivityFilter opts) tag
+                , let perc = realToFrac time/realToFrac totalTimeSel
+                , perc*100 >= roMinPercentage opts
+                ]
                 ++
-                (
-                if tooSmallTimes > 0
-                then [( printf "(%d entries omitted)" (M.size tooSmallSums)
-                      , showTimeDiff opts tooSmallTimes
-                      , realToFrac tooSmallTimes/realToFrac totalTimeSel
-                      )]
-                else []
-                )
-                ++      
-                (if uncategorizedTime > 0
-                then [( "(unmatched time)"
-                      , showTimeDiff opts uncategorizedTime
-                      , realToFrac uncategorizedTime/realToFrac totalTimeSel
-                      )]
-                else []
-                )
+                [ ( printf "(%d entries omitted)" (M.size tooSmallSums)
+                  , showTimeDiff opts tooSmallTimes
+                  , realToFrac tooSmallTimes/realToFrac totalTimeSel
+                  ) | tooSmallTimes > 0 ]
+                ++
+                [ ( "(unmatched time)"
+                  , showTimeDiff opts uncategorizedTime
+                  , realToFrac uncategorizedTime/realToFrac totalTimeSel
+                  ) | uncategorizedTime > 0]
+                ++
+                [ ( "(total time)"
+                  , showTimeDiff opts totalTimeSel
+                  , realToFrac totalTimeSel/realToFrac totalTimeSel
+                  )
+                ]
 
 tlRateTimediff :: TimeLogEntry a -> NominalDiffTime
 tlRateTimediff tle = fromIntegral (tlRate tle) / 1000
@@ -393,20 +383,20 @@ doRender opts reportdata = case roReportFormat opts of
                 RFCSV -> renderWithDelimiter "," $ renderXSV reportdata
                 RFTSV -> renderWithDelimiter "\t" $ renderXSV reportdata
 
-renderReportText titleMod (ListOfFields title dats) = 
+renderReportText titleMod (ListOfFields title dats) =
     underline (titleMod title) ++
-    (tabulate False $ map (\(f,v) -> [f,v]) dats)
+    tabulate False (map (\(f,v) -> [f,v]) dats)
 
-renderReportText titleMod (ListOfTimePercValues title dats) = 
-    underline (titleMod title) ++ (tabulate True $ listOfValues dats)
+renderReportText titleMod (ListOfTimePercValues title dats) =
+    underline (titleMod title) ++ tabulate True (listOfValues dats)
 
-renderReportText titleMod (PieChartOfTimePercValues title dats) = 
-    underline (titleMod title) ++ (tabulate True $ piechartOfValues dats)
+renderReportText titleMod (PieChartOfTimePercValues title dats) =
+    underline (titleMod title) ++ tabulate True (piechartOfValues dats)
 
-renderReportText titleMod (ListOfIntervals title dats) = 
-    underline (titleMod title) ++ (tabulate True $ listOfIntervals dats)
+renderReportText titleMod (ListOfIntervals title dats) =
+    underline (titleMod title) ++ tabulate True (listOfIntervals dats)
 
-renderReportText titleMod (RepeatedReportResults cat reps) = 
+renderReportText titleMod (RepeatedReportResults cat reps) =
     intercalate "\n" $ map (\(v,rr) -> renderReportText (titleMod . mod v) rr) reps
   where mod v s = s ++ " (" ++ cat ++ " " ++ v ++ ")"
 
