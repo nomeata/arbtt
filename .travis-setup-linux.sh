@@ -46,7 +46,7 @@ then
   sed -i 's/-- allow-newer: .*/allow-newer: *:base/' ${HOME}/.cabal/config
 fi
 
-ecat ${HOME}/.cabal/config
+cat ${HOME}/.cabal/config
 
 travis_retry cabal update
 
