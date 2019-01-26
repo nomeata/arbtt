@@ -287,9 +287,9 @@ calcCategories = fmap S.toList $ leftFold S.empty $ \s tl ->
 processCategoryReport opts ~Calculations{..} cat =
         PieChartOfTimePercValues ("Statistics for category " ++ show cat) $
                 let filteredSums = M.filterWithKey (\a _ -> isCategory cat a) sums
-                    uncategorizedTime = totalTimeSel - M.fold (+) 0 filteredSums
+                    uncategorizedTime = totalTimeSel - M.foldl' (+) 0 filteredSums
                     tooSmallSums = M.filter (\t -> realToFrac t / realToFrac totalTimeSel * 100 < roMinPercentage opts) filteredSums
-                    tooSmallTimes = M.fold (+) 0 tooSmallSums
+                    tooSmallTimes = M.foldl' (+) 0 tooSmallSums
                 in
                 [ (show tag, showTimeDiff opts time, perc)
                 | (tag,time) <- sortOn (Down . snd) $ M.toList filteredSums
