@@ -23,7 +23,7 @@ import Data.List
 import Data.Ord
 import Text.Printf
 import qualified Data.Map.Strict as M
-import qualified Data.Set.Strict as S
+import qualified Data.Set as S
 import Data.MyText (Text,pack,unpack)
 import Data.Function (on)
 #if MIN_VERSION_time(1,5,0)
@@ -86,7 +86,7 @@ defaultReportOptions = ReportOptions
 
 -- Data format semantically representing the result of a report, including the
 -- title
-type Interval = (String,String,String,String) 
+type Interval = (String,String,String,String)
 data ReportResults =
         ListOfFields String [(String, String)]
         | ListOfTimePercValues String [(String, String, Double)]
@@ -98,8 +98,8 @@ data ReportResults =
 
 
 filterPredicate :: [Filter] -> TimeLogEntry (Ctx, ActivityData) -> Bool
-filterPredicate filters tl = 
-       all (\flag -> case flag of 
+filterPredicate filters tl =
+       all (\flag -> case flag of
                 Exclude act  -> excludeTag act tl
                 Only act     -> onlyTag act tl
                 GeneralCond s-> applyCond s (cTimeZone (fst (tlData tl))) M.empty tl) filters
@@ -110,8 +110,8 @@ filterActivity fs = filter (applyActivityFilter fs)
 applyActivityFilter :: [ActivityFilter] -> Activity -> Bool
 applyActivityFilter fs act = all go fs
     where go (ExcludeActivity matcher) = not (matchActivityMatcher matcher act)
-          go (OnlyActivity matcher)    =      matchActivityMatcher matcher act 
-                                
+          go (OnlyActivity matcher)    =      matchActivityMatcher matcher act
+
 excludeTag matcher = not . any (matchActivityMatcher matcher) . snd . tlData
 onlyTag matcher = any (matchActivityMatcher matcher) . snd . tlData
 
@@ -122,7 +122,7 @@ matchActivityMatcher :: ActivityMatcher -> Activity -> Bool
 matchActivityMatcher (MatchActivity act1) act2 = act1 == act2
 matchActivityMatcher (MatchCategory cat) act2 = Just cat == activityCategory act2
 
-parseActivityMatcher :: String -> ActivityMatcher 
+parseActivityMatcher :: String -> ActivityMatcher
 parseActivityMatcher str | last str == ':' = MatchCategory (pack (init str))
                          | otherwise       = MatchActivity (read str)
 
@@ -320,7 +320,7 @@ processIntervalReport :: TimeZone -> ReportOptions -> String -> (ActivityData -
 processIntervalReport tz opts title extr = runOnIntervals  go1 go2
   where
     go1 :: LeftFold (TimeLogEntry (Ctx, ActivityData)) [Interval]
-    go1 = go3 `mapElems` fmap (extr . snd) 
+    go1 = go3 `mapElems` fmap (extr . snd)
     go3 :: LeftFold (TimeLogEntry (Maybe String)) [Interval]
     go3 = runOnGroups sameGroup go4 (onJusts toList)
     sameGroup tl1 tl2 =
@@ -341,10 +341,10 @@ processIntervalReport tz opts title extr = runOnIntervals  go1 go2
         (fromJust <$> lfLast)
     go2 :: LeftFold [Interval] ReportResults
     go2 = ListOfIntervals title <$> concatFold
-        
+
 
 {-
-        ((extr. snd) `filterWith` 
+        ((extr. snd) `filterWith`
             runOnIntervals
                 (runOnGroups ((==) `on` tlData)
 -}
@@ -413,7 +413,7 @@ listOfIntervals dats =
 
 -- The reporting of "General Information" is not supported for the
 -- comma-separated output format.
-renderXSV (ListOfFields title dats) = 
+renderXSV (ListOfFields title dats) =
     error ("\"" ++ title ++ "\"" ++ " not supported for this output format")
 
 renderXSV (ListOfTimePercValues _ dats) = listOfValues dats
@@ -451,7 +451,7 @@ showTimeDiffHuman t = go False $ zip [days,hours,mins,secs] ["d","h","m","s"]
         days  =  s `div` (24*60*60)
         hours = (s `div` (60*60)) `mod` 24
         mins  = (s `div` 60) `mod` 60
-        secs  =  s `mod` 60 
+        secs  =  s `mod` 60
         go False []         = "0s"
         go True  []         = ""
 --      go True  vs         | all (==0) (map fst vs) = concat (replicate (length vs) "   ")
@@ -464,13 +464,13 @@ showTimeDiffMachine t = printf "%d:%02d:%02d" hours mins secs
   where s = round t :: Integer
         hours = s `div` (60*60)
         mins  = (s `div` 60) `mod` 60
-        secs  =  s `mod` 60 
+        secs  =  s `mod` 60
 
 showAsLocalTime :: TimeZone -> UTCTime -> String
 showAsLocalTime tz = formatTime defaultTimeLocale "%x %X" . utcToZonedTime tz
 
 underline :: String -> String
-underline str = unlines 
+underline str = unlines
     [ str
     , map (const '=') str
     ]
