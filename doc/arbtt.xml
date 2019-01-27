@@ -1808,7 +1808,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       </listitem>
       <listitem>
         <para>
-	  Michal J. Gajda ensured that intervals are also printed as local times.
+	  Support for GHC-8.0 and older has been dropped.
 	</para>
       </listitem>
     </itemizedlist>
