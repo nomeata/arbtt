@@ -17,6 +17,7 @@ import Data.ByteString.Lazy.Progress
 import System.ProgressBar
 import TermSize
 import qualified Data.MyText as T
+import qualified Data.Text.Lazy as TL
 import Data.Time.LocalTime
 
 import TimeLog
@@ -185,17 +186,12 @@ main = do
   trackedTimelog <- case isTerm of
     True -> do
       hSetBuffering stderr NoBuffering
-      trackProgressWithChunkSize (fromIntegral size `div` 100) (\_ b -> do
-        (_height, width) <- getTermSize
-        hPutChar stderr '\r'
-        hPutStr stderr $
-            mkProgressBar (msg "Processing data") percentage (fromIntegral width) $
-                Progress (fromIntegral b) (fromIntegral size)
-        when  (fromIntegral b >= fromIntegral size) $ do
-            hPutChar stderr '\r'
-            hPutStr stderr (replicate width ' ')
-            hPutChar stderr '\r'
-        ) timelog
+      let pbStyle = defStyle { stylePrefix = msg (TL.pack "Processing data")
+                             , stylePostfix = percentage }
+      pb <- hNewProgressBar stderr pbStyle 10 (Progress 0 100 ())
+      trackProgressWithChunkSize (fromIntegral size `div` 100)
+          (\_ b -> updateProgress pb (const (Progress (fromIntegral b) (fromIntegral size) ())))
+          timelog
     False -> return timelog
 
   let captures = parseTimeLog trackedTimelog
