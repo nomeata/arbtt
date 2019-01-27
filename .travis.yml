@@ -41,9 +41,9 @@ install:
  - test -z "$STACK" || stack build --only-dependencies
 
 script:
- - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal configure --enable-tests --enable-benchmarks -v2
- - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal build
- - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal test
+ - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal new-configure --enable-tests --enable-benchmarks -v2
+ - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal new-build
+ - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal new-test
  - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal check
  - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal sdist
  - test -z "$STACK" || stack build --test

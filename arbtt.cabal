@@ -135,6 +135,7 @@ executable arbtt-stats
         Text.ParserCombinators.Parsec.ExprFail
         Text.Regex.PCRE.Light.Text
         TermSize
+        Paths_arbtt
     ghc-options: -rtsopts
     if os(windows)
         cpp-options:    -DWIN32
@@ -172,6 +173,7 @@ executable arbtt-dump
         TimeLog
         DumpFormat
         Data.List.TakeR
+        Paths_arbtt
     ghc-options: -rtsopts
     if os(windows)
         cpp-options:    -DWIN32
@@ -211,6 +213,7 @@ executable arbtt-import
         TimeLog
         LockFile
         DumpFormat
+        Paths_arbtt
     ghc-options: -rtsopts
     if os(windows)
         cpp-options:    -DWIN32
@@ -257,6 +260,7 @@ executable arbtt-recover
         Data.Binary.StringRef
         CommonStartup
         TimeLog
+        Paths_arbtt
     ghc-options: -rtsopts
     if os(windows)
         cpp-options:    -DWIN32
@@ -281,9 +285,10 @@ test-suite test
     Text.Parsec.ExprFail
     Text.Regex.PCRE.Light.Text
     TimeLog
+    Paths_arbtt
   Build-depends:
       base >= 4.7 && < 5
-      , tasty >= 0.7 && < 1.2
+      , tasty >= 0.7 && < 1.3
       , tasty-golden >= 2.2.0.2  && < 2.4
       , tasty-hunit >= 0.2  && < 0.11
       , process-extras >= 0.2 && < 0.8
@@ -306,6 +311,11 @@ test-suite test
   else
         build-depends: time >= 1.5
   default-language: Haskell98
+  build-tool-depends:
+      arbtt:arbtt-stats
+    , arbtt:arbtt-dump
+    , arbtt:arbtt-import
+    , arbtt:arbtt-recover
 
 source-repository head
   type:     git
