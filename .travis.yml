@@ -1,9 +1,9 @@
 language: generic
 
 env:
- - CABALVER=2.2 GHCVER=8.0.2
  - CABALVER=2.2 GHCVER=8.2.2
  - CABALVER=2.2 GHCVER=8.4.2
+ - CABALVER=2.2 GHCVER=8.6.3
  - CABALVER=head GHCVER=head  # see section about GHC HEAD snapshots
 # - STACK=lts-12
  - STACK=nightly
