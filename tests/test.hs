@@ -28,11 +28,10 @@ import           Data.Time.Clock
 
 main = do
     setEnv "TZ" "UTC" -- to make tests reproducible
-    distDir <- fromMaybe "dist" `liftM` lookupEnv "HASKELL_DIST_DIR"
-    defaultMain (tests distDir)
+    defaultMain tests
 
-tests :: FilePath -> TestTree
-tests distDir = testGroup "Tests" [goldenTests distDir, regressionTests, parserTests]
+tests :: TestTree
+tests = testGroup "Tests" [goldenTests, regressionTests, parserTests]
 
 regressionTests :: TestTree
 regressionTests = testGroup "Regression tests"
@@ -60,47 +59,47 @@ regressionTests = testGroup "Regression tests"
     ]
 
 
-goldenTests :: FilePath -> TestTree
-goldenTests distDir = testGroup "Golden tests"
+goldenTests :: TestTree
+goldenTests = testGroup "Golden tests"
     [ goldenVsString "dump small"
         "tests/small_dump.out" $
-        run (distDir ++ "/build/arbtt-dump/arbtt-dump") ["-f","tests/small.log", "-t", "Show"] B.empty
+        run "arbtt-dump" ["-f","tests/small.log", "-t", "Show"] B.empty
     , goldenVsFile "import small"
         "tests/small_import.out" "tests/small_import.out.actual" $ void $ do
         tryIOError $ removeFile "tests/small_import.out.actual"
         B.readFile "tests/small_import.in" >>=
-            run (distDir ++ "/build/arbtt-import/arbtt-import") ["-f","tests/small_import.out.actual"]
+            run "arbtt-import" ["-f","tests/small_import.out.actual"]
     , goldenVsString "dump small JSON"
         "tests/small_dump_json.out" $
-        run (distDir ++ "/build/arbtt-dump/arbtt-dump") ["-f","tests/small.log", "-t", "JSON"] B.empty
+        run "arbtt-dump" ["-f","tests/small.log", "-t", "JSON"] B.empty
     , goldenVsFile "import small JSON"
         "tests/small_import_json.out" "tests/small_import_json.out.actual" $ void $ do
         tryIOError $ removeFile "tests/small_import_json.out.actual"
         B.readFile "tests/small_import_json.in" >>=
-            run (distDir ++ "/build/arbtt-import/arbtt-import") ["-f","tests/small_import_json.out.actual", "-t", "JSON"]
+            run "arbtt-import" ["-f","tests/small_import_json.out.actual", "-t", "JSON"]
     , goldenVsFile "import small JSON (list)"
         "tests/small_import_json_list.out" "tests/small_import_json_list.out.actual" $ void $ do
         tryIOError $ removeFile "tests/small_import_json_list.out.actual"
         B.readFile "tests/small_import_json_list.in" >>=
-            run (distDir ++ "/build/arbtt-import/arbtt-import") ["-f","tests/small_import_json_list.out.actual", "-t", "JSON"]
+            run "arbtt-import" ["-f","tests/small_import_json_list.out.actual", "-t", "JSON"]
     , goldenVsFile "recover small"
         "tests/small_borked_recover.out" "tests/small_borked_recover.out.actual" $ void $
-        run (distDir ++ "/build/arbtt-recover/arbtt-recover") ["-i","tests/small_borked_recover.out", "-o", "tests/small_borked_recover.out.actual"] B.empty
+        run "arbtt-recover" ["-i","tests/small_borked_recover.out", "-o", "tests/small_borked_recover.out.actual"] B.empty
     , goldenVsString "stats small"
         "tests/small_stats.out" $
-        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/small.log", "--categorize", "tests/small.cfg"] B.empty
+        run "arbtt-stats" ["--logfile", "tests/small.log", "--categorize", "tests/small.cfg"] B.empty
     , goldenVsString "stats small csv"
         "tests/small_stats_csv.out" $
-        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/small.log", "--categorize", "tests/small.cfg", "--output-format", "csv"] B.empty
+        run "arbtt-stats" ["--logfile", "tests/small.log", "--categorize", "tests/small.cfg", "--output-format", "csv"] B.empty
     , goldenVsString "stats small unicode"
         "tests/unicode_stats.out" $
-        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/unicode.log", "--categorize", "tests/unicode.cfg"] B.empty
+        run "arbtt-stats" ["--logfile", "tests/unicode.log", "--categorize", "tests/unicode.cfg"] B.empty
     , goldenVsString "stats gap handling"
         "tests/gap-handling.out" $
-        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/gap-handling.log", "--categorize", "tests/gap-handling.cfg", "--intervals", "Program:"] B.empty
+        run "arbtt-stats" ["--logfile", "tests/gap-handling.log", "--categorize", "tests/gap-handling.cfg", "--intervals", "Program:"] B.empty
     , goldenVsString "condition binding stats"
         "tests/condition_bindings_stats.out" $
-        run (distDir ++ "/build/arbtt-stats/arbtt-stats") ["--logfile", "tests/small.log", "--categorize", "tests/condition_bindings.cfg"] B.empty
+        run "arbtt-stats" ["--logfile", "tests/small.log", "--categorize", "tests/condition_bindings.cfg"] B.empty
     ]
 
 testParser env parser input = do
