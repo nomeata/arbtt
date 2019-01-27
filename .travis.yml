@@ -12,7 +12,6 @@ matrix:
   allow_failures:
    - env: CABALVER=head GHCVER=head
    - env: STACK=nightly
-   - env: WINDOWS=yes
 
 # Note: the distinction between `before_install` and `install` is not important.
 before_install:
@@ -27,9 +26,6 @@ before_install:
  - test -z "$STACK" || export PATH=/opt/cabal/1.24/bin:$PATH
 
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
- - export WINEPATH='C:\Program Files (x86)\GnuWin32\bin'
- - if [ "$WINDOWS" = yes ]; then export W=wine; else export W=""; fi
- - test -z "$WINDOWS"  || bash ./.travis-setup-windows.sh
  - test -z "$CABALVER" || bash ./.travis-setup-linux.sh
  - test -z "$STACK" || travis_retry sudo apt-get install g++ gcc libc6-dev libffi-dev libgmp-dev make xz-utils zlib1g-dev libwww-perl libx11-dev libxrandr-dev libxinerama-dev
  - 'test -z "$STACK" || RESOLVER="$(HEAD -S https://www.stackage.org/$STACK|grep HEAD|tail -n1|cut -d/ -f4)"'
@@ -41,20 +37,20 @@ install:
  - test -z "$STACK" || stack build --only-dependencies
 
 script:
- - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal new-configure --enable-tests --enable-benchmarks -v2
- - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal new-build
- - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal new-test
- - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal check
- - test -z "$CABALVER" -a -z "$WINDOWS" || $W cabal sdist
+ - test -z "$CABALVER" || cabal new-configure --enable-tests --enable-benchmarks -v2
+ - test -z "$CABALVER" || cabal new-build
+ - test -z "$CABALVER" || cabal new-test
+ - test -z "$CABALVER" || cabal check
+ - test -z "$CABALVER" || cabal sdist
  - test -z "$STACK" || stack build --test
 
 
 # The following scriptlet checks that the resulting source distribution can be built & installed
- - test -z "$CABALVER" -a -z "$WINDOWS" || {
-   export SRC_TGZ=$($W cabal info . | awk '{print $2 ".tar.gz";exit}') ;
+ - test -z "$CABALVER" || {
+   export SRC_TGZ=$(cabal info . | awk '{print $2 ".tar.gz";exit}') ;
    cd dist/;
    if [ -f "$SRC_TGZ" ]; then
-      $W cabal install --force-reinstalls "$SRC_TGZ";
+      cabal install --force-reinstalls "$SRC_TGZ";
    else
       echo "expected '$SRC_TGZ' not found";
       exit 1;
@@ -79,5 +75,3 @@ jobs:
          local_dir: website
          on:
            branch: master
-    - stage: windows
-      env: WINDOWS=yes
