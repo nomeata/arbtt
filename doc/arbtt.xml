@@ -322,7 +322,7 @@ $ runhaskell Setup.hs install</screen>
       <literal>&gt;</literal> operators. String expressions
       (<literal>$program</literal>, <literal>$title</literal>) can be matched
       against regular expressions with <literal>=~</literal> operator. With these
-      operatorions, the right hand side can be a comma-separated list of
+      operators, the right hand side can be a comma-separated list of
       literals enclosed in square brackets (<literal>[</literal>
       <emphasis>...</emphasis>, <emphasis>...</emphasis>, <literal>]</literal>), which
       succeeds if any of them succeeds.
