@@ -285,7 +285,6 @@ test-suite test
     Text.Parsec.ExprFail
     Text.Regex.PCRE.Light.Text
     TimeLog
-    Paths_arbtt
   Build-depends:
       base >= 4.7 && < 5
       , tasty >= 0.7 && < 1.3
