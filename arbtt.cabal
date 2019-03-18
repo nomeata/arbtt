@@ -286,6 +286,10 @@ test-suite test
     Text.Regex.PCRE.Light.Text
     TimeLog
     Paths_arbtt
+  build-tools: arbtt-dump
+  build-tools: arbtt-import
+  build-tools: arbtt-recover
+  build-tools: arbtt-stats
   Build-depends:
       base >= 4.7 && < 5
       , tasty >= 0.7 && < 1.3
