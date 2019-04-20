@@ -76,6 +76,10 @@ isCategory _   _                        = False
 
 -- Data.Binary instances
 
+validTimeLogEntryTag :: Word8 -> Bool
+validTimeLogEntryTag 1 = True
+validTimeLogEntryTag _ = False
+
 instance StringReferencingBinary a => StringReferencingBinary (TimeLogEntry a) where
  ls_put strs tle = do
         -- A version tag

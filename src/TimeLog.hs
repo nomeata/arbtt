@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE PatternGuards #-}
 module TimeLog where
 
 import Data
@@ -80,11 +81,20 @@ recoverTimeLog filename = do
                 go Nothing rest off
 
         go prev input off = do
-                mb <- tryGet prev input off off
+                mb <- trySkip prev input off off
                 flip (maybe (return [])) mb $ \(v,rest,off') ->
                         if BS.null rest
                         then return [v]
                         else (v:) <$> (unsafeInterleaveIO $ go (Just (tlData v)) rest off')
+
+        trySkip prev input off orig_off
+            | Just i <- BS.findIndex validTimeLogEntryTag input = do
+               when (i > 0) $ do
+                   putStrLn $ "At position " ++ show off ++ " skipping " ++ show i ++ " bytes to next valid TimeLogEntry tag"
+               tryGet prev (BS.drop i input) (off + i) orig_off
+            | otherwise = do
+               putStrLn "No valid TimeLogEntry tag bytes remaining"
+               return Nothing
 
         tryGet prev input off orig_off = catch (
                         do -- putStrLn $ "Trying value at offset " ++ show off
@@ -100,7 +110,7 @@ recoverTimeLog filename = do
                            if BS.length input <= 1
                              then do putStrLn $ "End of file reached"
                                      return Nothing
-                             else do tryGet prev (BS.tail input) (off+1) orig_off
+                             else do trySkip prev (BS.tail input) (off+1) orig_off
                         )
           where strs = maybe [] listOfStrings prev
 
