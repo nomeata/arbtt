@@ -5,7 +5,7 @@ env:
  - CABALVER=2.2 GHCVER=8.4.2
  - CABALVER=2.2 GHCVER=8.6.3
  - CABALVER=head GHCVER=head  # see section about GHC HEAD snapshots
-# - STACK=lts-12
+ - STACK=yaml
  - STACK=nightly
 
 matrix:
@@ -19,7 +19,7 @@ before_install:
  - export PATH=~/.local/bin:$PATH
  # install stack
  - test -z "$STACK" || { travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack' ; }
- # stack needs cabal :-(
+ # stack solver needs cabal :-(
  - test -z "$STACK" || sudo add-apt-repository -y ppa:hvr/ghc
  - test -z "$STACK" || travis_retry sudo apt-get update
  - test -z "$STACK" || travis_retry sudo apt-get install cabal-install-1.24
@@ -28,12 +28,12 @@ before_install:
  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
  - test -z "$CABALVER" || bash ./.travis-setup-linux.sh
  - test -z "$STACK" || travis_retry sudo apt-get install g++ gcc libc6-dev libffi-dev libgmp-dev make xz-utils zlib1g-dev libwww-perl libx11-dev libxrandr-dev libxinerama-dev
- - 'test -z "$STACK" || RESOLVER="$(HEAD -S https://www.stackage.org/$STACK|grep HEAD|tail -n1|cut -d/ -f4)"'
- - test -z "$STACK" || stack setup --resolver $RESOLVER
+ - 'test -z "$STACK" || test "$STACK" = "yaml"  || RESOLVER="$(HEAD -S https://www.stackage.org/$STACK|grep HEAD|tail -n1|cut -d/ -f4)"'
+ - test -z "$STACK" || test "$STACK" = "yaml" || stack setup --resolver $RESOLVER
 
 install:
- - 'test -z "$STACK" || echo "resolver: $RESOLVER" > stack.yaml'
- - test -z "$STACK" || stack solver --update-config
+ - 'test -z "$STACK" || test "$STACK" = "yaml" || echo "resolver: $RESOLVER" > stack.yaml'
+ - test -z "$STACK" || test "$STACK" = "yaml" || stack solver --update-config
  - test -z "$STACK" || stack build --only-dependencies
 
 script:
