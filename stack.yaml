@@ -1,5 +1,9 @@
-resolver: lts-12.4
+resolver: lts-13.18
+
+flags:
+  bytestring-progress:
+    use-system-progressbar: false
 
 extra-deps:
   - bytestring-progress-1.2
-  - terminal-progress-bar-0.2
+  - terminal-progress-bar-0.4.0.1
