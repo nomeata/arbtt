@@ -91,7 +91,8 @@ instance StringReferencingBinary a => StringReferencingBinary (TimeLogEntry a) w
         v <- getWord8
         case v of
          1 -> TimeLogEntry <$> get <*> get <*> ls_get strs
-         _ -> error $ "Unsupported TimeLogEntry version tag " ++ show v
+         _ -> error $ "Unsupported TimeLogEntry version tag " ++ show v ++ "\n" ++
+                      "You can try to recover your data using arbtt-recover."
 
 instance Binary UTCTime where
  put (UTCTime (ModifiedJulianDay d) t) = do
@@ -121,7 +122,8 @@ instance StringReferencingBinary CaptureData where
          1 -> CaptureData <$> get <*> get <*> pure ""
          2 -> CaptureData <$> ls_get strs <*> ls_get strs <*> pure ""
          3 -> CaptureData <$> ls_get strs <*> ls_get strs <*> ls_get strs
-         _ -> error $ "Unsupported CaptureData version tag " ++ show v
+         _ -> error $ "Unsupported CaptureData version tag " ++ show v ++ "\n" ++
+                      "You can try to recover your data using arbtt-recover."
 
   -- | 'getMany n' get 'n' elements in order, without blowing the stack.
   --   From Data.Binary
