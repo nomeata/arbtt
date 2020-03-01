@@ -23,7 +23,7 @@ myPostBuild _ flags pd lbi = do
                                  "creation of the windows setup executable."
           Just configuredProg -> do
                 writeFile includeFilename $ "AppVerName=" ++ display (package pd) ++ "\n"
-                rawSystemProgram verb configuredProg
+                runProgram verb configuredProg
                                 ["/Odist","/F"++setupFilename,"setup.iss"]
                 removeFile includeFilename
   where verb = fromFlag (buildVerbosity flags)
