@@ -8,11 +8,6 @@ env:
  - STACK=yaml
  - STACK=nightly
 
-matrix:
-  allow_failures:
-   - env: CABALVER=head GHCVER=head
-   - env: STACK=nightly
-
 # Note: the distinction between `before_install` and `install` is not important.
 before_install:
  - mkdir -p ~/.local/bin
@@ -65,10 +60,15 @@ script:
 
 
 jobs:
+  allow_failures:
+   - env: CABALVER=head GHCVER=head
+   - env: STACK=nightly
+
   include:
     - stage: deploy
-      env: DOCS=yes
+      env: CABALVER=2.2 GHCVER=8.6.3
       before_install: travis_retry sudo apt-get install xsltproc docbook-xsl
+      install: skip
       script:
        - make -C doc html
        - mkdir -p website/doc
@@ -76,7 +76,7 @@ jobs:
       deploy:
          provider: pages
          skip_cleanup: true
-         github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+         token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
          fqdn: arbtt.nomeata.de
          local_dir: website
          on:
