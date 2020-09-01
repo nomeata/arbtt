@@ -77,12 +77,12 @@ runOnGroups eq (Pure ix) (LeftFold sto po fo) = LeftFold (S.Nothing :!: sto) go 
                                   | otherwise = (S.Just x :!: po so ix)
           finish (S.Nothing :!: so) = fo so
           finish (S.Just _  :!: so) = fo (po so ix)
-runOnGroups eq (LeftFold sti pi fi) (LeftFold sto po fo) = LeftFold (S.Nothing :!: sti :!: sto) go finish 
-    where go (S.Nothing :!: si :!: so) x             = (S.Just x :!: pi si x  :!: so)
-          go (S.Just x' :!: si :!: so) x | x' `eq` x = (S.Just x :!: pi si x  :!: so)
-                                         | otherwise = (S.Just x :!: pi sti x :!: po so (fi si))
-          finish (S.Nothing :!: si :!: so) = fo so
-          finish (S.Just _  :!: si :!: so) = fo (po so (fi si))
+runOnGroups eq (LeftFold sti pi fi) (LeftFold sto po fo) = LeftFold (S.Nothing :!: (sti :!: sto)) go finish
+    where go (S.Nothing :!: (si :!: so)) x             = (S.Just x :!: (pi si x  :!: so))
+          go (S.Just x' :!: (si :!: so)) x | x' `eq` x = (S.Just x :!: (pi si x  :!: so))
+                                           | otherwise = (S.Just x :!: (pi sti x :!: po so (fi si)))
+          finish (S.Nothing :!: (si :!: so)) = fo so
+          finish (S.Just _  :!: (si :!: so)) = fo (po so (fi si))
 
 runOnIntervals :: LeftFold x y -> LeftFold y z -> LeftFold (Bool :!: x) z
 runOnIntervals _ (Pure ox) = (Pure ox)
