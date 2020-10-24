@@ -111,18 +111,6 @@
   </sect2>
 
   <sect2>
-    <title>Building without <command>cabal-install</command></title>
-    <para>
-    You can fetch the latest arbtt source tarball from hackage, at
-    <ulink url="http://hackage.haskell.org/package/arbtt"/>. Extract the tarball
-    and run the following commands to build and install the arbtt binaries:
-    <screen>$ runhaskell Setup.hs configure
-$ runhaskell Setup.hs build
-$ runhaskell Setup.hs install</screen>
-    </para>
-  </sect2>
-
-  <sect2>
     <title>Setting up the capture program</title>
     <para>
     To have arbtt gather useful data, you need to make sure that
