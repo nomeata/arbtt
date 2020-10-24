@@ -15,13 +15,7 @@ syntax.
 Installation
 ------------
 
-You can build and install this program as any other Cabalized program:
-
-    $ runhaskell Setup.hs configure
-    $ runhaskell Setup.hs build
-    $ runhaskell Setup.hs install
-    
-Other installation options are described in the [website](http://arbtt.nomeata.de/#install).
+See <http://arbtt.nomeata.de/#install>
 
 You also need to make sure that `arbtt-capture` is started with your X
 session:
@@ -32,7 +26,7 @@ session:
 - If you use macOS, you can use `launchd` for this.
   Create a `.plist` file like the following
   (with the path changed to match where arbtt-capture is located in your system):
-  
+
   ```xml
   <?xml version="1.0" encoding="UTF-8"?>
   <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
