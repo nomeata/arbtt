@@ -96,17 +96,11 @@
 
 <sect1 id="installation">
   <title>Installation</title>
+
   <sect2>
-    <title>Building with <command>cabal-install</command></title>
+    <title>Obtaining arbtt</title>>
     <para>
-    arbtt comes in the form of a Cabalized<footnote><para>Cabal is the common software
-    packaging for Haskell programs and libraries, see <ulink
-    url="http://www.haskell.org/cabal/"/>.</para></footnote> package, and is
-    available from hackage. The easiest way of obtaining and installing arbtt is
-    via <command>cabal-install</command>. If you have
-    <command>cabal-install</command> available, just run
-    <screen>$ cabal install arbtt</screen>
-    to download, build and install arbtt.
+      See the project website <ulink url="http://arbtt.nomeata.de/#install">for installation instructions</ulink>.
     </para>
   </sect2>
 
