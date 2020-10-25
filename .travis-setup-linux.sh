@@ -43,9 +43,9 @@ then
   echo '              2e8555dde16ebd8df076f1a8ef13b8f14c66bad8eafefd7d9e37d0ed711821fb' >> ${HOME}/.cabal/config
   echo '              8f79fd2389ab2967354407ec852cbe73f2e8635793ac446d09461ffb99527f6e' >> ${HOME}/.cabal/config
   echo '   key-threshold: 3'                                                            >> ${HOME}/.cabal.config
-  sed -i 's/-- allow-newer: .*/allow-newer: *:base/' ${HOME}/.cabal/config
+  echo "allow-newer: $(ghc-pkg list --simple-output | sed -E 's/([a-zA-Z-]+)-[0-9.]+/*:\1/g')" >> ${HOME}/.cabal/config
   travis_retry cabal update
-  cabal install --only-dependencies --force-reinstalls
-else
-  cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls
+  #cabal install --only-dependencies --force-reinstalls
+#else
+  #cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls
 fi

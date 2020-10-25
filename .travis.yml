@@ -1,9 +1,11 @@
 language: generic
 
 env:
- - CABALVER=2.2 GHCVER=8.2.2
- - CABALVER=2.2 GHCVER=8.4.2
- - CABALVER=2.2 GHCVER=8.6.3
+ - CABALVER=3.2 GHCVER=8.2.2
+ - CABALVER=3.2 GHCVER=8.4.2
+ - CABALVER=3.2 GHCVER=8.6.3
+ - CABALVER=3.2 GHCVER=8.8.4
+ - CABALVER=3.2 GHCVER=8.10.2
  - CABALVER=head GHCVER=head  # see section about GHC HEAD snapshots
  - STACK=yaml
  - STACK=nightly
@@ -38,25 +40,12 @@ install:
  - test -z "$STACK" || stack build --only-dependencies
 
 script:
- - test -z "$CABALVER" || cabal new-configure --enable-tests --enable-benchmarks -v2
+ - test -z "$CABALVER" || cabal new-configure --enable-tests --enable-benchmarks -v
  - test -z "$CABALVER" || cabal new-build
  - test -z "$CABALVER" || cabal new-test
  - test -z "$CABALVER" || cabal check
  - test -z "$CABALVER" || cabal sdist
  - test -z "$STACK" || stack build --test
-
-
-# The following scriptlet checks that the resulting source distribution can be built & installed
- - test -z "$CABALVER" || {
-   export SRC_TGZ=$(cabal info . | awk '{print $2 ".tar.gz";exit}') ;
-   cd dist/;
-   if [ -f "$SRC_TGZ" ]; then
-      cabal install --force-reinstalls "$SRC_TGZ";
-   else
-      echo "expected '$SRC_TGZ' not found";
-      exit 1;
-   fi;
-   }
 
 
 jobs:

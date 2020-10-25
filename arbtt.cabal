@@ -63,6 +63,7 @@ executable arbtt-capture
         LeftFold
         LockFile
         DumpFormat
+        Paths_arbtt
 
     ghc-options: -rtsopts
 
@@ -288,7 +289,7 @@ test-suite test
   Build-depends:
       base >= 4.7 && < 5
       , tasty >= 0.7 && < 1.3
-      , tasty-golden >= 2.2.0.2  && < 2.4
+      , tasty-golden >= 2.2.0.2  && <= 2.3.3.2
       , tasty-hunit >= 0.2  && < 0.11
       , process-extras >= 0.2 && < 0.8
       , deepseq
