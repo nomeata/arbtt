@@ -69,11 +69,6 @@ latest source at the git repository at
 <https://github.com/nomeata/arbtt> or
 <https://bitbucket.org/nomeata/arbtt>.
 
-User and Developer discussion happens on the arbtt mailing list:
-  arbtt@lists.nomeata.de
-To subscribe to the list, visit:
-  <http://lists.nomeata.de/mailman/listinfo/arbtt>
-
 The issue tracker is hosted on bitbucket:
   <https://bitbucket.org/nomeata/arbtt/issues>
 Why Bitbucket and not GitHub? Why not, and we need diversitiy even in the
