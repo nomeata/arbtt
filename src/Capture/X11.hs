@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 module Capture.X11 where
 
@@ -5,16 +6,19 @@ import Data
 import Graphics.X11
 import Graphics.X11.Xlib.Extras
 import Control.Monad
-import Control.Exception (bracket)
+import Control.Exception (catch, bracket)
 import System.IO.Error (catchIOError)
 import Control.Applicative
+import Data.Either
 import Data.Maybe
 import Data.Time.Clock
 import System.IO
 import qualified Data.MyText as T
 
 import System.Locale.SetLocale
-import Graphics.X11.XScreenSaver (getXIdleTime, compiledWithXScreenSaver)
+import Graphics.X11.XScreenSaver
+import qualified DBus as D
+import qualified DBus.Client as D
 
 setupCapture :: IO ()
 setupCapture = do
@@ -59,9 +63,11 @@ captureData = do
             return WindowData{..}
 
         it <- fromIntegral `fmap` getXIdleTime dpy
+        ss <- isScreenSaverActive dpy
+        sl <- isSessionLocked
 
         closeDisplay dpy
-        return $ CaptureData winData it (T.pack current_desktop)
+        return $ CaptureData winData it (T.pack current_desktop) (ss || sl)
 
 getWindowTitle :: Display -> Window -> IO String
 getWindowTitle dpy =  myFetchName dpy
@@ -138,3 +144,37 @@ isHidden dpy w = flip catchIOError (\_ -> return False) $ do
     a <- internAtom dpy "WM_STATE" False
     Just (state:_) <- getWindowProperty32 dpy a w
     return $ fromIntegral state /= normalState
+
+-- | Check active screen saver using the X11 Screen Saver extension.
+--
+-- This most likely only works with the simple built-in screen saver
+-- configured using @xset s@. Screen savers/lockers such as xscreensaver,
+-- xsecurelock, i3lock, etc. work differently.
+isScreenSaverActive :: Display -> IO Bool
+isScreenSaverActive dpy = do
+    info <- xScreenSaverQueryInfo dpy
+    return $ case info of
+        Just XScreenSaverInfo{xssi_state = ScreenSaverOn} -> True
+        _ -> False
+
+-- TODO: https://unix.stackexchange.com/questions/197032/detect-if-screensaver-is-active
+
+-- | Check whether the current systemd-logind session is marked as locked.
+--
+-- Note that many minimalist screen savers/lockers do not communicate with
+-- systemd-logind, so this often doesn't work either.
+--
+-- TODO: describe this better
+-- dbus-send --system --print-reply --dest=org.freedesktop.login1 /org/freedesktop/login1/session/self "org.freedesktop.login1.Session.SetLockedHint" boolean:false
+isSessionLocked :: IO Bool
+isSessionLocked = bracket D.connectSystem D.disconnect getLockedHint
+    `catch` (return . const False . D.clientErrorMessage)
+  where
+    dest = "org.freedesktop.login1"
+    -- …/session/auto is the caller's own session if they have one,
+    -- otherwise their user's display session
+    object = "/org/freedesktop/login1/session/auto"
+    interface = "org.freedesktop.login1.Session"
+    property = "LockedHint"
+    methodCall = (D.methodCall object interface property){ D.methodCallDestination = Just dest }
+    getLockedHint c = fmap (fromRight False) $ D.getPropertyValue c methodCall
