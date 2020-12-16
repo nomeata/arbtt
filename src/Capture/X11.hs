@@ -11,7 +11,9 @@ import System.IO.Error (catchIOError)
 import Control.Applicative
 import Data.Either
 import Data.Maybe
+import Data.String
 import Data.Time.Clock
+import System.Environment
 import System.IO
 import qualified Data.MyText as T
 
@@ -167,14 +169,19 @@ isScreenSaverActive dpy = do
 -- TODO: describe this better
 -- dbus-send --system --print-reply --dest=org.freedesktop.login1 /org/freedesktop/login1/session/self "org.freedesktop.login1.Session.SetLockedHint" boolean:false
 isSessionLocked :: IO Bool
-isSessionLocked = bracket D.connectSystem D.disconnect getLockedHint
-    `catch` (return . const False . D.clientErrorMessage)
+isSessionLocked = do
+    xdgSessionId <- lookupEnv "XDG_SESSION_ID"
+    -- When running as systemd user unit, …/session/self doesn't work so we
+    -- try $XDG_SESSION_ID and fall back to …/session/auto if not set, which
+    -- acts like self if run directly from a session, or the user's display
+    -- session otherwise.
+    let session = fromMaybe "auto" xdgSessionId
+    bracket D.connectSystem D.disconnect (getLockedHint session)
+        `catch` (return . const False . D.clientErrorMessage)
   where
     dest = "org.freedesktop.login1"
-    -- …/session/auto is the caller's own session if they have one,
-    -- otherwise their user's display session
-    object = "/org/freedesktop/login1/session/auto"
+    object session = fromString $ "/org/freedesktop/login1/session/" <> session
     interface = "org.freedesktop.login1.Session"
     property = "LockedHint"
-    methodCall = (D.methodCall object interface property){ D.methodCallDestination = Just dest }
-    getLockedHint c = fmap (fromRight False) $ D.getPropertyValue c methodCall
+    methodCall obj = (D.methodCall obj interface property){ D.methodCallDestination = Just dest }
+    getLockedHint session c = fmap (fromRight False) $ D.getPropertyValue c $ methodCall $ object session
