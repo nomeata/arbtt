@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 module LockFile where
 
+import System.Directory
 import System.Exit
 import System.IO
 import System.IO.Error
@@ -13,9 +14,10 @@ import System.Posix.IO
 #endif
 
 -- | This is very raw, someone ought to improve this
-lockFile filename =
+lockFile filename' = do
+    filename <- canonicalizePath filename'
 #ifdef WIN32
- do success <- claimMutex filename
+    success <- claimMutex filename
     unless success $ do
         hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for " ++ filename ++"!")
         exitFailure
