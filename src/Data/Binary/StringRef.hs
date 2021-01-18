@@ -16,6 +16,7 @@ import Data.List
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.MyText as T
 import Data.MyText (Text, decodeUtf8, encodeUtf8)
+import Text.Printf
 import Debug.Trace
 
 class StringReferencingBinary a => ListOfStringable a where
@@ -73,7 +74,11 @@ instance StringReferencingBinary Text where
                 tag <- get
                 case tag :: Word8 of
                   0 -> get
-                  i -> return $! strs !! fromIntegral (pred i)
+                  i -> let idx = fromIntegral (pred i) in
+                       if idx < length strs
+                       then return $! strs !! idx
+                       else  fail $ printf "String reference %d out of range (%d strings available)" idx (length strs)
+
 
 {-
 instance Binary a => StringReferencingBinary a where

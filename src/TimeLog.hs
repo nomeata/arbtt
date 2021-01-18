@@ -14,6 +14,7 @@ import Data.Binary.StringRef
 import Data.Binary.Get
 import Data.Function
 import Data.Char
+import qualified Data.MyText as T
 import System.Directory
 import Control.Exception
 import Prelude hiding (catch)
@@ -112,7 +113,7 @@ recoverTimeLog filename = do
                                      return Nothing
                              else do trySkip prev (BS.tail input) (off+1) orig_off
                         )
-          where strs = maybe [] listOfStrings prev
+          where strs = maybe (replicate 256 (T.pack "LOST STRING")) listOfStrings prev
 
 readTimeLog :: (NFData a, ListOfStringable a) => FilePath -> IO (TimeLog a)
 readTimeLog filename = do
