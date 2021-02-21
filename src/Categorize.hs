@@ -41,6 +41,7 @@ import Debug.Trace
 import Text.Printf
 
 type Categorizer = TimeLog CaptureData -> TimeLog (Ctx, ActivityData)
+type ApplyCond = TimeLogEntry (Ctx, ActivityData) -> Bool
 type Rule = Ctx -> ActivityData
 type Environment = Map String Cond
 
@@ -104,11 +105,15 @@ readCategorizer filename = withFile filename ReadMode $ \h -> do
           Right cat -> return
                 (map (fmap (mkSecond (postpare . cat))) . prepare time tz)
 
-applyCond :: String -> TimeZone -> Environment -> TimeLogEntry (Ctx, ActivityData) -> Bool
-applyCond s tz env =
-        case runParserStack (tz, env) (parseCond <* eof) "command line parameter" s of
-          Left err -> error (show err)
-          Right c  -> isJust . c . fst . tlData
+mkApplyCond :: String -> IO ApplyCond
+mkApplyCond s = do
+        tz <- getCurrentTimeZone
+        case runParserStack (tz, Map.empty) (parseCond <* eof) "command line parameter" s of
+          Left err -> do
+                putStrLn "Parser error:"
+                print err
+                exitFailure
+          Right c -> return (isJust . c . fst . tlData)
 
 prepare :: UTCTime -> TimeZone -> TimeLog CaptureData -> TimeLog Ctx
 prepare time tz = map go

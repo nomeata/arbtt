@@ -202,6 +202,7 @@ main = do
      exitFailure
 
   let filters = (if optAlsoInactive flags then id else (defaultFilter:)) $ optFilters flags
+  filter <- mkFilterPredicate filters
 
   let rep = case optReports flags of
                 [] -> TotalTime
@@ -210,7 +211,7 @@ main = do
   let repeater = foldr (.) id $ map (processRepeater tz) (optRepeater flags)
 
   let opts = optReportOptions flags
-  let fold = filterPredicate filters `adjoin` repeater (processReport tz opts rep)
+  let fold = filter `adjoin` repeater (processReport tz opts rep)
   let result = runLeftFold fold allTags
 
   -- Force the results a bit, to ensure the progress bar to be shown before the title

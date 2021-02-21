@@ -10,7 +10,7 @@ module Stats (
     defaultFilter,
     defaultReportOptions,
     parseActivityMatcher,
-    filterPredicate,
+    mkFilterPredicate,
     prepareCalculations,
     processReport,
     processRepeater,
@@ -32,6 +32,7 @@ import Data.Time.Format(defaultTimeLocale)
 import System.Locale (defaultTimeLocale)
 #endif
 import Control.Applicative
+import Control.Monad (forM)
 import Data.Strict ((:!:), Pair(..))
 import qualified Data.Strict as Strict
 import Data.Traversable (sequenceA)
@@ -97,12 +98,13 @@ data ReportResults =
         | DumpResult (TimeLog (CaptureData, TimeZone, ActivityData))
 
 
-filterPredicate :: [Filter] -> TimeLogEntry (Ctx, ActivityData) -> Bool
-filterPredicate filters tl =
-       all (\flag -> case flag of
-                Exclude act  -> excludeTag act tl
-                Only act     -> onlyTag act tl
-                GeneralCond s-> applyCond s (cTimeZone (fst (tlData tl))) M.empty tl) filters
+mkFilterPredicate :: [Filter] -> IO ApplyCond
+mkFilterPredicate filters = do
+    fs <- forM filters $ \flag -> case flag of
+                Exclude act  -> return $ excludeTag act
+                Only act     -> return $ onlyTag act
+                GeneralCond s-> mkApplyCond s
+    return $ \tl -> all ($ tl) fs
 
 filterActivity :: [ActivityFilter] -> ActivityData -> ActivityData
 filterActivity fs = filter (applyActivityFilter fs)
