@@ -95,7 +95,7 @@ data ReportResults =
         | ListOfIntervals String [Interval]
         | MultipleReportResults [ReportResults]
         | RepeatedReportResults String [(String, ReportResults)]
-        | DumpResult (TimeLog (CaptureData, TimeZone, ActivityData))
+        | DumpResult (TimeLog (CaptureData, ActivityData))
 
 
 mkFilterPredicate :: [Filter] -> IO ApplyCond
@@ -276,7 +276,7 @@ processReport tz opts (IntervalTag tag) =
 
 processReport tz opts DumpSamples =
     DumpResult <$> onSelected (mapElems toList $ fmap $
-        \(cd,ad) -> (tlData (cNow cd), cTimeZone cd, filterActivity (roActivityFilter opts) ad)
+        \(cd,ad) -> (tlData (cNow cd), filterActivity (roActivityFilter opts) ad)
         )
 
 calcCategories :: LeftFold (TimeLogEntry (Ctx, ActivityData)) [Category]

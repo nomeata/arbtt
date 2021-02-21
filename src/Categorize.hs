@@ -52,13 +52,12 @@ data Ctx = Ctx
         , cCurrentWindow :: Maybe (Bool, Text, Text)
         , cWindowInScope :: Maybe (Bool, Text, Text)
         , cSubsts :: [Text]
-        , cCurrentTime :: UTCTime
-        , cTimeZone :: TimeZone
+        , cCurrentTime :: ZonedTime
         , conditionBindings :: Map String Cond
         } deriving Show
 
 instance NFData Ctx where
-    rnf (Ctx a b c d e f g) = a `deepseq` b `deepseq` c `deepseq` d `deepseq` e `deepseq` f `deepseq` g `deepseq` ()
+    rnf (Ctx a b c d e f) = a `deepseq` b `deepseq` c `deepseq` d `deepseq` e `deepseq` f `deepseq` ()
 
 type Cond = CtxFun [Text]
 
@@ -95,15 +94,14 @@ readCategorizer :: FilePath -> IO Categorizer
 readCategorizer filename = withFile filename ReadMode $ \h -> do
         hSetEncoding h utf8
         content <- hGetContents h
-        time <- getCurrentTime
-        tz <- getCurrentTimeZone
-        case runParserStack (tz, Map.empty) (between (return ()) eof parseRules) filename content of
+        time <- getZonedTime
+        case runParserStack (zonedTimeZone time, Map.empty) (between (return ()) eof parseRules) filename content of
           Left err -> do
                 putStrLn "Parser error:"
                 print err
                 exitFailure
           Right cat -> return
-                (map (fmap (mkSecond (postpare . cat))) . prepare time tz)
+                (map (fmap (mkSecond (postpare . cat))) . prepare time)
 
 mkApplyCond :: String -> IO ApplyCond
 mkApplyCond s = do
@@ -115,9 +113,9 @@ mkApplyCond s = do
                 exitFailure
           Right c -> return (isJust . c . fst . tlData)
 
-prepare :: UTCTime -> TimeZone -> TimeLog CaptureData -> TimeLog Ctx
-prepare time tz = map go
-  where go now  = now {tlData = Ctx now (findActive (cWindows (tlData now))) Nothing [] time tz Map.empty }
+prepare :: ZonedTime -> TimeLog CaptureData -> TimeLog Ctx
+prepare time = map go
+  where go now  = now {tlData = Ctx now (findActive (cWindows (tlData now))) Nothing [] time Map.empty }
 
 -- | Here, we filter out tags appearing twice, and make sure that only one of
 --   each category survives
@@ -343,7 +341,7 @@ trd3 (_,_,c) = c
 -- Day of week is an integer in [1..7].
 evalDayOfWeek :: CondPrim -> Erring CondPrim
 evalDayOfWeek (CondDate df) = Right $ CondInteger $ \ctx ->
-  let tz = cTimeZone ctx in
+  let tz = zonedTimeZone (cCurrentTime ctx) in
   (toInteger . trd3 . toWeekDate . localDay . utcToLocalTime tz) `fmap` df ctx
 evalDayOfWeek cp = Left $ printf
   "Cannot apply day of week to an expression of type %s, only to $date."
@@ -352,7 +350,7 @@ evalDayOfWeek cp = Left $ printf
 -- Day of month is an integer in [1..31].
 evalDayOfMonth :: CondPrim -> Erring CondPrim
 evalDayOfMonth (CondDate df) = Right $ CondInteger $ \ctx ->
-  let tz = cTimeZone ctx in
+  let tz = zonedTimeZone (cCurrentTime ctx) in
   (toInteger . trd3 . toGregorian . localDay . utcToLocalTime tz) `fmap` df ctx
 evalDayOfMonth cp = Left $ printf
   "Cannot apply day of month to an expression of type %s, only to $date."
@@ -361,7 +359,7 @@ evalDayOfMonth cp = Left $ printf
 -- Month is an integer in [1..12].
 evalMonth :: CondPrim -> Erring CondPrim
 evalMonth (CondDate df) = Right $ CondInteger $ \ctx ->
-  let tz = cTimeZone ctx in
+  let tz = zonedTimeZone (cCurrentTime ctx) in
   (toInteger . snd3 . toGregorian . localDay . utcToLocalTime tz) `fmap` df ctx
 evalMonth cp = Left $ printf
   "Cannot apply month to an expression of type %s, only to $date."
@@ -369,7 +367,7 @@ evalMonth cp = Left $ printf
 
 evalYear :: CondPrim -> Erring CondPrim
 evalYear (CondDate df) = Right $ CondInteger $ \ctx ->
-  let tz = cTimeZone ctx in
+  let tz = zonedTimeZone (cCurrentTime ctx) in
   (fst3 . toGregorian . localDay . utcToLocalTime tz) `fmap` df ctx
 evalYear cp = Left $ printf
   "Cannot apply year to an expression of type %s, only to $date."
@@ -378,7 +376,7 @@ evalYear cp = Left $ printf
 -- format date according to ISO 8601 (YYYY-MM-DD)
 formatDate :: CondPrim -> Erring CondPrim
 formatDate (CondDate df) = Right $ CondString $ \ctx ->
-  let tz = cTimeZone ctx
+  let tz = zonedTimeZone (cCurrentTime ctx)
       local = utcToLocalTime tz `fmap` df ctx
    in T.pack . formatTime defaultTimeLocale (iso8601DateFormat Nothing) <$> local
 formatDate cp = Left $ printf
@@ -546,15 +544,15 @@ getNumVar NvIdle ctx = Just $ cLastActivity (tlData (cNow ctx)) `div` 1000
 getTimeVar :: TimeVar -> CtxFun NominalDiffTime
 getTimeVar TvTime ctx = Just $
    let utc = tlTime . cNow $ ctx
-       tz = cTimeZone ctx
+       tz = zonedTimeZone (cCurrentTime ctx)
        local = utcToLocalTime tz utc
        midnightUTC = localTimeToUTC tz $ local { localTimeOfDay = midnight }
     in utc `diffUTCTime` midnightUTC
-getTimeVar TvSampleAge ctx = Just $ cCurrentTime ctx `diffUTCTime` tlTime (cNow ctx)
+getTimeVar TvSampleAge ctx = Just $ zonedTimeToUTC (cCurrentTime ctx) `diffUTCTime` tlTime (cNow ctx)
 
 getDateVar :: DateVar -> CtxFun UTCTime
 getDateVar DvDate = Just . tlTime . cNow
-getDateVar DvNow = Just . cCurrentTime
+getDateVar DvNow = Just . zonedTimeToUTC . cCurrentTime
 
 findActive :: [(Bool, t, t1)] -> Maybe (Bool, t, t1)
 findActive = find (\(a,_,_) -> a)

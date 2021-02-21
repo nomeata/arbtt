@@ -81,8 +81,7 @@ main = do
 
     if optDump flags then do
         setupCapture
-        tz <- getCurrentTimeZone
-        captureData >>= mkTimeLogEntry (optSampleRate flags * 1000) >>= dumpSample tz
+        captureData >>= mkTimeLogEntry (optSampleRate flags * 1000) >>= dumpSample
       else do
         createDirectoryIfMissing False dir
         lockFile (optLogFile flags)

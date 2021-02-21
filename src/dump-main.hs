@@ -91,5 +91,4 @@ main = do
     Nothing -> return captures
     Just n  -> return $ takeR n captures
 
-  tz <- getCurrentTimeZone
-  dumpSamples tz (optFormat flags) captures
+  dumpSamples (optFormat flags) captures

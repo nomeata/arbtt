@@ -67,23 +67,24 @@ readDumpFormat arg =
         "json"       -> return DFJSON
         _            -> Nothing
 
-dumpActivity :: TimeLog (CaptureData, TimeZone, ActivityData) -> IO ()
+dumpActivity :: TimeLog (CaptureData, ActivityData) -> IO ()
 dumpActivity = mapM_ go
  where
     go tle = do
-        dumpHeader tz (tlTime tle) (cLastActivity cd)
+        dumpHeader (tlTime tle) (cLastActivity cd)
         dumpDesktop (cDesktop cd)
         mapM_ dumpWindow (cWindows cd)
         dumpTags ad
       where
-        (cd, tz, ad) = tlData tle
+        (cd, ad) = tlData tle
 
 dumpTags :: ActivityData -> IO ()
 dumpTags = mapM_ go
   where go act = printf "    %s\n" (show act)
 
-dumpHeader :: TimeZone -> UTCTime -> Integer -> IO ()
-dumpHeader tz time lastActivity = do
+dumpHeader :: UTCTime -> Integer -> IO ()
+dumpHeader time lastActivity = do
+    tz <- getCurrentTimeZone
     printf "%s (%dms inactive):\n"
         (formatTime defaultTimeLocale "%F %X" (utcToLocalTime tz time))
         lastActivity
@@ -100,17 +101,17 @@ dumpDesktop d
     | null d    = return ()
     | otherwise = printf "    Current Desktop: %s\n" (unpack d)
 
-dumpSample :: TimeZone -> TimeLogEntry CaptureData -> IO ()
-dumpSample tz tle = do
-    dumpHeader tz (tlTime tle) (cLastActivity (tlData tle))
+dumpSample :: TimeLogEntry CaptureData -> IO ()
+dumpSample tle = do
+    dumpHeader (tlTime tle) (cLastActivity (tlData tle))
     dumpDesktop (cDesktop (tlData tle))
     mapM_ dumpWindow (cWindows (tlData tle))
 
-dumpSamples :: TimeZone -> DumpFormat -> TimeLog CaptureData -> IO ()
-dumpSamples _ DFShow = mapM_ print
+dumpSamples :: DumpFormat -> TimeLog CaptureData -> IO ()
+dumpSamples DFShow = mapM_ print
 
-dumpSamples tz DFHuman = mapM_ (dumpSample tz)
+dumpSamples DFHuman = mapM_ dumpSample
 
-dumpSamples _ DFJSON = enclose . sequence_ . intersperse (putStrLn ",") . map (LBS.putStr . encode)
+dumpSamples DFJSON = enclose . sequence_ . intersperse (putStrLn ",") . map (LBS.putStr . encode)
   where
     enclose m = putStrLn "[" >> m >> putStrLn "]"
