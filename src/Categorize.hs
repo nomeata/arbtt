@@ -10,7 +10,6 @@ import qualified Data.MyText as T
 import Data.MyText (Text)
 import Control.Applicative (empty, (<*))
 import Control.Monad
-import Control.Monad.Instances()
 import Control.Monad.Trans.Reader hiding (local)
 import Control.Monad.Reader.Class (local)
 import Control.Monad.Trans.Class

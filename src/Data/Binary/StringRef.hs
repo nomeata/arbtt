@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, UndecidableInstances, TypeSynonymInstances, OverlappingInstances#-}
+{-# LANGUAGE FlexibleInstances, UndecidableInstances, TypeSynonymInstances #-}
 
 module Data.Binary.StringRef 
         ( ListOfStringable(..)
