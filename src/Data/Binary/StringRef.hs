@@ -66,7 +66,7 @@ ls_getMany strs n = go [] n
 
 instance StringReferencingBinary Text where
         ls_put strs s = case elemIndex s strs of
-                Just i | 0 <= i && i  < 255 - 2 ->
+                Just i | 0 <= i && i < 255 ->
                         put (fromIntegral (succ i) :: Word8)
                 _ ->    put (0 :: Word8) >> put s
         ls_get strs = do
