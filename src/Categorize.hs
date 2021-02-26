@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE Rank2Types, CPP, FlexibleContexts #-}
 module Categorize where
 
@@ -39,6 +41,7 @@ import System.Locale (defaultTimeLocale, iso8601DateFormat)
 #endif
 import Debug.Trace
 import Text.Printf
+import GHC.Generics (Generic)
 
 type Categorizer = TimeLog CaptureData -> TimeLog (Ctx, ActivityData)
 type ApplyCond = TimeLogEntry (Ctx, ActivityData) -> Bool
@@ -54,10 +57,7 @@ data Ctx = Ctx
         , cSubsts :: [Text]
         , cCurrentTime :: ZonedTime
         , conditionBindings :: Map String Cond
-        } deriving Show
-
-instance NFData Ctx where
-    rnf (Ctx a b c d e f) = a `deepseq` b `deepseq` c `deepseq` d `deepseq` e `deepseq` f `deepseq` ()
+        } deriving (Show, Generic, NFData)
 
 type Cond = CtxFun [Text]
 

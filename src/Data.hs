@@ -1,6 +1,10 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Data where
 
+import GHC.Generics (Generic)
 import Data.Time
 import Text.ParserCombinators.ReadPrec (readP_to_Prec)
 import Text.ParserCombinators.ReadP hiding (get)
@@ -22,13 +26,7 @@ data TimeLogEntry a = TimeLogEntry
         { tlTime :: UTCTime
         , tlRate :: Integer -- ^ in milli-seconds
         , tlData :: a }
-  deriving (Show, Read)
-
-instance Functor TimeLogEntry where
-        fmap f tl = tl { tlData = f (tlData tl) }
-
-instance NFData a => NFData (TimeLogEntry a) where
-    rnf (TimeLogEntry a b c) = a `deepseq` b `deepseq` c `deepseq` ()
+  deriving (Show, Read, Functor, Generic, NFData)
 
 data CaptureData = CaptureData
         { cWindows :: [ (Bool, Text, Text) ]
@@ -37,10 +35,7 @@ data CaptureData = CaptureData
         , cDesktop :: Text
                 -- ^ Current desktop name
         }
-  deriving (Show, Read)
-
-instance NFData CaptureData where
-    rnf (CaptureData a b c) = a `deepseq` b `deepseq` c `deepseq` ()
+  deriving (Show, Read, Generic, NFData)
 
 type ActivityData = [Activity]
 
@@ -48,10 +43,7 @@ data Activity = Activity
         { activityCategory :: Maybe Category
         , activityName :: Text
         }
-  deriving (Ord, Eq)
-
-instance NFData Activity where
-    rnf (Activity a b) = a `deepseq` b `deepseq` ()
+  deriving (Ord, Eq, Generic, NFData)
 
 -- | An activity with special meaning: ignored by default (i.e. for idle times)
 inactiveActivity = Activity Nothing "inactive"
