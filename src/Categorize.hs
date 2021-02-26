@@ -51,8 +51,8 @@ type Parser = ParsecT String () (ReaderT (TimeZone, Environment) Identity)
 
 data Ctx = Ctx
         { cNow :: TimeLogEntry CaptureData
-        , cCurrentWindow :: Maybe (Bool, Text, Text)
-        , cWindowInScope :: Maybe (Bool, Text, Text)
+        , cCurrentWindow :: Maybe WindowData
+        , cWindowInScope :: Maybe WindowData
         , cSubsts :: [Text]
         , cCurrentTime :: ZonedTime
         , conditionBindings :: Map String Cond
@@ -114,7 +114,7 @@ mkApplyCond s = do
 
 prepare :: ZonedTime -> TimeLog CaptureData -> TimeLog Ctx
 prepare time = map go
-  where go now  = now {tlData = Ctx now (findActive (cWindows (tlData now))) Nothing [] time Map.empty }
+  where go now  = now {tlData = Ctx now (find wActive (cWindows (tlData now))) Nothing [] time Map.empty }
 
 -- | Here, we filter out tags appearing twice, and make sure that only one of
 --   each category survives
@@ -528,12 +528,8 @@ getVar v ctx | "current" `isPrefixOf` v = do
                 let var = drop (length "current.") v
                 win <- cCurrentWindow ctx
                 getVar var (ctx { cWindowInScope = Just win })
-getVar "title"   ctx = do
-                (_,t,_) <- cWindowInScope ctx
-                return t
-getVar "program" ctx = do
-                (_,_,p) <- cWindowInScope ctx
-                return p
+getVar "title"   ctx = wTitle <$> cWindowInScope ctx
+getVar "program" ctx = wProgram <$> cWindowInScope ctx
 getVar "desktop" ctx = return $ cDesktop (tlData (cNow ctx))
 getVar v _ = error $ "Unknown variable " ++ v
 
@@ -553,12 +549,8 @@ getDateVar :: DateVar -> CtxFun UTCTime
 getDateVar DvDate = Just . tlTime . cNow
 getDateVar DvNow = Just . zonedTimeToUTC . cCurrentTime
 
-findActive :: [(Bool, t, t1)] -> Maybe (Bool, t, t1)
-findActive = find (\(a,_,_) -> a)
-
 checkActive :: Cond
-checkActive ctx = do (a,_,_) <- cWindowInScope ctx
-                     guard a
+checkActive ctx = do guard =<< wActive <$> cWindowInScope ctx
                      return []
 
 matchNone :: Rule

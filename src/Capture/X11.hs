@@ -9,6 +9,7 @@ import System.IO.Error (catchIOError)
 import Control.Applicative
 import Data.Maybe
 import Data.Time.Clock
+import Data.Default.Class
 import System.IO
 import qualified Data.MyText as T
 
@@ -60,10 +61,10 @@ captureData = do
         (fsubwin,_) <- getInputFocus dpy
         fwin <- followTreeUntil dpy (`elem` wins) fsubwin
 
-        winData <- forM wins $ \w -> (,,)
-            (w == fwin) <$>
-            (T.pack <$> getWindowTitle dpy w) <*>
-            (T.pack <$> getProgramName dpy w)
+        winData <- forM wins $ \w -> do
+            title <- T.pack <$> getWindowTitle dpy w
+            program <- T.pack <$> getProgramName dpy w
+            return def{ wActive = w == fwin, wTitle = title, wProgram = program }
 
         it <- fromIntegral `fmap` getXIdleTime dpy
 

@@ -1,6 +1,7 @@
 module Capture.OSX where
 
 import Data
+import Data.Default.Class
 import qualified Data.MyText as T
 import Control.Monad
 import Control.Applicative
@@ -16,9 +17,11 @@ captureData = do
         titles <- fetchWindowTitles
         foreground <- getForegroundWindow
 
-        let winData = map (
-                \(h,t,p) -> (h == foreground, T.pack t, T.pack p)
-                ) titles
+        let winData = [ def{ wActive = h == foreground
+                           , wTitle = T.pack t
+                           , wProgram = T.pack p
+                           }
+                      | (h, t, p) <- titles ]
 
         it <- fromIntegral `fmap` getIdleTime
 

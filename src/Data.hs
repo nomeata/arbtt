@@ -19,6 +19,7 @@ import Data.MyText (Text)
 import Control.Applicative
 import Control.Monad
 import Control.DeepSeq
+import Data.Default.Class
 
 type TimeLog a = [TimeLogEntry a]
 
@@ -29,13 +30,22 @@ data TimeLogEntry a = TimeLogEntry
   deriving (Show, Read, Functor, Generic, NFData)
 
 data CaptureData = CaptureData
-        { cWindows :: [ (Bool, Text, Text) ]
-                -- ^ Active window, window title, programm name
+        { cWindows :: [WindowData]
         , cLastActivity :: Integer -- ^ in milli-seconds
         , cDesktop :: Text
                 -- ^ Current desktop name
         }
   deriving (Show, Read, Generic, NFData)
+
+data WindowData = WindowData
+        { wActive :: Bool
+        , wTitle :: Text
+        , wProgram :: Text
+        }
+  deriving (Show, Read, Generic, NFData)
+
+instance Default WindowData where
+ def = WindowData False "" ""
 
 type ActivityData = [Activity]
 
@@ -96,23 +106,30 @@ instance Binary UTCTime where
         return $ UTCTime (ModifiedJulianDay d) ({-# SCC diffTimeFromRational #-} fromRational t)
 
 instance ListOfStringable CaptureData where
-  listOfStrings = concatMap (\(b,t,p) -> [t,p]) . cWindows
+  listOfStrings = concatMap (\wd -> [wTitle wd, wProgram wd]) . cWindows
 
 instance StringReferencingBinary CaptureData where
 -- Versions:
 -- 1 First version
 -- 2 Using ListOfStringable
+-- 3 Add cDesktop
  ls_put strs cd = do
         -- A version tag
         putWord8 3
-        ls_put strs (cWindows cd)
+        ls_put strs (toWindowsV0 $ cWindows cd)
         ls_put strs (cLastActivity cd)
         ls_put strs (cDesktop cd)
  ls_get strs = do
         v <- getWord8
         case v of
-         1 -> CaptureData <$> get <*> get <*> pure ""
-         2 -> CaptureData <$> ls_get strs <*> ls_get strs <*> pure ""
-         3 -> CaptureData <$> ls_get strs <*> ls_get strs <*> ls_get strs
+         1 -> CaptureData <$> (fromWindowsV0 <$> get) <*> get <*> pure ""
+         2 -> CaptureData <$> (fromWindowsV0 <$> ls_get strs) <*> ls_get strs <*> pure ""
+         3 -> CaptureData <$> (fromWindowsV0 <$> ls_get strs) <*> ls_get strs <*> ls_get strs
          _ -> error $ "Unsupported CaptureData version tag " ++ show v ++ "\n" ++
                       "You can try to recover your data using arbtt-recover."
+
+fromWindowsV0 :: [(Bool, Text, Text)] -> [WindowData]
+fromWindowsV0 = map $ \(a,t,p) -> def{ wActive = a, wTitle = t, wProgram = p }
+
+toWindowsV0 :: [WindowData] -> [(Bool, Text, Text)]
+toWindowsV0 = map $ \wd -> (wActive wd, wTitle wd, wProgram wd)

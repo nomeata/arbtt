@@ -41,7 +41,7 @@ instance ToJSON (TimeLogEntry CaptureData) where
         "date" .= tlTime,
         "rate" .= tlRate,
         "inactive" .= cLastActivity tlData,
-        "windows" .= map (\(a,t,p) -> object ["active" .= a, "title" .= t, "program" .= p]) (cWindows tlData),
+        "windows" .= cWindows tlData,
         "desktop" .= cDesktop tlData
         ]
 
@@ -50,14 +50,25 @@ instance FromJSON (TimeLogEntry CaptureData) where
         tlTime <- v .: "date"
         tlRate <- v .: "rate"
         cLastActivity <- v .: "inactive"
-        cWindows  <- (v .: "windows") >>=
-            withArray "windows" (mapM (withObject "window" $ \v ->
-                (,,) <$> v .: "active" <*> v .: "title" <*> v .: "program"
-            ) . toList)
+        cWindows  <- v .: "windows"
         cDesktop <- v .: "desktop"
         let tlData = CaptureData {..}
         let entry = TimeLogEntry {..}
         pure entry
+
+instance ToJSON WindowData where
+    toJSON WindowData{..} = object
+        [ "active" .= wActive
+        , "title" .= wTitle
+        , "program" .= wProgram
+        ]
+
+instance FromJSON WindowData where
+    parseJSON = withObject "window" $ \v -> do
+        wActive <- v .: "active"
+        wTitle <- v .: "title"
+        wProgram <- v .: "program"
+        pure WindowData{..}
 
 readDumpFormat :: String -> Maybe DumpFormat
 readDumpFormat arg =
@@ -89,12 +100,12 @@ dumpHeader time lastActivity = do
         (formatTime defaultTimeLocale "%F %X" (utcToLocalTime tz time))
         lastActivity
 
-dumpWindow :: (Bool, Text, Text) -> IO ()
-dumpWindow (active, title, program) = do
+dumpWindow :: WindowData -> IO ()
+dumpWindow wd = do
     printf "    %s %-15s %s\n"
-        (if active then ("(*)"::String) else "( )")
-        (unpack program ++ ":")
-        (unpack title)
+        (if wActive wd then ("(*)"::String) else "( )")
+        (unpack (wProgram wd)++ ":")
+        (unpack (wTitle wd))
 
 dumpDesktop :: Text -> IO ()
 dumpDesktop d

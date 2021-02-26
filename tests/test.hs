@@ -5,6 +5,7 @@ import           Control.Monad
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State.Strict
 import qualified Data.ByteString.Lazy as B
+import           Data.Default.Class
 import           Data.Functor.Identity
 import qualified Data.Map as Map
 import           Data.Maybe
@@ -37,13 +38,15 @@ regressionTests :: TestTree
 regressionTests = testGroup "Regression tests"
     [ testCase "Issue #4" $ do
         cat <- readCategorizer "tests/issue4.cfg"
-        let sample = TimeLogEntry undefined 0 (CaptureData [(True, "aa", "program")] 0 "")
+        let wd = def{ wActive = True, wTitle = "aa", wProgram = "program" }
+        let sample = TimeLogEntry undefined 0 (CaptureData [wd] 0 "")
         let [TimeLogEntry _ _ (_,acts)] = cat [sample]
         [Activity (Just "Cat") "aa"] @=? acts
         return ()
     , testCase "Issue #5" $ do
         cat <- readCategorizer "tests/issue5.cfg"
-        let sample = TimeLogEntry undefined 0 (CaptureData [(True, "aa", "program")] 0 "")
+        let wd = def{ wActive = True, wTitle = "aa", wProgram = "program" }
+        let sample = TimeLogEntry undefined 0 (CaptureData [wd] 0 "")
         let [TimeLogEntry _ _ (_,acts)] = cat [sample]
         [Activity Nothing "A2"] @=? acts
         return ()
@@ -52,7 +55,8 @@ regressionTests = testGroup "Regression tests"
         now <- getCurrentTime
         let backThen = (-60*60*101) `addUTCTime` now
 
-        let sample = TimeLogEntry backThen 0 (CaptureData [(True, "aa", "program")] 0 "")
+        let wd = def{ wActive = True, wTitle = "aa", wProgram = "program" }
+        let sample = TimeLogEntry backThen 0 (CaptureData [wd] 0 "")
         let [TimeLogEntry _ _ (_,acts)] = cat [sample]
         [Activity Nothing "old"] @=? acts
         return ()
