@@ -116,15 +116,3 @@ instance StringReferencingBinary CaptureData where
          3 -> CaptureData <$> ls_get strs <*> ls_get strs <*> ls_get strs
          _ -> error $ "Unsupported CaptureData version tag " ++ show v ++ "\n" ++
                       "You can try to recover your data using arbtt-recover."
-
-  -- | 'getMany n' get 'n' elements in order, without blowing the stack.
-  --   From Data.Binary
-getMany :: Binary a => Int -> Get [a]
-getMany n = go [] n
- where
-    go xs 0 = return $! reverse xs
-    go xs i = do x <- get
-                 -- we must seq x to avoid stack overflows due to laziness in
-                 -- (>>=)
-                 x `seq` go (x:xs) (i-1)
-{-# INLINE getMany #-}
