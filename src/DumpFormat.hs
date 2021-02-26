@@ -59,15 +59,19 @@ instance FromJSON (TimeLogEntry CaptureData) where
 instance ToJSON WindowData where
     toJSON WindowData{..} = object
         [ "active" .= wActive
+        , "hidden" .= wHidden
         , "title" .= wTitle
         , "program" .= wProgram
+        , "desktop" .= wDesktop
         ]
 
 instance FromJSON WindowData where
     parseJSON = withObject "window" $ \v -> do
         wActive <- v .: "active"
+        wHidden <- v .: "hidden"
         wTitle <- v .: "title"
         wProgram <- v .: "program"
+        wDesktop <- v .: "desktop"
         pure WindowData{..}
 
 readDumpFormat :: String -> Maybe DumpFormat
@@ -101,11 +105,15 @@ dumpHeader time lastActivity = do
         lastActivity
 
 dumpWindow :: WindowData -> IO ()
-dumpWindow wd = do
-    printf "    %s %-15s %s\n"
-        (if wActive wd then ("(*)"::String) else "( )")
-        (unpack (wProgram wd)++ ":")
-        (unpack (wTitle wd))
+dumpWindow WindowData{..} = do
+    printf "    (%c)%-*s %-15s %s\n" a (dw :: Int) d p t
+  where a | wActive   = '*'
+          | wHidden   = ' '
+          | otherwise = '.'
+        (dw, d) | wDesktop == "" = (0, "")
+                | otherwise      = (15, " [" ++ unpack wDesktop  ++ "]")
+        p = unpack wProgram ++ ":"
+        t = unpack wTitle
 
 dumpDesktop :: Text -> IO ()
 dumpDesktop d
