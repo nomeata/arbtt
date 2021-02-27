@@ -15,6 +15,7 @@ import Data.Binary
 import Data.Binary.Put
 import Data.Binary.Get
 import Data.Binary.StringRef
+import Data.Bits
 import qualified Data.MyText as T
 import Data.MyText (Text)
 import Control.Applicative
@@ -121,9 +122,10 @@ instance StringReferencingBinary CaptureData where
 -- 2 Using ListOfStringable
 -- 3 Add cDesktop
 -- 4 WindowData instead of 3-tuple
+-- 5 CompactNum
  ls_put strs cd = do
         -- A version tag
-        putWord8 4
+        putWord8 5
         ls_put strs (cWindows cd)
         ls_put strs (cLastActivity cd)
         ls_put strs (cDesktop cd)
@@ -132,22 +134,24 @@ instance StringReferencingBinary CaptureData where
         case v of
          1 -> CaptureData <$> (fromWindowsV0 <$> get) <*> get <*> pure ""
          2 -> CaptureData <$> (fromWindowsV0 <$> ls_get strs) <*> ls_get strs <*> pure ""
-         3 -> CaptureData <$> (fromWindowsV0 <$> ls_get strs) <*> ls_get strs <*> ls_get strs
-         4 -> CaptureData <$> ls_get strs <*> ls_get strs <*> ls_get strs
+         3 -> CaptureData <$> (fromWindowsV0 <$> ls_get strs) <*> ls_get strs <*> (fromIntLen <$> ls_get strs)
+         4 -> CaptureData <$> (fromIntLen <$> ls_get strs) <*> ls_get strs <*> (fromIntLen <$> ls_get strs)
+         5 -> CaptureData <$> ls_get strs <*> ls_get strs <*> ls_get strs
          _ -> error $ "Unsupported CaptureData version tag " ++ show v ++ "\n" ++
                       "You can try to recover your data using arbtt-recover."
 
-fromWindowsV0 :: [(Bool, Text, Text)] -> [WindowData]
-fromWindowsV0 = map $ \(a,t,p) -> def{ wActive = a, wTitle = t, wProgram = p }
+fromWindowsV0 :: IntLen [(Bool, IntLen Text, IntLen Text)] -> [WindowData]
+fromWindowsV0 = map f . fromIntLen
+  where f (a, IntLen t, IntLen p) = def{ wActive = a, wTitle = t, wProgram = p }
 
 instance StringReferencingBinary WindowData where
 -- Versions:
 -- 0 3-tuple without version tag, handled in `instance StringReferencingBinary CaptureData`
 -- 1 WindowData record; Added wHidden, wDesktop
+-- 2 CompactNum, bitfield
   ls_put strs WindowData{..} = do
-        putWord8 1
-        ls_put strs wActive
-        ls_put strs wHidden
+        putWord8 2
+        putWord8 ((if wActive then bit 0 else 0) .|. (if wHidden then bit 1 else 0))
         ls_put strs wTitle
         ls_put strs wProgram
         ls_put strs wDesktop
@@ -157,6 +161,14 @@ instance StringReferencingBinary WindowData where
          1 -> do
              wActive <- ls_get strs
              wHidden <- ls_get strs
+             wTitle <- fromIntLen <$> ls_get strs
+             wProgram <- fromIntLen <$> ls_get strs
+             wDesktop <- fromIntLen <$> ls_get strs
+             return WindowData{..}
+         2 -> do
+             bits <- getWord8
+             let wActive = testBit bits 0
+             let wHidden = testBit bits 1
              wTitle <- ls_get strs
              wProgram <- ls_get strs
              wDesktop <- ls_get strs

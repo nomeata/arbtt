@@ -1,8 +1,10 @@
 {-# LANGUAGE FlexibleInstances, UndecidableInstances, TypeSynonymInstances #-}
+{-# LANGUAGE LambdaCase #-}
 
-module Data.Binary.StringRef 
+module Data.Binary.StringRef
         ( ListOfStringable(..)
         , StringReferencingBinary(..)
+        , IntLen(..)
         , ls_encode
         , ls_decode
         ) where
@@ -47,10 +49,28 @@ instance (StringReferencingBinary a, StringReferencingBinary b, StringReferencin
     ls_get strs                 = liftM5 (,,,,) (ls_get strs) (ls_get strs) (ls_get strs) (ls_get strs) (ls_get strs)
 
 
+newtype CompactNum a = CompactNum { fromCompactNum :: a }
+
+instance (Integral a, Num a, Binary a) => StringReferencingBinary (CompactNum a) where
+    ls_put _ (CompactNum i)
+          | 0 <= i && i < 255 = putWord8 (fromIntegral i)
+          | otherwise         = putWord8 255 >> put i
+    ls_get _ = fmap CompactNum $ getWord8 >>= \case
+        i | 0 <= i && i < 255 -> return (fromIntegral i)
+          | otherwise         -> get
+
 instance StringReferencingBinary a => StringReferencingBinary [a] where
-    ls_put strs l  = ls_put strs (length l) >> mapM_ (ls_put strs) l
-    ls_get strs    = do n <- (ls_get strs) :: Get Int
-                        ls_getMany strs n
+    ls_put strs l = ls_put strs (CompactNum (length l)) >> mapM_ (ls_put strs) l
+    ls_get strs   = ls_getMany strs . fromCompactNum =<< ls_get strs
+
+instance StringReferencingBinary Text where
+        ls_put strs s = case elemIndex s strs of
+                Just i | 0 <= i && i < 255 ->
+                        putWord8 (fromIntegral (succ i))
+                _ ->    putWord8 0 >> ls_put strs (T.unpack s)
+        ls_get strs = getWord8 >>= \case
+                0 -> T.pack <$> ls_get strs
+                i -> return $! strs !! fromIntegral (pred i)
 
 -- | 'ls_get strsMany n' ls_get strs 'n' elements in order, without blowing the stack.
 ls_getMany :: StringReferencingBinary a => [Text] -> Int -> Get [a]
@@ -64,16 +84,28 @@ ls_getMany strs n = go [] n
 {-# INLINE ls_getMany #-}
 
 
-instance StringReferencingBinary Text where
-        ls_put strs s = case elemIndex s strs of
+-- compat newtype for deserialization of v2-v4 CaptureData
+newtype IntLen a = IntLen { fromIntLen :: a }
+
+-- compat instance for deserialization of v1 CaptureData
+instance Binary a => Binary (IntLen a) where
+    put = put . fromIntLen
+    get = IntLen <$> get
+
+-- compat instance for deserialization of v2-v4 CaptureData
+instance StringReferencingBinary a => StringReferencingBinary (IntLen [a]) where
+    ls_put strs (IntLen l) = ls_put strs (length l) >> mapM_ (ls_put strs) l
+    ls_get strs            = fmap IntLen $ ls_getMany strs =<< ls_get strs
+
+-- compat instance for deserialization of v2-v4 CaptureData
+instance StringReferencingBinary (IntLen Text) where
+        ls_put strs (IntLen s) = case elemIndex s strs of
                 Just i | 0 <= i && i < 255 ->
-                        put (fromIntegral (succ i) :: Word8)
-                _ ->    put (0 :: Word8) >> put s
-        ls_get strs = do
-                tag <- get
-                case tag :: Word8 of
-                  0 -> get
-                  i -> return $! strs !! fromIntegral (pred i)
+                        putWord8 (fromIntegral (succ i))
+                _ ->    putWord8 0 >> ls_put strs (IntLen (T.unpack s))
+        ls_get strs = fmap IntLen $ getWord8 >>= \case
+                0 -> T.pack . fromIntLen <$> ls_get strs
+                i -> return $! strs !! fromIntegral (pred i)
 
 {-
 instance Binary a => StringReferencingBinary a where
