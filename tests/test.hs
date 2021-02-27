@@ -84,7 +84,7 @@ goldenTests = testGroup "Golden tests"
             run "arbtt-import" ["-f","tests/small_import_json_list.out.actual", "-t", "JSON"]
     , goldenVsFile "recover small"
         "tests/small_borked_recover.out" "tests/small_borked_recover.out.actual" $ void $
-        run "arbtt-recover" ["-i","tests/small_borked_recover.out", "-o", "tests/small_borked_recover.out.actual"] B.empty
+        run "arbtt-recover" ["-i","tests/small_borked.log", "-o", "tests/small_borked_recover.out.actual"] B.empty
     , goldenVsString "stats small"
         "tests/small_stats.out" $
         run "arbtt-stats" ["--logfile", "tests/small.log", "--categorize", "tests/small.cfg"] B.empty
