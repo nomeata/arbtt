@@ -8,14 +8,13 @@ import Data
 import qualified Text.Regex.PCRE.Light.Text as RE
 import qualified Data.MyText as T
 import Data.MyText (Text)
-import Control.Applicative (empty, (<*))
+import Control.Applicative (empty, (<*), (<$), (<$>))
 import Control.Monad
 import Control.Monad.Trans.Reader hiding (local)
 import Control.Monad.Reader.Class (local)
 import Control.Monad.Trans.Class
 import Data.Functor.Identity
 
-import Control.Applicative ((<$>))
 import Control.DeepSeq
 import Data.Char
 import Data.List
@@ -136,7 +135,9 @@ lang = makeTokenParser LanguageDef
                 , reservedOpNames= []
                 , reservedNames  = [ "title"
                                    , "program"
+                                   , "wdesktop"
                                    , "active"
+                                   , "hidden"
                                    , "idle"
                                    , "time"
                                    , "sampleage"
@@ -407,7 +408,9 @@ parseCondPrim = choice
                   return $ CondString (getBackref backref)
              , choice [ reserved lang "title" >> return (CondString (getVar "title"))
                       , reserved lang "program" >> return (CondString (getVar "program"))
+                      , reserved lang "wdesktop" >> return (CondString (getVar "wdesktop"))
                       , reserved lang "active" >> return (CondCond checkActive)
+                      , reserved lang "hidden" >> return (CondCond checkHidden)
                       , reserved lang "idle" >> return (CondInteger (getNumVar NvIdle))
                       , reserved lang "time" >> return (CondTime (getTimeVar TvTime))
                       , reserved lang "sampleage" >> return (CondTime (getTimeVar TvSampleAge))
@@ -530,6 +533,7 @@ getVar v ctx | "current" `isPrefixOf` v = do
                 getVar var (ctx { cWindowInScope = Just win })
 getVar "title"   ctx = wTitle <$> cWindowInScope ctx
 getVar "program" ctx = wProgram <$> cWindowInScope ctx
+getVar "wdesktop" ctx = wDesktop <$> cWindowInScope ctx
 getVar "desktop" ctx = return $ cDesktop (tlData (cNow ctx))
 getVar v _ = error $ "Unknown variable " ++ v
 
@@ -549,9 +553,9 @@ getDateVar :: DateVar -> CtxFun UTCTime
 getDateVar DvDate = Just . tlTime . cNow
 getDateVar DvNow = Just . zonedTimeToUTC . cCurrentTime
 
-checkActive :: Cond
-checkActive ctx = do guard =<< wActive <$> cWindowInScope ctx
-                     return []
+checkActive, checkHidden :: Cond
+checkActive ctx = [] <$ (guard =<< wActive <$> cWindowInScope ctx)
+checkHidden ctx = [] <$ (guard =<< wHidden <$> cWindowInScope ctx)
 
 matchNone :: Rule
 matchNone = const []
