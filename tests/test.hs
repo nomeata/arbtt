@@ -110,6 +110,9 @@ goldenTests = testGroup "Golden tests"
     , goldenVsFile "recover binversions"
         "tests/binversions_borked_recover.out" "tests/binversions_borked_recover.out.actual" $ void $
         run "arbtt-recover" ["-i","tests/binversions_borked.log", "-o", "tests/binversions_borked_recover.out.actual"] B.empty
+    , goldenVsString "stats small_v5 ($hidden, $wdesktop)"
+        "tests/small_v5_stats.out" $
+        run "arbtt-stats" ["--logfile", "tests/small_v5.log", "--categorize", "tests/small_v5.cfg"] B.empty
     ]
 
 testParser env parser input = do
