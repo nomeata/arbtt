@@ -104,6 +104,12 @@ goldenTests = testGroup "Golden tests"
     , goldenVsString "condition binding stats"
         "tests/condition_bindings_stats.out" $
         run "arbtt-stats" ["--logfile", "tests/small.log", "--categorize", "tests/condition_bindings.cfg"] B.empty
+    , goldenVsString "dump binversions"
+        "tests/binversions_dump.out" $
+        run "arbtt-dump" ["-f","tests/binversions.log", "-t", "Show"] B.empty
+    , goldenVsFile "recover binversions"
+        "tests/binversions_borked_recover.out" "tests/binversions_borked_recover.out.actual" $ void $
+        run "arbtt-recover" ["-i","tests/binversions_borked.log", "-o", "tests/binversions_borked_recover.out.actual"] B.empty
     ]
 
 testParser env parser input = do
