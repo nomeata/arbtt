@@ -109,9 +109,14 @@ goldenTests = testGroup "Golden tests"
     , goldenVsFile "recover binversions"
         "tests/binversions_borked_recover.out" "tests/binversions_borked_recover.out.actual" $ void $
         run "arbtt-recover" ["-i","tests/binversions_borked.log", "-o", "tests/binversions_borked_recover.out.actual"] B.empty
-    , goldenVsString "stats small_v5 ($hidden, $wdesktop)"
-        "tests/small_v5_stats.out" $
-        run "arbtt-stats" ["--logfile", "tests/small_v5.log", "--categorize", "tests/small_v5.cfg"] B.empty
+    , goldenVsFile "import small_v4"
+        "tests/small_v4.log" "tests/small_v4_import.out.actual" $ void $ do
+        tryIOError $ removeFile "tests/small_v4_import.out.actual"
+        B.readFile "tests/small_v4_import.in" >>=
+            run "arbtt-import" ["-f","tests/small_v4_import.out.actual"]
+    , goldenVsString "stats small_v4 ($hidden, $wdesktop)"
+        "tests/small_v4_stats.out" $
+        run "arbtt-stats" ["--logfile", "tests/small_v4.log", "--categorize", "tests/small_v4.cfg"] B.empty
     ]
 
 testParser env parser input = do
