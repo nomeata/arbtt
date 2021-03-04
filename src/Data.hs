@@ -21,7 +21,6 @@ import Data.MyText (Text)
 import Control.Applicative
 import Control.Monad
 import Control.DeepSeq
-import Data.Default.Class
 
 type TimeLog a = [TimeLogEntry a]
 
@@ -47,9 +46,6 @@ data WindowData = WindowData
         , wDesktop :: Text
         }
   deriving (Show, Read, Generic, NFData)
-
-instance Default WindowData where
- def = WindowData False False "" "" ""
 
 type ActivityData = [Activity]
 
@@ -114,7 +110,7 @@ instance ListOfStringable CaptureData where
   -- but add an empty string at the end to compact empty strings as well
   listOfStrings cd = concatMap listW (cWindows cd) ++ [""]
     where listW wd = [wTitle wd, wProgram wd]
-                  ++ [wDesktop wd | wDesktop wd /= wDesktop def]
+                  ++ [wDesktop wd | wDesktop wd /= ""]
 
 instance StringReferencingBinary CaptureData where
 -- Versions:
@@ -132,17 +128,22 @@ instance StringReferencingBinary CaptureData where
  ls_get strs = do
         v <- getWord8
         case v of
-         1 -> CaptureData <$> (fromWindowsV0 <$> get) <*> get <*> pure ""
-         2 -> CaptureData <$> (fromWindowsV0 <$> ls_get strs) <*> ls_get strs <*> pure ""
-         3 -> CaptureData <$> (fromWindowsV0 <$> ls_get strs) <*> ls_get strs <*> (fromIntLen <$> ls_get strs)
+         1 -> CaptureData <$> (map fromWDv0 . fromIntLenW <$> get) <*> get <*> pure ""
+         2 -> CaptureData <$> (map fromWDv0 . fromIntLenW <$> ls_get strs) <*> ls_get strs <*> pure ""
+         3 -> CaptureData <$> (map fromWDv0 . fromIntLenW <$> ls_get strs) <*> ls_get strs <*> (fromIntLen <$> ls_get strs)
          4 -> CaptureData <$> (fromIntLen <$> ls_get strs) <*> ls_get strs <*> (fromIntLen <$> ls_get strs)
          5 -> CaptureData <$> ls_get strs <*> ls_get strs <*> ls_get strs
          _ -> error $ "Unsupported CaptureData version tag " ++ show v ++ "\n" ++
                       "You can try to recover your data using arbtt-recover."
 
-fromWindowsV0 :: IntLen [(Bool, IntLen Text, IntLen Text)] -> [WindowData]
-fromWindowsV0 = map f . fromIntLen
-  where f (a, IntLen t, IntLen p) = def{ wActive = a, wTitle = t, wProgram = p }
+fromIntLenW :: IntLen [(Bool, IntLen Text, IntLen Text)] -> [(Bool, Text, Text)]
+fromIntLenW ws = [(a, t, p) | (a, IntLen t, IntLen p) <- fromIntLen ws]
+
+fromWDv0 :: (Bool, Text, Text) -> WindowData
+fromWDv0 (a, t, p) = WindowData{
+  -- wHidden = not wActive for old data, so that rules that look at visible
+  -- windows don't misfire; uncategorized is better than categorized wrong
+  wActive = a, wHidden = not a, wTitle = t, wProgram = p, wDesktop = "" }
 
 instance StringReferencingBinary WindowData where
 -- Versions:

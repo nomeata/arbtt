@@ -45,7 +45,6 @@ executable arbtt-capture
                 containers >= 0.5 && < 0.7,
                 aeson >= 0.10  && < 1.6,
                 binary >= 0.5,
-                data-default-class,
                 bytestring, deepseq
 
     if flag(old-locale)
@@ -106,7 +105,6 @@ executable arbtt-stats
         containers >= 0.5 && < 0.7,
         pcre-light,
         binary >= 0.5,
-        data-default-class,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath,
         aeson >= 0.10  && < 1.6,
@@ -157,7 +155,6 @@ executable arbtt-dump
         aeson >= 0.10  && < 1.6,
         array == 0.4.* || == 0.5.*,
         binary >= 0.5,
-        data-default-class,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath
 
@@ -198,7 +195,6 @@ executable arbtt-import
         conduit >= 1.2 && < 1.4,
         exceptions >= 0.8,
         attoparsec == 0.13.*,
-        data-default-class,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath
 
@@ -248,7 +244,6 @@ executable arbtt-recover
         base >= 4.7 && < 5,
         containers >= 0.5 && < 0.7,
         binary >= 0.5,
-        data-default-class,
         deepseq, bytestring, utf8-string,
         directory, filepath
 
@@ -307,7 +302,6 @@ test-suite test
       , pcre-light
       , transformers
       , mtl
-      , data-default-class
 
   if !os(windows)
     build-depends: unix

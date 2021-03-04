@@ -1,7 +1,6 @@
 module Capture.Win32 where
 
 import Data
-import Data.Default.Class
 import qualified Data.MyText as T
 import Control.Monad
 import Control.Exception (bracket)
@@ -21,11 +20,8 @@ captureData = do
         titles <- fetchWindowTitles
         foreground <- getForegroundWindow
 
-        let winData = [ def{ wActive = h == foreground
-                           , wTitle = T.pack t
-                           , wProgram = T.pack p
-                           }
-                      | (h, t, p) <- titles ]
+        let winData = [ fromWDv0 (h == foreground, T.pack t, T.pack p)
+                      | (h, t, p) <- titles]
 
         it <- fromIntegral `fmap` getIdleTime
 

@@ -2,7 +2,6 @@ module UpgradeLog1 (upgradeLogFile1) where
 
 import qualified Data.ByteString.Char8 as BS
 import System.IO
-import Data.Default.Class
 import Data.Time
 import Control.Applicative
 import Control.Monad
@@ -59,6 +58,6 @@ upgrade = map $ \(TimeLogEntry a b c) -> D.TimeLogEntry a b (upgradeCD c)
 
 upgradeCD :: CaptureData -> D.CaptureData
 upgradeCD (CaptureData a b) = D.CaptureData (map upgrageWD a) b (T.pack "")
- where upgrageWD (b, s1, s2) = def{ D.wActive = b, D.wTitle = T.pack s1, D.wProgram = T.pack s2 }
+ where upgrageWD (b, s1, s2) = D.fromWDv0 (b, T.pack s1, T.pack s1)
 
 

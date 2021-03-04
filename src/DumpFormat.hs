@@ -18,7 +18,6 @@ import System.Locale (defaultTimeLocale)
 #endif
 import Data.Char
 import Data.Foldable (toList)
-import Data.Default.Class
 import Control.Applicative ((<$>), (<|>), (<*>), pure)
 
 import Data
@@ -69,10 +68,10 @@ instance ToJSON WindowData where
 instance FromJSON WindowData where
     parseJSON = withObject "window" $ \v -> do
         wActive <- v .: "active"
-        wHidden <- v .:! "hidden" .!= wHidden def
+        wHidden <- v .:! "hidden" .!= not wActive
         wTitle <- v .: "title"
         wProgram <- v .: "program"
-        wDesktop <- v .:! "desktop" .!= wDesktop def
+        wDesktop <- v .:! "desktop" .!= ""
         pure WindowData{..}
 
 readDumpFormat :: String -> Maybe DumpFormat
