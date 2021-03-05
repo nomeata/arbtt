@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE Rank2Types, CPP, FlexibleContexts #-}
 module Categorize where
 
@@ -6,15 +8,13 @@ import Data
 import qualified Text.Regex.PCRE.Light.Text as RE
 import qualified Data.MyText as T
 import Data.MyText (Text)
-import Control.Applicative (empty, (<*))
+import Control.Applicative (empty, (<*), (<$), (<$>))
 import Control.Monad
-import Control.Monad.Instances()
 import Control.Monad.Trans.Reader hiding (local)
 import Control.Monad.Reader.Class (local)
 import Control.Monad.Trans.Class
 import Data.Functor.Identity
 
-import Control.Applicative ((<$>))
 import Control.DeepSeq
 import Data.Char
 import Data.List
@@ -39,6 +39,7 @@ import System.Locale (defaultTimeLocale, iso8601DateFormat)
 #endif
 import Debug.Trace
 import Text.Printf
+import GHC.Generics (Generic)
 
 type Categorizer = TimeLog CaptureData -> TimeLog (Ctx, ActivityData)
 type ApplyCond = TimeLogEntry (Ctx, ActivityData) -> Bool
@@ -49,15 +50,12 @@ type Parser = ParsecT String () (ReaderT (TimeZone, Environment) Identity)
 
 data Ctx = Ctx
         { cNow :: TimeLogEntry CaptureData
-        , cCurrentWindow :: Maybe (Bool, Text, Text)
-        , cWindowInScope :: Maybe (Bool, Text, Text)
+        , cCurrentWindow :: Maybe WindowData
+        , cWindowInScope :: Maybe WindowData
         , cSubsts :: [Text]
         , cCurrentTime :: ZonedTime
         , conditionBindings :: Map String Cond
-        } deriving Show
-
-instance NFData Ctx where
-    rnf (Ctx a b c d e f) = a `deepseq` b `deepseq` c `deepseq` d `deepseq` e `deepseq` f `deepseq` ()
+        } deriving (Show, Generic, NFData)
 
 type Cond = CtxFun [Text]
 
@@ -115,7 +113,7 @@ mkApplyCond s = do
 
 prepare :: ZonedTime -> TimeLog CaptureData -> TimeLog Ctx
 prepare time = map go
-  where go now  = now {tlData = Ctx now (findActive (cWindows (tlData now))) Nothing [] time Map.empty }
+  where go now  = now {tlData = Ctx now (find wActive (cWindows (tlData now))) Nothing [] time Map.empty }
 
 -- | Here, we filter out tags appearing twice, and make sure that only one of
 --   each category survives
@@ -137,7 +135,9 @@ lang = makeTokenParser LanguageDef
                 , reservedOpNames= []
                 , reservedNames  = [ "title"
                                    , "program"
+                                   , "wdesktop"
                                    , "active"
+                                   , "hidden"
                                    , "idle"
                                    , "time"
                                    , "sampleage"
@@ -408,7 +408,9 @@ parseCondPrim = choice
                   return $ CondString (getBackref backref)
              , choice [ reserved lang "title" >> return (CondString (getVar "title"))
                       , reserved lang "program" >> return (CondString (getVar "program"))
+                      , reserved lang "wdesktop" >> return (CondString (getVar "wdesktop"))
                       , reserved lang "active" >> return (CondCond checkActive)
+                      , reserved lang "hidden" >> return (CondCond checkHidden)
                       , reserved lang "idle" >> return (CondInteger (getNumVar NvIdle))
                       , reserved lang "time" >> return (CondTime (getTimeVar TvTime))
                       , reserved lang "sampleage" >> return (CondTime (getTimeVar TvSampleAge))
@@ -529,12 +531,9 @@ getVar v ctx | "current" `isPrefixOf` v = do
                 let var = drop (length "current.") v
                 win <- cCurrentWindow ctx
                 getVar var (ctx { cWindowInScope = Just win })
-getVar "title"   ctx = do
-                (_,t,_) <- cWindowInScope ctx
-                return t
-getVar "program" ctx = do
-                (_,_,p) <- cWindowInScope ctx
-                return p
+getVar "title"   ctx = wTitle <$> cWindowInScope ctx
+getVar "program" ctx = wProgram <$> cWindowInScope ctx
+getVar "wdesktop" ctx = wDesktop <$> cWindowInScope ctx
 getVar "desktop" ctx = return $ cDesktop (tlData (cNow ctx))
 getVar v _ = error $ "Unknown variable " ++ v
 
@@ -554,13 +553,9 @@ getDateVar :: DateVar -> CtxFun UTCTime
 getDateVar DvDate = Just . tlTime . cNow
 getDateVar DvNow = Just . zonedTimeToUTC . cCurrentTime
 
-findActive :: [(Bool, t, t1)] -> Maybe (Bool, t, t1)
-findActive = find (\(a,_,_) -> a)
-
-checkActive :: Cond
-checkActive ctx = do (a,_,_) <- cWindowInScope ctx
-                     guard a
-                     return []
+checkActive, checkHidden :: Cond
+checkActive ctx = [] <$ (guard =<< wActive <$> cWindowInScope ctx)
+checkHidden ctx = [] <$ (guard =<< wHidden <$> cWindowInScope ctx)
 
 matchNone :: Rule
 matchNone = const []

@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 module Capture.X11 where
 
 import Data
@@ -17,8 +18,6 @@ import Graphics.X11.XScreenSaver (getXIdleTime, compiledWithXScreenSaver)
 
 setupCapture :: IO ()
 setupCapture = do
-        unless compiledWithXScreenSaver $
-                hPutStrLn stderr "arbtt [Warning]: X11 was compiled without support for XScreenSaver"
         loc <- supportsLocale
         unless loc $ hPutStrLn stderr "arbtt [Warning]: locale unsupported"
         dpy <- openDisplay ""
@@ -36,21 +35,10 @@ captureData = do
         xSetErrorHandler
         let rwin = defaultRootWindow dpy
 
-        -- Desktops
-        current_desktop <- flip catchIOError (\_ -> return "") $ do
-            a <- internAtom dpy "_NET_CURRENT_DESKTOP" False
-            p <- getWindowProperty32 dpy a rwin
-            let desk_index = do {[d] <- p; return (fromIntegral d)}
+        -- Desktop
+        desktop <- getDesktops dpy
+        current_desktop <- desktop <$> getDesktop "_NET_CURRENT_DESKTOP" dpy rwin
 
-            a <- internAtom dpy "_NET_DESKTOP_NAMES" False
-            tp <- getTextProperty dpy rwin a
-            names <- wcTextPropertyToTextList dpy tp
-
-            return $ case desk_index of
-                  Nothing -> ""
-                  Just n -> if 0 <= n && n < length names
-                            then names !! n
-                            else show n
         -- Windows
         a <- internAtom dpy "_NET_CLIENT_LIST" False
         p <- getWindowProperty32 dpy a rwin
@@ -62,10 +50,13 @@ captureData = do
         (fsubwin,_) <- getInputFocus dpy
         fwin <- followTreeUntil dpy (`elem` wins) fsubwin
 
-        winData <- forM wins $ \w -> (,,)
-            (w == fwin) <$>
-            (T.pack <$> getWindowTitle dpy w) <*>
-            (T.pack <$> getProgramName dpy w)
+        winData <- forM wins $ \w -> do
+            let wActive = w == fwin
+            wHidden <- isHidden dpy w
+            wTitle <- T.pack <$> getWindowTitle dpy w
+            wProgram <- T.pack <$> getProgramName dpy w
+            wDesktop <- T.pack . desktop <$> getDesktop "_NET_WM_DESKTOP" dpy w
+            return WindowData{..}
 
         it <- fromIntegral `fmap` getXIdleTime dpy
 
@@ -120,3 +111,30 @@ myFetchName d w = do
         bracket getProp (xFree . tp_value) extract
             `catchIOError` \_ -> return ""
 
+getDesktops :: Display -> IO (Maybe Int -> String)
+getDesktops dpy = do
+    desktops <- flip catchIOError (\_ -> return []) $ do
+        a <- internAtom dpy "_NET_DESKTOP_NAMES" False
+        tp <- getTextProperty dpy (defaultRootWindow dpy) a
+        dropTailNull <$> wcTextPropertyToTextList dpy tp
+    let name n | 0 <= n && n < length desktops = desktops !! n
+               | otherwise                     = show n
+    return $ maybe "" name
+  where
+    -- _NET_DESKTOP_NAMES is a list of NULL-terminated strings but
+    -- wcTextPropertyToTextList treats NULL as a separator,
+    -- so we need to drop the final empty string
+    dropTailNull [""] = []
+    dropTailNull (x:xs) = x : dropTailNull xs
+
+getDesktop :: String -> Display -> Window -> IO (Maybe Int)
+getDesktop prop dpy w = flip catchIOError (\_ -> return Nothing) $ do
+    a <- internAtom dpy prop False
+    p <- getWindowProperty32 dpy a w
+    return $ do {[d] <- p; return (fromIntegral d)}
+
+isHidden :: Display -> Window -> IO Bool
+isHidden dpy w = flip catchIOError (\_ -> return False) $ do
+    a <- internAtom dpy "WM_STATE" False
+    Just (state:_) <- getWindowProperty32 dpy a w
+    return $ fromIntegral state /= normalState

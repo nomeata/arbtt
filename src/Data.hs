@@ -1,6 +1,11 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 module Data where
 
+import GHC.Generics (Generic)
 import Data.Time
 import Text.ParserCombinators.ReadPrec (readP_to_Prec)
 import Text.ParserCombinators.ReadP hiding (get)
@@ -10,6 +15,7 @@ import Data.Binary
 import Data.Binary.Put
 import Data.Binary.Get
 import Data.Binary.StringRef
+import Data.Bits
 import qualified Data.MyText as T
 import Data.MyText (Text)
 import Control.Applicative
@@ -22,25 +28,24 @@ data TimeLogEntry a = TimeLogEntry
         { tlTime :: UTCTime
         , tlRate :: Integer -- ^ in milli-seconds
         , tlData :: a }
-  deriving (Show, Read)
-
-instance Functor TimeLogEntry where
-        fmap f tl = tl { tlData = f (tlData tl) }
-
-instance NFData a => NFData (TimeLogEntry a) where
-    rnf (TimeLogEntry a b c) = a `deepseq` b `deepseq` c `deepseq` ()
+  deriving (Show, Read, Functor, Generic, NFData)
 
 data CaptureData = CaptureData
-        { cWindows :: [ (Bool, Text, Text) ]
-                -- ^ Active window, window title, programm name
+        { cWindows :: [WindowData]
         , cLastActivity :: Integer -- ^ in milli-seconds
         , cDesktop :: Text
                 -- ^ Current desktop name
         }
-  deriving (Show, Read)
+  deriving (Show, Read, Generic, NFData)
 
-instance NFData CaptureData where
-    rnf (CaptureData a b c) = a `deepseq` b `deepseq` c `deepseq` ()
+data WindowData = WindowData
+        { wActive :: Bool
+        , wHidden :: Bool
+        , wTitle :: Text
+        , wProgram :: Text
+        , wDesktop :: Text
+        }
+  deriving (Show, Read, Generic, NFData)
 
 type ActivityData = [Activity]
 
@@ -48,10 +53,7 @@ data Activity = Activity
         { activityCategory :: Maybe Category
         , activityName :: Text
         }
-  deriving (Ord, Eq)
-
-instance NFData Activity where
-    rnf (Activity a b) = a `deepseq` b `deepseq` ()
+  deriving (Ord, Eq, Generic, NFData)
 
 -- | An activity with special meaning: ignored by default (i.e. for idle times)
 inactiveActivity = Activity Nothing "inactive"
@@ -104,35 +106,63 @@ instance Binary UTCTime where
         return $ UTCTime (ModifiedJulianDay d) ({-# SCC diffTimeFromRational #-} fromRational t)
 
 instance ListOfStringable CaptureData where
-  listOfStrings = concatMap (\(b,t,p) -> [t,p]) . cWindows
+  -- backward compat hack: skip empty wDesktop to keep original order,
+  -- but add an empty string at the end to compact empty strings as well
+  listOfStrings cd = concatMap listW (cWindows cd) ++ [""]
+    where listW wd = [wTitle wd, wProgram wd]
+                  ++ [wDesktop wd | wDesktop wd /= ""]
 
 instance StringReferencingBinary CaptureData where
 -- Versions:
 -- 1 First version
 -- 2 Using ListOfStringable
+-- 3 Add cDesktop
+-- 4 WindowData instead of 3-tuple; CompactNum
  ls_put strs cd = do
         -- A version tag
-        putWord8 3
+        putWord8 4
         ls_put strs (cWindows cd)
         ls_put strs (cLastActivity cd)
         ls_put strs (cDesktop cd)
  ls_get strs = do
         v <- getWord8
         case v of
-         1 -> CaptureData <$> get <*> get <*> pure ""
-         2 -> CaptureData <$> ls_get strs <*> ls_get strs <*> pure ""
-         3 -> CaptureData <$> ls_get strs <*> ls_get strs <*> ls_get strs
+         1 -> CaptureData <$> (map fromWDv0 . fromIntLenW <$> get) <*> get <*> pure ""
+         2 -> CaptureData <$> (map fromWDv0 . fromIntLenW <$> ls_get strs) <*> ls_get strs <*> pure ""
+         3 -> CaptureData <$> (map fromWDv0 . fromIntLenW <$> ls_get strs) <*> ls_get strs <*> (fromIntLen <$> ls_get strs)
+         4 -> CaptureData <$> ls_get strs <*> ls_get strs <*> ls_get strs
          _ -> error $ "Unsupported CaptureData version tag " ++ show v ++ "\n" ++
                       "You can try to recover your data using arbtt-recover."
 
-  -- | 'getMany n' get 'n' elements in order, without blowing the stack.
-  --   From Data.Binary
-getMany :: Binary a => Int -> Get [a]
-getMany n = go [] n
- where
-    go xs 0 = return $! reverse xs
-    go xs i = do x <- get
-                 -- we must seq x to avoid stack overflows due to laziness in
-                 -- (>>=)
-                 x `seq` go (x:xs) (i-1)
-{-# INLINE getMany #-}
+fromIntLenW :: IntLen [(Bool, IntLen Text, IntLen Text)] -> [(Bool, Text, Text)]
+fromIntLenW ws = [(a, t, p) | (a, IntLen t, IntLen p) <- fromIntLen ws]
+
+fromWDv0 :: (Bool, Text, Text) -> WindowData
+fromWDv0 (a, t, p) = WindowData{
+  -- wHidden = not wActive for old data, so that rules that look at visible
+  -- windows don't misfire; uncategorized is better than categorized wrong
+  wActive = a, wHidden = not a, wTitle = t, wProgram = p, wDesktop = "" }
+
+instance StringReferencingBinary WindowData where
+-- Versions:
+-- 0 3-tuple without version tag, handled in `instance StringReferencingBinary CaptureData`
+-- 1 WindowData record; Added wHidden, wDesktop; CompactNum; bitfield
+  ls_put strs WindowData{..} = do
+        putWord8 1
+        putWord8 ((if wActive then bit 0 else 0) .|. (if wHidden then bit 1 else 0))
+        ls_put strs wTitle
+        ls_put strs wProgram
+        ls_put strs wDesktop
+  ls_get strs = do
+        v <- getWord8
+        case v of
+         1 -> do
+             bits <- getWord8
+             let wActive = testBit bits 0
+             let wHidden = testBit bits 1
+             wTitle <- ls_get strs
+             wProgram <- ls_get strs
+             wDesktop <- ls_get strs
+             return WindowData{..}
+         _ -> error $ "Unsupported WindowData version tag " ++ show v ++ "\n" ++
+                      "You can try to recover your data using arbtt-recover."

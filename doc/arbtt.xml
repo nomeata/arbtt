@@ -182,7 +182,9 @@
       <itemizedlist>
         <listitem><simpara>the window title</simpara></listitem>
         <listitem><simpara>the program name</simpara></listitem>
+        <listitem><simpara>desktop (workspace) the window belongs to</simpara></listitem>
         <listitem><simpara>whether the window was the active window</simpara></listitem>
+        <listitem><simpara>whether the window is hidden (minimized, on another desktop, unmapped, …)</simpara></listitem>
       </itemizedlist>
       Based on this information and on the rules in
       <filename>categorize.cfg</filename>, the categorizer
@@ -233,8 +235,9 @@
     <para>
       When applying the rules, the categorizer has a notion of
       the <emphasis>window in scope</emphasis>, and the variables
-      <literal>$title</literal>, <literal>$program</literal> and
-      <literal>$active</literal> always refer to the window in scope.
+      <literal>$title</literal>, <literal>$program</literal>,
+      <literal>$wdesktop</literal>, <literal>$active</literal> and
+      <literal>$hidden</literal> always refer to the window in scope.
       By default, there is no window is in scope. Condition should be prefixed
       with either <literal>current window</literal> or <literal>any
       window</literal>, to define scope of these variables.
@@ -403,6 +406,7 @@
                  def="#g-cond"/>
             </rhs>
         <rhs> <quote>$active</quote> </rhs>
+        <rhs> <quote>$hidden</quote> </rhs>
             <rhs> <nonterminal def="#g-string"/> <nonterminal def="#g-cmpop"/>
          <nonterminal def="#g-string"/> </rhs>
             <rhs> <nonterminal def="#g-string"/> <nonterminal def="#g-cmpop"/>
@@ -430,6 +434,7 @@
         <lhs>String</lhs>
         <rhs> <quote>$title</quote> </rhs>
         <rhs> <quote>$program</quote> </rhs>
+        <rhs> <quote>$wdesktop</quote> </rhs>
         <rhs> <quote>$desktop</quote> </rhs>
         <rhs> <quote>format</quote> <nonterminal def="#g-date" /> </rhs>
         <rhs> <quote>"</quote> string literal <quote>"</quote> </rhs>

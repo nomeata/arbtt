@@ -20,9 +20,8 @@ captureData = do
         titles <- fetchWindowTitles
         foreground <- getForegroundWindow
 
-        let winData = map (
-                \(h,t,p) -> (h == foreground, T.pack t, T.pack p)
-                ) titles
+        let winData = [ fromWDv0 (h == foreground, T.pack t, T.pack p)
+                      | (h, t, p) <- titles]
 
         it <- fromIntegral `fmap` getIdleTime
 

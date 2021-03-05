@@ -37,13 +37,15 @@ regressionTests :: TestTree
 regressionTests = testGroup "Regression tests"
     [ testCase "Issue #4" $ do
         cat <- readCategorizer "tests/issue4.cfg"
-        let sample = TimeLogEntry undefined 0 (CaptureData [(True, "aa", "program")] 0 "")
+        let wd = WindowData{ wActive = True, wHidden = False, wTitle = "aa", wProgram = "program", wDesktop = "" }
+        let sample = TimeLogEntry undefined 0 (CaptureData [wd] 0 "")
         let [TimeLogEntry _ _ (_,acts)] = cat [sample]
         [Activity (Just "Cat") "aa"] @=? acts
         return ()
     , testCase "Issue #5" $ do
         cat <- readCategorizer "tests/issue5.cfg"
-        let sample = TimeLogEntry undefined 0 (CaptureData [(True, "aa", "program")] 0 "")
+        let wd = WindowData{ wActive = True, wHidden = False, wTitle = "aa", wProgram = "program", wDesktop = "" }
+        let sample = TimeLogEntry undefined 0 (CaptureData [wd] 0 "")
         let [TimeLogEntry _ _ (_,acts)] = cat [sample]
         [Activity Nothing "A2"] @=? acts
         return ()
@@ -52,7 +54,8 @@ regressionTests = testGroup "Regression tests"
         now <- getCurrentTime
         let backThen = (-60*60*101) `addUTCTime` now
 
-        let sample = TimeLogEntry backThen 0 (CaptureData [(True, "aa", "program")] 0 "")
+        let wd = WindowData{ wActive = True, wHidden = False, wTitle = "aa", wProgram = "program", wDesktop = "" }
+        let sample = TimeLogEntry backThen 0 (CaptureData [wd] 0 "")
         let [TimeLogEntry _ _ (_,acts)] = cat [sample]
         [Activity Nothing "old"] @=? acts
         return ()
@@ -84,7 +87,7 @@ goldenTests = testGroup "Golden tests"
             run "arbtt-import" ["-f","tests/small_import_json_list.out.actual", "-t", "JSON"]
     , goldenVsFile "recover small"
         "tests/small_borked_recover.out" "tests/small_borked_recover.out.actual" $ void $
-        run "arbtt-recover" ["-i","tests/small_borked_recover.out", "-o", "tests/small_borked_recover.out.actual"] B.empty
+        run "arbtt-recover" ["-i","tests/small_borked.log", "-o", "tests/small_borked_recover.out.actual"] B.empty
     , goldenVsString "stats small"
         "tests/small_stats.out" $
         run "arbtt-stats" ["--logfile", "tests/small.log", "--categorize", "tests/small.cfg"] B.empty
@@ -100,6 +103,20 @@ goldenTests = testGroup "Golden tests"
     , goldenVsString "condition binding stats"
         "tests/condition_bindings_stats.out" $
         run "arbtt-stats" ["--logfile", "tests/small.log", "--categorize", "tests/condition_bindings.cfg"] B.empty
+    , goldenVsString "dump binversions"
+        "tests/binversions_dump.out" $
+        run "arbtt-dump" ["-f","tests/binversions.log", "-t", "Show"] B.empty
+    , goldenVsFile "recover binversions"
+        "tests/binversions_borked_recover.out" "tests/binversions_borked_recover.out.actual" $ void $
+        run "arbtt-recover" ["-i","tests/binversions_borked.log", "-o", "tests/binversions_borked_recover.out.actual"] B.empty
+    , goldenVsFile "import small_v4"
+        "tests/small_v4.log" "tests/small_v4_import.out.actual" $ void $ do
+        tryIOError $ removeFile "tests/small_v4_import.out.actual"
+        B.readFile "tests/small_v4_import.in" >>=
+            run "arbtt-import" ["-f","tests/small_v4_import.out.actual"]
+    , goldenVsString "stats small_v4 ($hidden, $wdesktop)"
+        "tests/small_v4_stats.out" $
+        run "arbtt-stats" ["--logfile", "tests/small_v4.log", "--categorize", "tests/small_v4.cfg"] B.empty
     ]
 
 testParser env parser input = do

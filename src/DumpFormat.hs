@@ -41,7 +41,7 @@ instance ToJSON (TimeLogEntry CaptureData) where
         "date" .= tlTime,
         "rate" .= tlRate,
         "inactive" .= cLastActivity tlData,
-        "windows" .= map (\(a,t,p) -> object ["active" .= a, "title" .= t, "program" .= p]) (cWindows tlData),
+        "windows" .= cWindows tlData,
         "desktop" .= cDesktop tlData
         ]
 
@@ -50,14 +50,29 @@ instance FromJSON (TimeLogEntry CaptureData) where
         tlTime <- v .: "date"
         tlRate <- v .: "rate"
         cLastActivity <- v .: "inactive"
-        cWindows  <- (v .: "windows") >>=
-            withArray "windows" (mapM (withObject "window" $ \v ->
-                (,,) <$> v .: "active" <*> v .: "title" <*> v .: "program"
-            ) . toList)
+        cWindows  <- v .: "windows"
         cDesktop <- v .: "desktop"
         let tlData = CaptureData {..}
         let entry = TimeLogEntry {..}
         pure entry
+
+instance ToJSON WindowData where
+    toJSON WindowData{..} = object
+        [ "active" .= wActive
+        , "hidden" .= wHidden
+        , "title" .= wTitle
+        , "program" .= wProgram
+        , "desktop" .= wDesktop
+        ]
+
+instance FromJSON WindowData where
+    parseJSON = withObject "window" $ \v -> do
+        wActive <- v .: "active"
+        wHidden <- v .:! "hidden" .!= not wActive
+        wTitle <- v .: "title"
+        wProgram <- v .: "program"
+        wDesktop <- v .:! "desktop" .!= ""
+        pure WindowData{..}
 
 readDumpFormat :: String -> Maybe DumpFormat
 readDumpFormat arg =
@@ -89,12 +104,16 @@ dumpHeader time lastActivity = do
         (formatTime defaultTimeLocale "%F %X" (utcToLocalTime tz time))
         lastActivity
 
-dumpWindow :: (Bool, Text, Text) -> IO ()
-dumpWindow (active, title, program) = do
-    printf "    %s %-15s %s\n"
-        (if active then ("(*)"::String) else "( )")
-        (unpack program ++ ":")
-        (unpack title)
+dumpWindow :: WindowData -> IO ()
+dumpWindow WindowData{..} = do
+    printf "    (%c)%-*s %-15s %s\n" a (dw :: Int) d p t
+  where a | wActive   = '*'
+          | wHidden   = ' '
+          | otherwise = '.'
+        (dw, d) | wDesktop == "" = (0, "")
+                | otherwise      = (15, " [" ++ unpack wDesktop  ++ "]")
+        p = unpack wProgram ++ ":"
+        t = unpack wTitle
 
 dumpDesktop :: Text -> IO ()
 dumpDesktop d
