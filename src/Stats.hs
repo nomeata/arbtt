@@ -100,11 +100,22 @@ data ReportResults =
 
 mkFilterPredicate :: [Filter] -> IO ApplyCond
 mkFilterPredicate filters = do
-    fs <- forM filters $ \flag -> case flag of
+    fs <- forM (fastFiltersHeuristic filters) $ \flag -> case flag of
                 Exclude act  -> return $ excludeTag act
                 Only act     -> return $ onlyTag act
                 GeneralCond s-> mkApplyCond s
     return $ \tl -> all ($ tl) fs
+
+-- | Reorder filters to first apply the presumably cheaper expressions
+-- (e.g. date or sampleage comparisons) given on command-line, hoping that
+-- will filter most samples out and we won't need to run the full categorizer
+-- on these (which we need for 'Exclude'/'Only').
+fastFiltersHeuristic :: [Filter] -> [Filter]
+fastFiltersHeuristic filters = fastFilters ++ slowFilters
+  where
+    (fastFilters, slowFilters) = partition isFast filters
+    isFast (GeneralCond _) = True
+    isFast _ = False
 
 filterActivity :: [ActivityFilter] -> ActivityData -> ActivityData
 filterActivity fs = filter (applyActivityFilter fs)
