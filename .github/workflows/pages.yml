@@ -29,12 +29,7 @@ jobs:
       run: sudo apt-get install libxss-dev libx11-dev libxrandr-dev libxinerama-dev
     - name: Build
       run: |
-        ls -l /opt/ghc/
-        export PATH=/opt/ghc/bin:$PATH
-        cabal --version
-        ghc --version
         cabal update
-        cabal build
         cabal build -w ghc-${{ matrix.ghc }}
         cabal test -w ghc-${{ matrix.ghc }}
 
