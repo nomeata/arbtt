@@ -10,7 +10,7 @@ jobs:
         - '8.10.2'
         os:
         - ubuntu-latest
-        # TODO: - windows-latest
+        - windows-latest
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/cache@v1
@@ -27,6 +27,9 @@ jobs:
 
     - if: runner.os == 'Linux'
       run: sudo apt-get install libxss-dev libx11-dev libxrandr-dev libxinerama-dev
+    - if: runner.os == 'Windows'
+      run: choco install gnuwin
+
     - name: Build
       run: |
         cabal update
