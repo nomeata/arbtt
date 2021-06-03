@@ -24,6 +24,9 @@ jobs:
     - uses: actions/setup-haskell@v1
       with:
         ghc-version: ${{ matrix.ghc }}
+
+    - if: runner.os == 'Linux'
+      run: sudo apt-get install libxss-dev libx11-dev libxrandr-dev libxinerama-dev
     - name: Build
       run: |
         ls -l /opt/ghc/
