@@ -10,7 +10,7 @@ jobs:
         - '8.10.2'
         os:
         - ubuntu-latest
-        # TODO: - windows-latest
+        - windows-latest
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/cache@v1
