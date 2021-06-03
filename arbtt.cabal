@@ -22,7 +22,7 @@ description:
     you understand the consequences of a full-time logger and be careful with this
     data.
 homepage:           http://arbtt.nomeata.de/
-bug-reports:        https://bitbucket.org/nomeata/arbtt/issues
+bug-reports:        https://github.com/nomeata/arbtt/issues
 extra-source-files:
     categorize.cfg, arbtt-capture.desktop, README.md,
     doc/arbtt.xml, doc/fptools.css, doc/Makefile,

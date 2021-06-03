@@ -66,13 +66,9 @@ Development
 
 You are very welcome to help the developement of arbtt. You can find the
 latest source at the git repository at
-<https://github.com/nomeata/arbtt> or
-<https://bitbucket.org/nomeata/arbtt>.
+<https://github.com/nomeata/arbtt>.
 
-The issue tracker is hosted on bitbucket:
-  <https://bitbucket.org/nomeata/arbtt/issues>
-Why Bitbucket and not GitHub? Why not, and we need diversitiy even in the
-cloud! (Don’t worry, you can use your GitHub account there.)
+The issue tracker is hosted on GitHub: <https://github.com/nomeata/arbtt/issues>
 
 Some of my plans or ideas include:
 

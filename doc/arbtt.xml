@@ -1898,7 +1898,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <listitem>
     <para>
       The syntax now allows for time differences larger than 99:99.
-          (<ulink url="https://bitbucket.org/nomeata/arbtt/issue/14/improve-time-categorization-directives">issue #14</ulink>)
+          (<ulink url="https://github.com/nomeata/arbtt/issue/69">issue #69</ulink>)
     </para>
       </listitem>
     </itemizedlist>
@@ -1928,10 +1928,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <para><command>arbtt-capture</command> now supports the option <option>--dump</option> for development and debugging purposes.</para>
       </listitem>
       <listitem>
-        <para>The name of the current desktop (or workspace) is also recorded, and available as <literal>$desktop</literal> (<ulink url="https://bitbucket.org/nomeata/arbtt/issue/1/track-active-workspace-name">issue #1</ulink>).</para>
+        <para>The name of the current desktop (or workspace) is also recorded, and available as <literal>$desktop</literal> (<ulink url="https://github.com/nomeata/arbtt/issue/56">issue #56</ulink>).</para>
       </listitem>
       <listitem>
-        <para>Two bugs in the parser were fixed (<ulink url="https://bitbucket.org/nomeata/arbtt/issue/4/parsing-of-if-then-else-fails">issue #4</ulink> and <ulink url="https://bitbucket.org/nomeata/arbtt/issue/5/parsing-of-fails">issue #5</ulink>).</para>
+        <para>Two bugs in the parser were fixed (<ulink url="https://github.com/nomeata/arbtt/issue/59">issue #59</ulink> and <ulink url="https://github.com/nomeata/arbtt/issue/60">issue #60</ulink>).</para>
       </listitem>
       <listitem>
         <para><command>arbtt-stats</command> can print reports split by time interval, using the <option>--for-each</option> option.</para>
@@ -1940,10 +1940,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <para><command>arbtt-stats</command> can print the actual samples selected, with <option>--dump-samples</option>.</para>
       </listitem>
       <listitem>
-        <para>Support for GHC-7.8 was added, with help from Jayesh Kumar Gupta (<ulink url="https://bitbucket.org/nomeata/arbtt/issue/8/update-base-bounds-for-newer-ghc">issue #8</ulink>).</para>
+        <para>Support for GHC-7.8 was added, with help from Jayesh Kumar Gupta (<ulink url="https://github.com/nomeata/arbtt/issue/63">issue #63</ulink>).</para>
       </listitem>
       <listitem>
-        <para>Arbtt now has a proper testsuite integrated into Cabal, and an <ulink url="https://travis-ci.org/nomeata/darcs-mirror-arbtt">automated test infrastructure</ulink> on Travis.</para>
+        <para>Arbtt now has a proper testsuite integrated into Cabal, and an <ulink url="https://travis-ci.org/nomeata/arbtt">automated test infrastructure</ulink> on Travis.</para>
       </listitem>
       <listitem>
         <para>Waldir Pimenta contributed a new web page, hosted at <ulink url="http://arbtt.nomeata.de/">arbtt.nomeata.de</ulink>.</para>
