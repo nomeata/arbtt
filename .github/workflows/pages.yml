@@ -36,6 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - run: sudo apt-get install xsltproc docbook-xsl
     - name: Build
       run: |
         make -C doc html
