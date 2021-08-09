@@ -19,7 +19,7 @@ lockFile filename' = do
 #ifdef WIN32
     success <- claimMutex filename
     unless success $ do
-        hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for " ++ filename ++"!")
+        hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for the path " ++ filename ++ ", possibly because another instance of arbtt is running.")
         exitFailure
 #else
     flip catchIOError (\e -> hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for " ++ filename ++"!") >> exitFailure) $ do
