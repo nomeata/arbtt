@@ -44,6 +44,12 @@ instance ToJSON (TimeLogEntry CaptureData) where
         "windows" .= cWindows tlData,
         "desktop" .= cDesktop tlData
         ]
+    toEncoding (TimeLogEntry {..}) = pairs
+        $ "date" .= tlTime
+        <> "rate" .= tlRate
+        <> "inactive" .= cLastActivity tlData
+        <> "windows" .= cWindows tlData
+        <> "desktop" .= cDesktop tlData
 
 instance FromJSON (TimeLogEntry CaptureData) where
     parseJSON = withObject "TimeLogEntry" $ \v -> do
@@ -64,6 +70,12 @@ instance ToJSON WindowData where
         , "program" .= wProgram
         , "desktop" .= wDesktop
         ]
+    toEncoding WindowData{..} = pairs
+        $  "active" .= wActive
+        <> "hidden" .= wHidden
+        <> "title" .= wTitle
+        <> "program" .= wProgram
+        <> "desktop" .= wDesktop
 
 instance FromJSON WindowData where
     parseJSON = withObject "window" $ \v -> do

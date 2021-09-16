@@ -112,11 +112,7 @@ executable arbtt-stats
         terminal-progress-bar >= 0.4 && < 0.5,
         bytestring-progress,
         mtl,
-        text,
-        -- hashable 1.3.3.0 changes the text hashing, which changes json output.
-        -- even though we do not directly depend on it, fix it here for the sake of
-        -- our test suite
-        hashable >= 1.3.3.0
+        text
 
     if !os(windows)
         build-depends: unix
@@ -160,11 +156,7 @@ executable arbtt-dump
         array == 0.4.* || == 0.5.*,
         binary >= 0.5,
         deepseq, bytestring, utf8-string, strict,
-        transformers, directory, filepath,
-        -- hashable 1.3.3.0 changes the text hashing, which changes json output.
-        -- even though we do not directly depend on it, fix it here for the sake of
-        -- our test suite
-        hashable >= 1.3.3.0
+        transformers, directory, filepath
 
     if !os(windows)
         build-depends: unix
