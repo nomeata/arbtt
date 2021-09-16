@@ -11,14 +11,15 @@ jobs:
         os:
         - ubuntu-latest
         # TODO: - windows-latest
+      fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/cache@v1
       name: Cache ~/.cabal/store
       with:
         path: ~/.cabal/store
-        key: cabal-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project', 'cabal.project.freeze') }}
-        restore-keys: cabal-${{ runner.os }}-${{ matrix.ghc }}-
+        key: cabal-store-${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project', 'cabal.project.freeze') }}
+        restore-keys: cabal-store-${{ runner.os }}-${{ matrix.ghc }}-
 
     - uses: actions/checkout@v2
     - uses: actions/setup-haskell@v1
