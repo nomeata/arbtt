@@ -1073,6 +1073,16 @@ arbtt &lt;- reshape(arbtt, v.names=&quot;Time&quot;, timevar=&quot;Tag&quot;, id
     </para>
   </sect2>
   <sect2>
+    <title>arbtt-chart</title>
+    <para>
+      Tomáš Janoušek maintains a console-based alternative to arbtt-graph that
+      draws charts using Unicode block elements.
+    </para>
+    <para>
+      You can find his tool on <ulink url="https://github.com/liskin/arbtt-chart">https://github.com/liskin/arbtt-chart</ulink>.
+    </para>
+  </sect2>
+  <sect2>
     <title>arbtt-capture for GNOME Shell</title>
     <para>
       An arbtt-capture implemented as a GNOME Shell extension. Its main value
