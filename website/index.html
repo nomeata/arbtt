@@ -114,85 +114,85 @@ Program:Google Chrome |  3d15h24m00s |      21.60
             </section>
 
             <section id="install">
-                <h2>Install arbtt</h2>
-                <ul class="installation">
-                  <h3>Binary installations</h3>
-                    <li>
-                        <b>Debian/Ubuntu:</b>
-                        <p>arbtt is available both in
-                        <a href="http://packages.debian.org/sid/arbtt">Debian's</a> and
-                        <a href="http://packages.ubuntu.com/raring/arbtt">Ubuntu's</a> repositories.</p>
-                        <p>Install arbtt:</p>
-                        <code class="command">sudo apt-get install arbtt</code>
-                        <p>Set it up to start automatically on system startup:</p>
-                        <code class="command">cp /usr/share/doc/arbtt/examples/arbtt-capture.desktop ~/.config/autostart/</code>
-                        <p>Start the daemon manually, if you want it to start capturing immediately,
-                        rather than at the next system restart:</p>
-                        <code class="command">(arbtt-capture &amp;)</code>
-                        <p>Create a minimal categorize.cfg file to allow arbtt-stats to be invoked without errors:</p>
-                        <code class="command">echo "{\$idle &gt; 60 ==&gt; tag inactive}" &gt; ~/.arbtt/categorize.cfg</code>
-                    </li>
-                    <li>
-                        <b>Windows:</b><br>Download the
-                        latest <a href="http://www.joachim-breitner.de/archive/arbtt/">arbtt-setup.exe</a>
-                        and follow the setup process as usual. This will set up the capturing daemon,
-                        but note that there is no graphical interface. Extracting stats from the data
-                        requires running arbtt-stats on the command line. Run
-                        <code>arbtt-stats --help</code> for a quick reference;
-                        for more detailed information, consult the
-                        <a href="doc/users_guide/arbtt-stats.html">manual</a>.
-                    </li>
-                    <h3>Source installations</h3>
+              <h2>Install arbtt</h2>
+              <h3>Binary installations</h3>
+              <ul class="installation">
+                <li>
+                  <b>Debian/Ubuntu:</b>
+                  <p>arbtt is available both in
+                  <a href="http://packages.debian.org/sid/arbtt">Debian's</a> and
+                  <a href="http://packages.ubuntu.com/raring/arbtt">Ubuntu's</a> repositories.</p>
+                  <p>Install arbtt:</p>
+                  <code class="command">sudo apt-get install arbtt</code>
+                  <p>Set it up to start automatically on system startup:</p>
+                  <code class="command">cp /usr/share/doc/arbtt/examples/arbtt-capture.desktop ~/.config/autostart/</code>
+                  <p>Start the daemon manually, if you want it to start capturing immediately,
+                  rather than at the next system restart:</p>
+                  <code class="command">(arbtt-capture &amp;)</code>
+                  <p>Create a minimal categorize.cfg file to allow arbtt-stats to be invoked without errors:</p>
+                  <code class="command">echo "{\$idle &gt; 60 ==&gt; tag inactive}" &gt; ~/.arbtt/categorize.cfg</code>
+                </li>
+                <li>
+                  <b>NixOS:</b>
+                  <p>
+                    arbtt can be enabled in your NixOS configuration via <code>services.arbtt.enable</code>, see
+		    <a href="https://github.com/NixOS/nixpkgs/blob/release-21.05/nixos/modules/services/monitoring/arbtt.nix">the NixOS module for more configuration settings</a>.
+	          </p>
+	        </li>
+                <li>
+                  <b>Windows:</b><br>Download the
+                  latest <a href="http://www.joachim-breitner.de/archive/arbtt/">arbtt-setup.exe</a>
+                  and follow the setup process as usual. This will set up the capturing daemon,
+                  but note that there is no graphical interface. Extracting stats from the data
+                  requires running arbtt-stats on the command line. Run
+                  <code>arbtt-stats --help</code> for a quick reference;
+                  for more detailed information, consult the
+                  <a href="doc/users_guide/arbtt-stats.html">manual</a>.
+                </li>
+	      </ul>
 
-                      <p>arbtt can be installed from source either via cabal install or from the source repository.</p>
-                      <b>Dependencies:</b>
-                      <p>arbtt depends on several libraries whose development versions (name often suffixed <code>-dev</code>) must be available or the compilation
-                        may fail with errors such as <code>X11-1.6.1.2 failed during the configure step</code>;
-                        these libraries include:
-                        <ul>
-                          <li>X11, for the X11 Haskell binding (possibly named <code>libx11-dev</code> or <code>xorg-dev</code> in your package manager)</li>
-                          <li>PCRE3, for pcre-light (possibly <code>libpcre3-dev</code>)</li>
-                          <li>XSS, for arbtt (possibly <code>libxss-dev</code>)</li>
-                        </ul>
-                      </p>
-                    <li>
-                      <b>From Hackage:</b>
-                      <p>arbtt has been <a href="http://hackage.haskell.org/package/arbtt">published on hackage</a>,
-                        the Haskell package database. If you have
-                        <a href="http://www.haskell.org/haskellwiki/Cabal-Install">cabal-install</a>
-                        available, you can install arbtt by simply running:</p>
-                        <code class="command">cabal install arbtt</code>
-                    </li>
+              <h3>Source installations</h3>
 
-                    <li>
-                        <b>Build from repo:</b>
-                        <p>Download the latest release from <a href="http://www.joachim-breitner.de/archive/arbtt/">the archive</a>.
-                        Extract the tarball and run the following commands to build and install the arbtt binaries:</p>
-                        <code class="command">runhaskell Setup.hs configure</code><br>
-                        <code class="command">runhaskell Setup.hs build</code><br>
-                        <code class="command">runhaskell Setup.hs install</code><br>
-                        <p>If you use GNOME or KDE, you can copy the file "arbtt-capture.desktop"
-                        to ~/.config/autostart/. If you didn't do a system-wide installation,
-                        you'll probably need to put the full path to arbtt-capture
-                        in the Exec line of the .desktop file.</p>
-                    </li>
-
-                    <li>
-                        <b>Mac OS X support:</b>
-                        <p>arbtt can run on Mac OS X systems. To compile it, you need to install the pkgconfig and pcre source packages
-                        using <a href="http://brew.sh">Homebrew</a> or <a href="https://www.macports.org">MacPorts</a>. For Homebrew, you can execute:</p>
-                        <code class="command">brew install pkgconfig</code><br>
-                        <code class="command">brew install pcre</code><br>
-                        <p>or for MacPorts:</p>
-                        <code class="command">sudo port install pkgconfig</code><br>
-                        <code class="command">sudo port install pcre</code><br>
-                        <p>Then, you can compile arbtt using the usual cabal commands.</p>
-                        <p>If you use MacPorts and have a linking error, it may be because of a conflict between the system libiconv and the MacPorts libiconv.
-                        Execute the following cabal command to resolve the conflict:</p>
-                        <code class="command">cabal configure --extra-lib-dir=/usr/lib</code><br>
-                        <p>When the installation is done, your arbtt binaries will be located in <code>~/Library/Haskell/bin</code> or <code>~/.cabal/bin</code>.</p>
-                    </li>
+              <p>arbtt depends on several libraries whose development versions (name often suffixed <code>-dev</code>) must be available or the compilation
+                may fail with errors such as <code>X11-1.6.1.2 failed during the configure step</code>;
+                these libraries include:
+                <ul>
+                  <li>X11, for the X11 Haskell binding (possibly named <code>libx11-dev</code> or <code>xorg-dev</code> in your package manager)</li>
+                  <li>PCRE3, for pcre-light (possibly <code>libpcre3-dev</code>)</li>
+                  <li>XSS, for arbtt (possibly <code>libxss-dev</code>)</li>
                 </ul>
+              </p>
+
+              <p>Fetch the latest revision using</p>
+              <code class="command">git glone https://github.com/nomeata/arbtt</code><br>
+              <p>and run the following command to build the arbtt binaries:</p>
+              <code class="command">cabal install --installdir=bin --install-method=copy --overwrite-policy=always</code><br>
+              <p>You will now find the binaries in the <code>bin</code>
+              subdirectory, which you can copy, for example, to
+              <code>/usr/local/bin</code>.</p>
+
+              <p>If you use GNOME or KDE, you can copy the file "arbtt-capture.desktop"
+              to <code>~/.config/autostart/</code>. If you didn't do a system-wide installation,
+              you'll probably need to put the full path to arbtt-capture
+              in the Exec line of the .desktop file.</p>
+
+              <h3>Mac OS X installation</h3>
+
+              <p>
+	        arbtt can run on Mac OS X systems. To compile it, you need to install the pkgconfig and pcre source packages
+                using <a href="http://brew.sh">Homebrew</a> or <a href="https://www.macports.org">MacPorts</a>. For Homebrew, you can execute:
+	      </p>
+              <code class="command">brew install pkgconfig</code><br>
+              <code class="command">brew install pcre</code><br>
+              <p>or for MacPorts:</p>
+              <code class="command">sudo port install pkgconfig</code><br>
+              <code class="command">sudo port install pcre</code><br>
+              <p>Then, you can compile arbtt using the usual cabal command, as described above.</p>
+              <p>
+	        If you use MacPorts and have a linking error, it may be because of a conflict between the system libiconv and the MacPorts libiconv.
+                Execute the following cabal command to resolve the conflict:
+	      </p>
+              <code class="command">cabal configure --extra-lib-dir=/usr/lib</code><br>
             </section>
 
             <section id="contact">
