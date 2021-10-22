@@ -1789,6 +1789,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   The version history with changes relevant for the user is documented here.
   </para>
 
+  <sect2 id="release-notes-0.11.1">
+    <title>Version 0.11.1</title>
+    <itemizedlist>
+      <listitem>
+        <para>
+	  Support building with GHC-9.0
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
   <sect2 id="release-notes-0.11">
     <title>Version 0.11</title>
     <itemizedlist>
