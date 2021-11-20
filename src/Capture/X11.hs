@@ -123,9 +123,10 @@ getDesktops dpy = do
   where
     -- _NET_DESKTOP_NAMES is a list of NULL-terminated strings but
     -- wcTextPropertyToTextList treats NULL as a separator,
-    -- so we need to drop the final empty string
+    -- so we need to drop the final empty string (if there is one)
     dropTailNull [""] = []
     dropTailNull (x:xs) = x : dropTailNull xs
+    dropTailNull [] = []
 
 getDesktop :: String -> Display -> Window -> IO (Maybe Int)
 getDesktop prop dpy w = flip catchIOError (\_ -> return Nothing) $ do
