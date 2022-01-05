@@ -9,6 +9,7 @@ jobs:
         - '8.8.4'
         - '8.10.7'
         - '9.0.1'
+        - '9.1.1'
         os:
         - ubuntu-latest
         # TODO: - windows-latest
