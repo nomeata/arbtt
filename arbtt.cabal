@@ -194,7 +194,7 @@ executable arbtt-import
         aeson >= 0.10  && < 1.6,
         conduit >= 1.2 && < 1.4,
         exceptions >= 0.8,
-        attoparsec == 0.13.*,
+        attoparsec >= 0.13,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath
 
