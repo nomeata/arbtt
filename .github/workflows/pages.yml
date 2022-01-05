@@ -9,6 +9,7 @@ jobs:
         - '8.8.4'
         - '8.10.7'
         - '9.0.1'
+        - '9.2.1'
         os:
         - ubuntu-latest
         # TODO: - windows-latest
@@ -23,7 +24,7 @@ jobs:
         restore-keys: cabal-store-${{ runner.os }}-${{ matrix.ghc }}-
 
     - uses: actions/checkout@v2
-    - uses: actions/setup-haskell@v1
+    - uses: haskell/actions/setup@v1
       with:
         ghc-version: ${{ matrix.ghc }}
 
