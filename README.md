@@ -70,6 +70,9 @@ latest source at the git repository at
 
 The issue tracker is hosted on GitHub: <https://github.com/nomeata/arbtt/issues>
 
+User and Developer discussion happens on the arbtt mailing list, `arbtt@lists.nomeata.de`.
+To subscribe to the list, visit <http://lists.nomeata.de/mailman/listinfo/arbtt>.
+
 Some of my plans or ideas include:
 
  * A graphical viewer that allows you to expore the tags in an appealing,
@@ -83,7 +86,7 @@ Some of my plans or ideas include:
    at night. (Partially done)
  * Storing the current timezone in the tags, for the prevoius entry to be
    more to be more useful.
- * Storing the hostname, in case a user has several. 
+ * Storing the hostname, in case a user has several.
  * Statistics based on time, to visualize trends.
  * Possibly more data sources?
 
