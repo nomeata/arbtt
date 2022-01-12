@@ -8,11 +8,11 @@ import Control.Applicative
 import System.IO
 import Control.Concurrent
 import Control.Monad
+import Text.Printf
 import Data.Time
 import Data.Binary
 import Data.Binary.StringRef
 import Data.Binary.Get
-import Data.Function
 import Data.Char
 import System.Directory
 import Control.Exception
@@ -37,7 +37,12 @@ mkTimeLogEntry delay entry = do
 -- | Runs the given action each delay milliseconds and appends the TimeLog to the
 -- given file.
 runLogger :: ListOfStringable a => FilePath -> Integer -> IO a -> IO ()
-runLogger filename delay action = flip fix Nothing $ \loop prev -> do
+runLogger filename delay action = do
+    start <- getCurrentTime
+    go start Nothing
+  where
+    go before prev = do
+        before_sample <- getCurrentTime
         entry <- action
         tle <- mkTimeLogEntry delay entry
 
@@ -46,10 +51,22 @@ runLogger filename delay action = flip fix Nothing $ \loop prev -> do
         setFileMode filename (ownerReadMode `unionFileModes` ownerWriteMode)
 #endif
         appendTimeLog filename prev tle
-        threadDelay (fromIntegral delay * 1000)
-        loop (Just entry)
 
-        
+        after <- getCurrentTime
+        let processingTime = nominalDiffTimeToSeconds $ after `diffUTCTime` before_sample
+        when (processingTime > fromIntegral delay) $
+          hPrintf stderr
+            "arbtt-capture: warning, sample collection took %.3f seconds, more than the configured delay of %d seconds.\n"
+            (realToFrac processingTime :: Double)
+            delay
+
+        let timeSinceLast = nominalDiffTimeToSeconds $ after `diffUTCTime` before
+        let remainingDelay = fromIntegral delay - timeSinceLast
+        -- This can be negative if the sleep went overly long
+        when (remainingDelay < 0) $
+          threadDelay (round (remainingDelay * 1000))
+        go after (Just entry)
+
 createTimeLog :: Bool -> FilePath -> IO ()
 createTimeLog force filename = do
         ex <- doesFileExist filename
