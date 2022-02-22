@@ -72,7 +72,7 @@ options =
                         hPutStrLn stderr ("Invalid number \"" ++ arg ++ "\".")
                         hPutStr stderr (usageInfo header options)
                         exitFailure) "NUMBER")
-               "only dump the last NUMBER of samples."
+               "only dump the first NUMBER of samples."
      , Option "l"      ["last"]
               (ReqArg (\arg opt ->
                 case reads arg of
