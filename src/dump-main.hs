@@ -23,12 +23,14 @@ import Paths_arbtt (version)
 data Options = Options
     { optLogFile :: String
     , optFormat :: DumpFormat
+    , optFirst :: Maybe Int
     , optLast :: Maybe Int
     }
 
 defaultOptions dir = Options
     { optLogFile = dir </> "capture.log"
     , optFormat = DFHuman
+    , optFirst = Nothing
     , optLast = Nothing
     }
 
@@ -62,6 +64,15 @@ options =
                         hPutStr stderr (usageInfo header options)
                         exitFailure) "FORMAT")
                "output format, one of Human (default), Show or JSON "
+     , Option "i"      ["first"]
+              (ReqArg (\arg opt ->
+                case reads arg of
+                    [(n, "")] | n >= 0 -> return $ opt { optFirst = Just n }
+                    _                  -> do
+                        hPutStrLn stderr ("Invalid number \"" ++ arg ++ "\".")
+                        hPutStr stderr (usageInfo header options)
+                        exitFailure) "NUMBER")
+               "only dump the first NUMBER of samples."
      , Option "l"      ["last"]
               (ReqArg (\arg opt ->
                 case reads arg of
@@ -84,11 +95,16 @@ main = do
 
   dir <- getAppUserDataDirectory "arbtt"
   flags <- foldl (>>=) (return (defaultOptions dir)) actions
-  
+
   captures <- readTimeLog (optLogFile flags) :: IO (TimeLog CaptureData)
 
-  captures <- case optLast flags of 
-    Nothing -> return captures
-    Just n  -> return $ takeR n captures
+  captures <- case (optFirst flags, optLast flags) of
+    (Nothing, Nothing) -> return captures
+    (Just n , Nothing) -> return $ take n captures
+    (Nothing, Just n ) -> return $ takeR n captures
+    (Just _ , Just _ ) -> do
+        hPutStrLn stderr "--first and --last are mutually exclusive"
+        hPutStr stderr (usageInfo header options)
+        exitFailure
 
   dumpSamples (optFormat flags) captures

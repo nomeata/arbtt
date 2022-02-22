@@ -1,12 +1,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Data.List.TakeR where
 
-import Control.Monad.ST
-import Debug.Trace
-import Data.Array.MArray
-import Data.Array.ST
-
 -- Efficient taking of last r values
+takeR :: Int -> [a] -> [a]
 takeR n l = go (drop n l) l
   where
     go [] r = r
@@ -14,6 +10,11 @@ takeR n l = go (drop n l) l
 
 -- Much faster and better evaluation properties than:
 {-
+import Control.Monad.ST
+import Debug.Trace
+import Data.Array.MArray
+import Data.Array.ST
+
 takeR :: forall a. Int -> [a] -> [a]
 takeR n l | n <= 0 = []
 takeR n l = runST stAction
