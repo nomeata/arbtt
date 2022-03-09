@@ -129,13 +129,12 @@ parseTimeLog input =
     (startString, rest, off) = case runGetOrFail (getLazyByteString (BS.length magic)) input of
         Right (rest, off, x) -> (x, rest, off)
         Left (_, off, e) -> error $ "Timelog parse error at " ++ show off ++ ": " ++ e
-    go prev input off = case runGetOrFail (ls_get strs) input of
-        Right (rest, off', v) ->
-            v `deepseq`
-            if (BS.null rest)
-            then [v]
-            else v : go (Just (tlData v)) rest (off + off')
-        Left (_, off', e) ->
-            error $ "Timelog parse error at " ++ show (off + off') ++ ": " ++ e
+    go prev input off
+        | BS.null input = []
+        | otherwise = case runGetOrFail (ls_get strs) input of
+            Right (rest, off', v) ->
+                v `deepseq` v : go (Just (tlData v)) rest (off + off')
+            Left (_, off', e) ->
+                error $ "Timelog parse error at " ++ show (off + off') ++ ": " ++ e
       where strs = maybe [] listOfStrings prev
 

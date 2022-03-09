@@ -189,7 +189,7 @@ main = do
       let pbStyle = defStyle { stylePrefix = msg (TL.pack "Processing data")
                              , stylePostfix = percentage }
       pb <- hNewProgressBar stderr pbStyle 10 (Progress 0 100 ())
-      trackProgressWithChunkSize (fromIntegral size `div` 100)
+      trackProgressWithChunkSize (1 `max` (fromIntegral size `div` 100))
           (\_ b -> updateProgress pb (const (Progress (fromIntegral b) (fromIntegral size) ())))
           timelog
     False -> return timelog

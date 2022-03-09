@@ -117,6 +117,9 @@ goldenTests = testGroup "Golden tests"
     , goldenVsString "stats small_v4 ($hidden, $wdesktop)"
         "tests/small_v4_stats.out" $
         run "arbtt-stats" ["--logfile", "tests/small_v4.log", "--categorize", "tests/small_v4.cfg"] B.empty
+    , goldenVsString "dump empty"
+        "tests/empty_dump.out" $
+        run "arbtt-dump" ["-f","tests/empty.log", "-t", "Show"] B.empty
     ]
 
 testParser env parser input = do
