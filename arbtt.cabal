@@ -44,7 +44,7 @@ executable arbtt-capture
                 filepath, directory, transformers, utf8-string, strict,
                 containers >= 0.5 && < 0.7,
                 aeson >= 0.10  && < 2.1,
-                binary >= 0.5,
+                binary >= 0.6.4,
                 bytestring, deepseq
 
     if flag(old-locale)
@@ -104,7 +104,7 @@ executable arbtt-stats
         parsec == 3.*,
         containers >= 0.5 && < 0.7,
         pcre-light,
-        binary >= 0.5,
+        binary >= 0.6.4,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath,
         aeson >= 0.10  && < 2.1,
@@ -153,7 +153,7 @@ executable arbtt-dump
         parsec == 3.*,
         containers >= 0.5 && < 0.7,
         aeson >= 0.10  && < 2.1,
-        binary >= 0.5,
+        binary >= 0.6.4,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath
 
@@ -189,7 +189,7 @@ executable arbtt-import
         base >= 4.7 && < 5,
         parsec == 3.*,
         containers >= 0.5 && < 0.7,
-        binary >= 0.5,
+        binary >= 0.6.4,
         aeson >= 0.10  && < 2.1,
         conduit >= 1.2 && < 1.4,
         exceptions >= 0.8,
@@ -242,7 +242,7 @@ executable arbtt-recover
     build-depends:
         base >= 4.7 && < 5,
         containers >= 0.5 && < 0.7,
-        binary >= 0.5,
+        binary >= 0.6.4,
         deepseq, bytestring, utf8-string,
         directory, filepath
 
@@ -292,7 +292,7 @@ test-suite test
       , tasty-hunit >= 0.2  && < 0.11
       , process-extras >= 0.2 && < 0.8
       , deepseq
-      , binary >= 0.5
+      , binary >= 0.6.4
       , bytestring
       , utf8-string
       , directory

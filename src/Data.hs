@@ -93,7 +93,7 @@ instance StringReferencingBinary a => StringReferencingBinary (TimeLogEntry a) w
         v <- getWord8
         case v of
          1 -> TimeLogEntry <$> get <*> get <*> ls_get strs
-         _ -> error $ "Unsupported TimeLogEntry version tag " ++ show v ++ "\n" ++
+         _ -> fail $ "Unsupported TimeLogEntry version tag " ++ show v ++ "\n" ++
                       "You can try to recover your data using arbtt-recover."
 
 instance Binary UTCTime where
@@ -131,7 +131,7 @@ instance StringReferencingBinary CaptureData where
          2 -> CaptureData <$> (map fromWDv0 . fromIntLenW <$> ls_get strs) <*> ls_get strs <*> pure ""
          3 -> CaptureData <$> (map fromWDv0 . fromIntLenW <$> ls_get strs) <*> ls_get strs <*> (fromIntLen <$> ls_get strs)
          4 -> CaptureData <$> ls_get strs <*> ls_get strs <*> ls_get strs
-         _ -> error $ "Unsupported CaptureData version tag " ++ show v ++ "\n" ++
+         _ -> fail $ "Unsupported CaptureData version tag " ++ show v ++ "\n" ++
                       "You can try to recover your data using arbtt-recover."
 
 fromIntLenW :: IntLen [(Bool, IntLen Text, IntLen Text)] -> [(Bool, Text, Text)]
@@ -164,5 +164,5 @@ instance StringReferencingBinary WindowData where
              wProgram <- ls_get strs
              wDesktop <- ls_get strs
              return WindowData{..}
-         _ -> error $ "Unsupported WindowData version tag " ++ show v ++ "\n" ++
+         _ -> fail $ "Unsupported WindowData version tag " ++ show v ++ "\n" ++
                       "You can try to recover your data using arbtt-recover."

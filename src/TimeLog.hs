@@ -15,8 +15,6 @@ import Data.Binary.Get
 import Data.Function
 import Data.Char
 import System.Directory
-import Control.Exception
-import Prelude hiding (catch)
 import Control.DeepSeq
 #ifndef mingw32_HOST_OS
 import System.Posix.Files
@@ -49,7 +47,7 @@ runLogger filename delay action = flip fix Nothing $ \loop prev -> do
         threadDelay (fromIntegral delay * 1000)
         loop (Just entry)
 
-        
+
 createTimeLog :: Bool -> FilePath -> IO ()
 createTimeLog force filename = do
         ex <- doesFileExist filename
@@ -72,13 +70,18 @@ recoverTimeLog :: ListOfStringable a => FilePath -> IO (TimeLog a)
 recoverTimeLog filename = do
         content <- BS.readFile filename
         start content
-  where start content = do
-                let (startString, rest, off) = runGetState (getLazyByteString (BS.length magic)) content 0
-                if startString /= magic
-                  then do putStrLn $ "WARNING: Timelog starts with unknown marker " ++
-                                show (map (chr.fromIntegral) (BS.unpack startString))
-                  else do putStrLn $ "Found header, continuing... (" ++ show (BS.length rest) ++ " bytes to go)"
-                go Nothing rest off
+  where start content = case runGetOrFail (getLazyByteString (BS.length magic)) content of
+            Right (rest, off, startString)
+                | startString /= magic -> do
+                    putStrLn $ "WARNING: Timelog starts with unknown marker " ++
+                        show (map (chr.fromIntegral) (BS.unpack startString))
+                    go Nothing rest off
+                | otherwise -> do
+                    putStrLn $ "Found header, continuing... (" ++ show (BS.length rest) ++ " bytes to go)"
+                    go Nothing rest off
+            Left _ -> do
+                    putStrLn $ "WARNING: Timelog file shorter than a header marker"
+                    return []
 
         go prev input off = do
                 mb <- trySkip prev input off off
@@ -96,22 +99,18 @@ recoverTimeLog filename = do
                putStrLn "No valid TimeLogEntry tag bytes remaining"
                return Nothing
 
-        tryGet prev input off orig_off = catch (
-                        do -- putStrLn $ "Trying value at offset " ++ show off
-                           let (v,rest,off') = runGetState (ls_get strs) input off
-                           evaluate rest
-                           when (off /= orig_off) $
-                                putStrLn $ "Skipped from " ++ show orig_off ++ ", succesful read at position " ++ show off ++ ", lost " ++ show (off - orig_off) ++ " bytes."
-                           return (Just (v,rest,off'))
-                        ) (
-                        \e -> do
-                           putStrLn $ "Failed to read value at position " ++ show off ++ ":"
-                           putStrLn $ "   " ++ show (e :: SomeException)
-                           if BS.length input <= 1
-                             then do putStrLn $ "End of file reached"
-                                     return Nothing
-                             else do trySkip prev (BS.tail input) (off+1) orig_off
-                        )
+        tryGet prev input off orig_off = case runGetOrFail (ls_get strs) input of
+            Right (rest, off', v) -> do
+                when (off /= orig_off) $
+                    putStrLn $ "Skipped from " ++ show orig_off ++ ", succesful read at position " ++ show off ++ ", lost " ++ show (off - orig_off) ++ " bytes."
+                return (Just (v, rest, off + off'))
+            Left (_, _, e) -> do
+                putStrLn $ "Failed to read value at position " ++ show off ++ ":"
+                putStrLn $ "   " ++ e
+                if BS.length input <= 1
+                    then do putStrLn $ "End of file reached"
+                            return Nothing
+                    else do trySkip prev (BS.tail input) (off+1) orig_off
           where strs = maybe [] listOfStrings prev
 
 readTimeLog :: (NFData a, ListOfStringable a) => FilePath -> IO (TimeLog a)
@@ -127,12 +126,16 @@ parseTimeLog input =
             "Timelog starts with unknown marker " ++
             show (map (chr.fromIntegral) (BS.unpack startString))
   where
-    (startString, rest, off) = runGetState (getLazyByteString (BS.length magic)) input 0
-    go prev input off =
-        let (v, rest, off') = runGetState (ls_get strs) input off
-        in v `deepseq`
-           if (BS.null rest)
-           then [v]
-           else v : go (Just (tlData v)) rest off'
+    (startString, rest, off) = case runGetOrFail (getLazyByteString (BS.length magic)) input of
+        Right (rest, off, x) -> (x, rest, off)
+        Left (_, off, e) -> error $ "Timelog parse error at " ++ show off ++ ": " ++ e
+    go prev input off = case runGetOrFail (ls_get strs) input of
+        Right (rest, off', v) ->
+            v `deepseq`
+            if (BS.null rest)
+            then [v]
+            else v : go (Just (tlData v)) rest (off + off')
+        Left (_, off', e) ->
+            error $ "Timelog parse error at " ++ show (off + off') ++ ": " ++ e
       where strs = maybe [] listOfStrings prev
 

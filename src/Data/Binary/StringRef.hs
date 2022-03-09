@@ -70,7 +70,9 @@ instance StringReferencingBinary Text where
                 _ ->    putWord8 0 >> ls_put strs (T.unpack s)
         ls_get strs = getWord8 >>= \case
                 0 -> T.pack <$> ls_get strs
-                i -> return $! strs !! fromIntegral (pred i)
+                i -> case drop (fromIntegral (pred i)) strs of
+                    [] -> fail "invalid string reference"
+                    s : _ -> return s
 
 -- | 'ls_get strsMany n' ls_get strs 'n' elements in order, without blowing the stack.
 ls_getMany :: StringReferencingBinary a => [Text] -> Int -> Get [a]
@@ -105,7 +107,9 @@ instance StringReferencingBinary (IntLen Text) where
                 _ ->    putWord8 0 >> ls_put strs (IntLen (T.unpack s))
         ls_get strs = fmap IntLen $ getWord8 >>= \case
                 0 -> T.pack . fromIntLen <$> ls_get strs
-                i -> return $! strs !! fromIntegral (pred i)
+                i -> case drop (fromIntegral (pred i)) strs of
+                    [] -> fail "invalid string reference"
+                    s : _ -> return s
 
 {-
 instance Binary a => StringReferencingBinary a where
