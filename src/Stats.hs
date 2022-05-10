@@ -26,11 +26,8 @@ import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import Data.MyText (Text,pack,unpack)
 import Data.Function (on)
-#if MIN_VERSION_time(1,5,0)
 import Data.Time.Format(defaultTimeLocale)
-#else
-import System.Locale (defaultTimeLocale)
-#endif
+import Data.Time.Zones
 import Control.Applicative
 import Control.Monad (forM)
 import Data.Strict ((:!:), Pair(..))
@@ -191,12 +188,12 @@ calcSums = LeftFold M.empty
                 let go' m act = M.insertWith (+) act (fromInteger (tlRate tl)/1000) m
                 in foldl' go' m (snd (tlData tl))) id
 
-processRepeater :: TimeZone -> Repeater -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
+processRepeater :: TZ -> Repeater -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
 processRepeater tz r rep = case repeaterImpl r of
     RepeaterImpl catR showR ->
         filterElems (\(b :!: _) -> b) $
         pure (RepeatedReportResults (repeaterTitle r) . map (first showR) . M.toList) <*>
-        multiplex (catR . utcToLocalTime tz . tlTime . Strict.snd) rep
+        multiplex (catR . utcToLocalTimeTZ tz . tlTime . Strict.snd) rep
 
 data RepeaterImpl where
   RepeaterImpl :: Ord r => (LocalTime -> r) -> (r -> String) -> RepeaterImpl
@@ -226,7 +223,7 @@ repeaterImpl ByYear = RepeaterImpl
     ((\(y,_,_) -> y) . toGregorian . localDay)
     show
 
-processReport :: TimeZone -> ReportOptions -> Report -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
+processReport :: TZ -> ReportOptions -> Report -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
 processReport tz opts GeneralInfos =
    pure (\n firstDate lastDate ttr tts ->
     let timeDiff = diffUTCTime lastDate firstDate
@@ -329,7 +326,7 @@ processCategoryReport opts ~Calculations{..} cat =
 tlRateTimediff :: TimeLogEntry a -> NominalDiffTime
 tlRateTimediff tle = fromIntegral (tlRate tle) / 1000
 
-processIntervalReport :: TimeZone -> ReportOptions -> String -> (ActivityData -> Maybe String) -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
+processIntervalReport :: TZ -> ReportOptions -> String -> (ActivityData -> Maybe String) -> LeftFold (Bool :!: TimeLogEntry (Ctx, ActivityData)) ReportResults
 processIntervalReport tz opts title extr = runOnIntervals  go1 go2
   where
     go1 :: LeftFold (TimeLogEntry (Ctx, ActivityData)) [Interval]
@@ -364,7 +361,7 @@ processIntervalReport tz opts title extr = runOnIntervals  go1 go2
 
 
 {-
-intervalReportToTable :: TimeZone -> String -> (ActivityData -> Maybe String) -> ReportResults
+intervalReportToTable :: TZ -> String -> (ActivityData -> Maybe String) -> ReportResults
 intervalReportToTable tz title extr = ListOfIntervals title $
     map (\tles ->
         let str = fromJust (tlData (head tles))
@@ -479,8 +476,8 @@ showTimeDiffMachine t = printf "%d:%02d:%02d" hours mins secs
         mins  = (s `div` 60) `mod` 60
         secs  =  s `mod` 60
 
-showAsLocalTime :: TimeZone -> UTCTime -> String
-showAsLocalTime tz = formatTime defaultTimeLocale "%x %X" . utcToZonedTime tz
+showAsLocalTime :: TZ -> UTCTime -> String
+showAsLocalTime tz = formatTime defaultTimeLocale "%x %X" . utcToLocalTimeTZ tz
 
 underline :: String -> String
 underline str = unlines

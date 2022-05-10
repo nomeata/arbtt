@@ -32,11 +32,8 @@ import Text.Show.Functions
 import Text.Parsec
 import Text.Parsec.ExprFail
 import Text.Parsec.Token
-#if MIN_VERSION_time(1,5,0)
 import Data.Time.Format(defaultTimeLocale, iso8601DateFormat)
-#else
-import System.Locale (defaultTimeLocale, iso8601DateFormat)
-#endif
+import Data.Time.Zones
 import Debug.Trace
 import Text.Printf
 import GHC.Generics (Generic)
@@ -46,7 +43,7 @@ type ApplyCond = TimeLogEntry (Ctx, ActivityData) -> Bool
 type Rule = Ctx -> ActivityData
 type Environment = Map String Cond
 
-type Parser = ParsecT String () (ReaderT (TimeZone, Environment) Identity)
+type Parser = ParsecT String () (ReaderT (TZ, Environment) Identity)
 
 data Ctx = Ctx
         { cNow :: TimeLogEntry CaptureData
@@ -92,8 +89,9 @@ readCategorizer :: FilePath -> IO Categorizer
 readCategorizer filename = withFile filename ReadMode $ \h -> do
         hSetEncoding h utf8
         content <- hGetContents h
+        tz <- loadLocalTZ
         time <- getZonedTime
-        case runParserStack (zonedTimeZone time, Map.empty) (between (return ()) eof parseRules) filename content of
+        case runParserStack (tz, Map.empty) (between (return ()) eof parseRules) filename content of
           Left err -> do
                 putStrLn "Parser error:"
                 print err
@@ -103,7 +101,7 @@ readCategorizer filename = withFile filename ReadMode $ \h -> do
 
 mkApplyCond :: String -> IO ApplyCond
 mkApplyCond s = do
-        tz <- getCurrentTimeZone
+        tz <- loadLocalTZ
         case runParserStack (tz, Map.empty) (parseCond <* eof) "command line parameter" s of
           Left err -> do
                 putStrLn "Parser error:"
@@ -122,7 +120,7 @@ postpare = nubBy go
   where go (Activity (Just c1) _) (Activity (Just c2) _) = c1 == c2
         go a1                     a2                     = a1 == a2
 
-lang :: GenTokenParser String () (ReaderT (TimeZone, Environment) Identity)
+lang :: GenTokenParser String () (ReaderT (TZ, Environment) Identity)
 lang = makeTokenParser LanguageDef
                 { commentStart   = "{-"
                 , commentEnd     = "-}"
@@ -464,7 +462,7 @@ parseDate = lexeme lang $ do
     day <- read <$> count 2 digit
     time <- option 0 parseTime
     let date = LocalTime (fromGregorian year month day) (TimeOfDay 0 0 0)
-    return $ addUTCTime time $ localTimeToUTC tz date
+    return $ addUTCTime time $ localTimeToUTCTZ tz date
 
 
 parseSetTag :: Parser Rule

@@ -11,11 +11,7 @@ import Data.MyText (unpack, null, pack, Text)
 import Data.Aeson
 import qualified Data.ByteString.Lazy as LBS
 import Data.Time
-#if MIN_VERSION_time(1,5,0)
-import Data.Time.Format(defaultTimeLocale)
-#else
-import System.Locale (defaultTimeLocale)
-#endif
+import Data.Time.Zones
 import Data.Char
 import Data.Foldable (toList)
 import Control.Applicative ((<$>), (<|>), (<*>), pure)
@@ -111,9 +107,9 @@ dumpTags = mapM_ go
 
 dumpHeader :: UTCTime -> Integer -> IO ()
 dumpHeader time lastActivity = do
-    tz <- getCurrentTimeZone
+    tz <- loadLocalTZ
     printf "%s (%dms inactive):\n"
-        (formatTime defaultTimeLocale "%F %X" (utcToLocalTime tz time))
+        (formatTime defaultTimeLocale "%F %X" (utcToLocalTimeTZ tz time))
         lastActivity
 
 dumpWindow :: WindowData -> IO ()

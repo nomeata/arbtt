@@ -18,6 +18,7 @@ import System.ProgressBar
 import TermSize
 import qualified Data.MyText as T
 import qualified Data.Text.Lazy as TL
+import Data.Time.Zones
 import Data.Time.LocalTime
 
 import TimeLog
@@ -166,7 +167,7 @@ main = do
           (_,_,errs) -> do
                 hPutStr stderr (concat errs ++ usageInfo header options)
                 exitFailure
-  tz <- getCurrentTimeZone
+  tz <- loadLocalTZ
 
   dir <- getAppUserDataDirectory "arbtt"
   flags <- foldl (>>=) (return (defaultOptions dir)) actions

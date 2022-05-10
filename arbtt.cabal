@@ -29,13 +29,6 @@ extra-source-files:
     setup.iss, modpath.iss,
     tests/*.log, tests/*.out, tests/*.in, tests/*.cfg
 
-flag old-locale
-  description:
-    If false then depend on time >= 1.5.
-    .
-    If true then depend on time < 1.5 together with old-locale.
-  default: False
-
 executable arbtt-capture
     main-is:            capture-main.hs
     hs-source-dirs:     src
@@ -45,12 +38,8 @@ executable arbtt-capture
                 containers >= 0.5 && < 0.7,
                 aeson >= 0.10  && < 2.1,
                 binary >= 0.6.4,
-                bytestring, deepseq
-
-    if flag(old-locale)
-        build-depends: time == 1.4.*, old-locale
-    else
-        build-depends: time >= 1.5
+                bytestring, deepseq,
+                time >= 1.5, tz
 
     other-modules:
         Data
@@ -112,15 +101,11 @@ executable arbtt-stats
         terminal-progress-bar >= 0.4 && < 0.5,
         bytestring-progress,
         mtl,
-        text
+        text,
+        time >= 1.5, tz
 
     if !os(windows)
         build-depends: unix
-
-    if flag(old-locale)
-        build-depends: time == 1.4.*, old-locale
-    else
-        build-depends: time >= 1.5
 
     other-modules:
         Data
@@ -155,15 +140,12 @@ executable arbtt-dump
         aeson >= 0.10  && < 2.1,
         binary >= 0.6.4,
         deepseq, bytestring, utf8-string, strict,
-        transformers, directory, filepath
+        transformers, directory, filepath,
+        time >= 1.5, tz
 
     if !os(windows)
         build-depends: unix
 
-    if flag(old-locale)
-        build-depends: time == 1.4.*, old-locale
-    else
-        build-depends: time >= 1.5
 
     other-modules:
         Data
@@ -195,15 +177,12 @@ executable arbtt-import
         exceptions >= 0.8,
         attoparsec >= 0.13,
         deepseq, bytestring, utf8-string, strict,
-        transformers, directory, filepath
+        transformers, directory, filepath,
+        time >= 1.5, tz
 
     if !os(windows)
         build-depends: unix
 
-    if flag(old-locale)
-        build-depends: time == 1.4.*, old-locale
-    else
-        build-depends: time >= 1.5
 
     other-modules:
         Data
@@ -244,15 +223,12 @@ executable arbtt-recover
         containers >= 0.5 && < 0.7,
         binary >= 0.6.4,
         deepseq, bytestring, utf8-string,
-        directory, filepath
+        directory, filepath,
+        time >= 1.5, tz
 
     if !os(windows)
         build-depends: unix
 
-    if flag(old-locale)
-        build-depends: time == 1.4.*, old-locale
-    else
-        build-depends: time >= 1.5
 
     other-modules:
         Data
@@ -301,14 +277,12 @@ test-suite test
       , pcre-light
       , transformers
       , mtl
+      , time >= 1.5
+      , tz
 
   if !os(windows)
     build-depends: unix
 
-  if flag(old-locale)
-        build-depends: time == 1.4.*, old-locale
-  else
-        build-depends: time >= 1.5
   default-language: Haskell98
   build-tool-depends:
       arbtt:arbtt-stats
