@@ -25,6 +25,7 @@ import           Categorize
 import           TimeLog
 import           Data
 import           Data.Time.Clock
+import           Data.Time.Zones
 
 main = do
     setEnv "TZ" "UTC" -- to make tests reproducible
@@ -123,7 +124,7 @@ goldenTests = testGroup "Golden tests"
     ]
 
 testParser env parser input = do
-  tz <- getCurrentTimeZone
+  tz <- loadLocalTZ
   return . runIdentity . flip runReaderT (tz, env) . runParserT parser () "" $ input
 
 parserTests :: TestTree
