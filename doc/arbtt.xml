@@ -1793,6 +1793,27 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   The version history with changes relevant for the user is documented here.
   </para>
 
+  <sect2 id="release-notes-0.12>
+    <title>Version 0.12</title>
+    <itemizedlist>
+      <listitem>
+        <para>
+	  Improved timezone handling
+	</para>
+      </listitem>
+      <listitem>
+        <para>
+	  Empty logfiles no longer crash <command>arbtt-stats</command>, thanks to Tomáš Janoušek
+	</para>
+      </listitem>
+      <listitem>
+        <para>
+	  New option <option>--first</option> for <command>arbtt-dump</command>, thanks to Tomáš Janoušek.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </sect2>
+
   <sect2 id="release-notes-0.11.1">
     <title>Version 0.11.1</title>
     <itemizedlist>
@@ -1809,12 +1830,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <itemizedlist>
       <listitem>
         <para>
-	  Support for the <literal>$hidden</literal> and <literal>$wdesktop</literal> variables in the configuration file, thanks to Tomas Janousek.
+	  Support for the <literal>$hidden</literal> and <literal>$wdesktop</literal> variables in the configuration file, thanks to Tomáš Janoušek.
 	</para>
       </listitem>
       <listitem>
         <para>
-	  The <option>--filter</option> option of <command>arbtt-stats</command> is greatly sped up, thanks to Tomas Janousek.
+	  The <option>--filter</option> option of <command>arbtt-stats</command> is greatly sped up, thanks to Tomáš Janoušek.
 	</para>
       </listitem>
     </itemizedlist>
