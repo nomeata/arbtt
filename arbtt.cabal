@@ -1,5 +1,5 @@
 name:               arbtt
-version:            0.12
+version:            0.12.0.1
 license:            GPL-2
 license-file:       LICENSE
 category:           Desktop
@@ -36,7 +36,7 @@ executable arbtt-capture
                 base >= 4.7 && < 5,
                 filepath, directory, transformers, utf8-string, strict,
                 containers >= 0.5 && < 0.7,
-                aeson >= 0.10  && < 2.1,
+                aeson >= 0.10  && < 2.2,
                 binary >= 0.6.4,
                 bytestring, deepseq,
                 time >= 1.5, tz
@@ -96,7 +96,7 @@ executable arbtt-stats
         binary >= 0.6.4,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath,
-        aeson >= 0.10  && < 2.1,
+        aeson >= 0.10  && < 2.2,
         array == 0.4.* || == 0.5.*,
         terminal-progress-bar >= 0.4 && < 0.5,
         bytestring-progress,
@@ -137,7 +137,7 @@ executable arbtt-dump
         base >= 4.7 && < 5,
         parsec == 3.*,
         containers >= 0.5 && < 0.7,
-        aeson >= 0.10  && < 2.1,
+        aeson >= 0.10  && < 2.2,
         binary >= 0.6.4,
         deepseq, bytestring, utf8-string, strict,
         transformers, directory, filepath,
@@ -172,7 +172,7 @@ executable arbtt-import
         parsec == 3.*,
         containers >= 0.5 && < 0.7,
         binary >= 0.6.4,
-        aeson >= 0.10  && < 2.1,
+        aeson >= 0.10  && < 2.2,
         conduit >= 1.2 && < 1.4,
         exceptions >= 0.8,
         attoparsec >= 0.13,
