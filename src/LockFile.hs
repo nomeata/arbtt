@@ -23,6 +23,12 @@ lockFile filename' = do
         exitFailure
 #else
     flip catchIOError (\e -> hPutStrLn stderr ("arbtt [Error]: Could not aquire lock for " ++ filename ++"!") >> exitFailure) $ do
-        fd <- openFd (filename  ++ ".lck") WriteOnly (Just 0o644) defaultFileFlags
+        let fileMode = Just 0o644
+        fd <- openFd (filename  ++ ".lck") WriteOnly
+#if MIN_VERSION_unix(2,8,0)
+            (defaultFileFlags { creat = fileMode })
+#else
+            fileMode defaultFileFlags
+#endif
         setLock fd (WriteLock, AbsoluteSeek, 0, 0)
 #endif
