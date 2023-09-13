@@ -14,7 +14,12 @@ import Control.Monad
 import Control.Applicative
 import Data.Conduit.Attoparsec
 import Data.Conduit
+#if MIN_VERSION_aeson(2,2,0)
+import Data.Aeson (parseJSON)
+import Data.Aeson.Parser (json)
+#else
 import Data.Aeson (parseJSON, json)
+#endif
 import Data.Aeson.Types (parseEither)
 import Data.Binary.StringRef
 import Data.Attoparsec.ByteString.Char8 (skipSpace, option)
