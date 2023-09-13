@@ -267,7 +267,7 @@ test-suite test
     TimeLog
   Build-depends:
       base >= 4.7 && < 5
-      , tasty >= 0.7 && < 1.5
+      , tasty >= 0.7 && < 1.6
       , tasty-golden >= 2.2.0.2  && < 2.4
       , tasty-hunit >= 0.2  && < 0.11
       , process-extras >= 0.2 && < 0.8
