@@ -355,7 +355,7 @@ evalDayOfMonth cp = Left $ printf
   "Cannot apply day of month to an expression of type %s, only to $date."
   (cpType cp)
 
--- Day of month is an integer in [1..31].
+-- Week of year is an integer in [0..53].
 evalWeekOfYear :: CondPrim -> Erring CondPrim
 evalWeekOfYear (CondDate df) = Right $ CondInteger $ \ctx ->
   let tz = zonedTimeZone (cCurrentTime ctx) in
