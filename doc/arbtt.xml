@@ -455,6 +455,7 @@
         <rhs> <quote>$idle</quote> </rhs>
         <rhs> <quote>day of week</quote> <nonterminal def="#g-date" /> </rhs>
         <rhs> <quote>day of month</quote> <nonterminal def="#g-date" /> </rhs>
+        <rhs> <quote>week of year</quote> <nonterminal def="#g-date" /> </rhs>
         <rhs> <quote>month</quote> <nonterminal def="#g-date" /> </rhs>
         <rhs> <quote>year</quote> <nonterminal def="#g-date" /> </rhs>
         <rhs> number literal </rhs>
