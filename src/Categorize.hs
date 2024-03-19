@@ -222,6 +222,7 @@ parseCondExpr = buildExpressionParser [
                 [ Prefix (reservedOp lang "!" >> return checkNot) ],
                 [ Prefix (reserved lang "day of week" >> return evalDayOfWeek)
                 , Prefix (reserved lang "day of month" >> return evalDayOfMonth)
+                , Prefix (reserved lang "week of year" >> return evalWeekOfYear)
                 , Prefix (reserved lang "month" >> return evalMonth)
                 , Prefix (reserved lang "year" >> return evalYear)
                 , Prefix (reserved lang "format" >> return formatDate) ],
@@ -352,6 +353,15 @@ evalDayOfMonth (CondDate df) = Right $ CondInteger $ \ctx ->
   (toInteger . trd3 . toGregorian . localDay . utcToLocalTime tz) `fmap` df ctx
 evalDayOfMonth cp = Left $ printf
   "Cannot apply day of month to an expression of type %s, only to $date."
+  (cpType cp)
+
+-- Day of month is an integer in [1..31].
+evalWeekOfYear :: CondPrim -> Erring CondPrim
+evalWeekOfYear (CondDate df) = Right $ CondInteger $ \ctx ->
+  let tz = zonedTimeZone (cCurrentTime ctx) in
+  (toInteger . snd3 . toWeekDate . localDay . utcToLocalTime tz) `fmap` df ctx
+evalWeekOfYear cp = Left $ printf
+  "Cannot apply week of year to an expression of type %s, only to $date."
   (cpType cp)
 
 -- Month is an integer in [1..12].
