@@ -298,6 +298,9 @@
       Expression <literal>day of week $date</literal> evaluates to an integer,
       from 1 to 7, corresponding to the day of week, Monday is 1, Sunday is 7.
       These expressions can be compared to integers.
+      Expression <literal>week of year $date</literal> evaluates to an integer,
+      from 0 to 53, corresponding to the week of year. January 1 falls in week 0.
+      These expressions can be compared to integers.
     </para>
 
     <para>
