@@ -35,6 +35,7 @@ import qualified Data.Strict as Strict
 import Data.Traversable (sequenceA)
 import Control.Arrow
 import Debug.Trace
+import GHC.Stack
 
 import Data
 import Categorize
@@ -386,12 +387,13 @@ renderReport opts (MultipleReportResults reports) =
 renderReport opts reportdata =
     putStr $ doRender opts reportdata
 
-doRender :: ReportOptions -> ReportResults -> String
+doRender :: HasCallStack => ReportOptions -> ReportResults -> String
 doRender opts reportdata = case roReportFormat opts of
                 RFText -> renderReportText id reportdata
                 RFCSV -> renderWithDelimiter "," $ renderXSV reportdata
                 RFTSV -> renderWithDelimiter "\t" $ renderXSV reportdata
 
+renderReportText :: HasCallStack => (String -> String) -> ReportResults -> String
 renderReportText titleMod (ListOfFields title dats) =
     underline (titleMod title) ++
     tabulate False (map (\(f,v) -> [f,v]) dats)
@@ -409,6 +411,11 @@ renderReportText titleMod (RepeatedReportResults cat reps) =
     intercalate "\n" $ map (\(v,rr) -> renderReportText (titleMod . mod v) rr) reps
   where mod v s = s ++ " (" ++ cat ++ " " ++ v ++ ")"
 
+renderReportText titleMod (MultipleReportResults reps) =
+    intercalate "\n" $ map (renderReportText titleMod) reps
+
+renderReportText _ (DumpResult _) = error "renderReportText: Cannot handle DumpResult"
+
 listOfValues dats =
     ["Tag","Time","Percentage"] :
     map (\(f,t,p) -> [f,t,printf "%.2f" (p*100)]) dats
@@ -420,6 +427,8 @@ piechartOfValues dats =
 listOfIntervals dats =
     ["Tag","From","Until","Duration"] :
     map (\(t,f,u,d) -> [t,f,u,d]) dats
+
+renderXSV :: HasCallStack => ReportResults -> [[String]]
 
 -- The reporting of "General Information" is not supported for the
 -- comma-separated output format.
@@ -437,6 +446,16 @@ renderXSV (RepeatedReportResults cat reps) = title : fields
   where
     title = cat : head (renderXSV (snd (head reps)))
     fields = concatMap (\(v,rr) -> map (v:) (tail (renderXSV rr))) reps
+
+-- Also code-smelly; take the first title line as the title line, but it could differ…
+-- E.g. arbtt-stats --each-category --for-each=year --filter '$sampleage < 24000:00'
+-- (Although there the title line does not differ and the title is simply dropped in the XSV output.)
+renderXSV (MultipleReportResults reps) = title : fields
+   where
+    title = head (renderXSV (head reps))
+    fields = concatMap (tail . renderXSV) reps
+
+renderXSV (DumpResult _) = error "renderXSV: Cannot handle DumpResult"
 
 renderWithDelimiter :: String -> [[String]] -> String
 renderWithDelimiter delim datasource =
