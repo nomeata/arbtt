@@ -64,7 +64,7 @@ Beware that this will also reflect the latest development version.
 Development
 -----------
 
-You are very welcome to help the developement of arbtt. You can find the
+You are very welcome to help the development of arbtt. You can find the
 latest source at the git repository at
 <https://github.com/nomeata/arbtt>.
 
@@ -75,7 +75,7 @@ To subscribe to the list, visit <http://lists.nomeata.de/mailman/listinfo/arbtt>
 
 Some of my plans or ideas include:
 
- * A graphical viewer that allows you to expore the tags in an appealing,
+ * A graphical viewer that allows you to explore the tags in an appealing,
    interactive way. Possibly based on the Charts haskell library.
  * Looking forward and backwards in time when writing rules. (Information
    is already passed to the categorizing function, but not exposed to the
@@ -84,7 +84,7 @@ Some of my plans or ideas include:
    would allow the user to catch the idle times more exactly.
  * Rules based on time of day, to create tags for worktime, weekend, late
    at night. (Partially done)
- * Storing the current timezone in the tags, for the prevoius entry to be
+ * Storing the current timezone in the tags, for the previous entry to be
    more to be more useful.
  * Storing the hostname, in case a user has several.
  * Statistics based on time, to visualize trends.
