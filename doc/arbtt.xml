@@ -464,6 +464,8 @@
         <rhs> <quote>week of year</quote> <nonterminal def="#g-date" /> </rhs>
         <rhs> <quote>month</quote> <nonterminal def="#g-date" /> </rhs>
         <rhs> <quote>year</quote> <nonterminal def="#g-date" /> </rhs>
+        <rhs> <nonterminal def="#g-number"/> <nonterminal def="#g-mathop"/>
+         <nonterminal def="#g-number"/> </rhs>
         <rhs> number literal </rhs>
       </production>
 
@@ -506,6 +508,12 @@
         <rhs><quote>&lt;=</quote> | <quote>&lt;</quote> |
         <quote>==</quote> | <quote>!=</quote>
         | <quote>&gt;</quote> | <quote>&gt;=</quote></rhs>
+      </production>
+
+      <production id="g-mathop">
+        <lhs>MathOp</lhs>
+        <rhs><quote>+</quote> | <quote>-</quote> |
+        <quote>*</quote></rhs>
       </production>
 
       <production id="g-condition">
