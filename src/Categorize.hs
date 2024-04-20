@@ -69,6 +69,7 @@ data CondPrim
         | CondRegexList (CtxFun [RE.Regex])
 
 newtype Cmp = Cmp (forall a. Ord a => a -> a -> Bool)
+newtype Math = Math (forall a. Num a => a -> a -> a)
 
 data DateVar = DvDate | DvNow
 
@@ -226,6 +227,8 @@ parseCondExpr = buildExpressionParser [
                 , Prefix (reserved lang "month" >> return evalMonth)
                 , Prefix (reserved lang "year" >> return evalYear)
                 , Prefix (reserved lang "format" >> return formatDate) ],
+                [ Infix (evalMath <$> parseMath) AssocLeft
+                ],
                 [ Infix (reservedOp lang "=~" >> return checkRegex) AssocNone
                 , Infix (checkCmp <$> parseCmp) AssocNone
                 ],
@@ -282,6 +285,15 @@ checkNot (CondCond getCnd) = Right . CondCond $ fmap (maybe (Just []) (const Not
 checkNot cp = Left $
         printf "Cannot apply ! to an expression of type %s"
                (cpType cp)
+
+evalMath :: Math -> CondPrim -> CondPrim -> Erring CondPrim
+evalMath (Math (?)) (CondInteger getN1) (CondInteger getN2) = Right $ CondInteger $ \ctx -> do
+        n1 <- getN1 ctx
+        n2 <- getN2 ctx
+        return $ n1 ? n2
+evalMath _ cp1 cp2 = Left $
+        printf "Cannot do math on expressions of type %s and type %s"
+               (cpType cp1) (cpType cp2)
 
 checkCmp :: Cmp -> CondPrim -> CondPrim -> Erring CondPrim
 checkCmp (Cmp (?)) (CondInteger getN1) (CondInteger getN2) = Right $ CondCond $ \ctx -> do
@@ -389,6 +401,13 @@ formatDate (CondDate df) = Right $ CondString $ \ctx ->
    in T.pack . formatTime defaultTimeLocale (iso8601DateFormat Nothing) <$> local
 formatDate cp = Left $ printf
   "Cannot format an expression of type %s, only $date." (cpType cp)
+
+parseMath :: Parser Math
+parseMath = choice $ map (\(s,o) -> reservedOp lang s >> return o)
+                        [("+",Math (+)),
+                         ("-", Math (-)),
+                         ("*",Math (*))
+                         ]
 
 parseCmp :: Parser Cmp
 parseCmp = choice $ map (\(s,o) -> reservedOp lang s >> return o)
