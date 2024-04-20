@@ -300,7 +300,7 @@
       These expressions can be compared to integers.
       Expression <literal>week of year $date</literal> evaluates to an integer,
       from 0 to 53, corresponding to the week of year. January 1 falls in week 0.
-      These expressions can be compared to integers.
+      These expressions are integers, and can be combined and compared as such.
     </para>
 
     <para>
@@ -314,6 +314,12 @@
       literals enclosed in square brackets (<literal>[</literal>
       <emphasis>...</emphasis>, <emphasis>...</emphasis>, <literal>]</literal>), which
       succeeds if any of them succeeds.
+    </para>
+
+    <para>
+      Integer expressions can be combined via <literal>+</literal>
+      (addition), <literal>-</literal> (subtraction), <literal>*</literal> (multiplication),
+      operators.
     </para>
 
     <para>Regular expressions are written either between slashes
