@@ -1,5 +1,5 @@
 
-/**************************** FULL-HEIGHT SIDEBAR *****************************/
+/*********************** LAYOUT: FULL-HEIGHT SIDEBAR ***********************/
 html, body {
 	margin: 0;
 	height: 100%;
@@ -13,7 +13,7 @@ html, body {
 	position: relative;
 }
 
-section {
+nav, #content {
 	padding: 1rem;
 }
 
@@ -23,13 +23,13 @@ nav {
 	left: 0;
 	top: 0;
 	bottom: 0;
-	/* only for visual indication of layout.
-	 * should be overriden in visual styles. */
-	background: silver;
+	border-right: 1px solid silver;
+	box-sizing: border-box;
 }
 
 #content {
-	margin-left: 20rem;max-width:60em;
+	margin-left: 20rem;
+	max-width: 60em;
 }
 
 section[id]:not(:target) { display: none; }
