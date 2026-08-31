@@ -32,7 +32,26 @@ nav {
 	max-width: 60em;
 }
 
+/****************************** TABS BEHAVIOR ******************************/
+
+/* Tabs: show currently targeted section and hide all others */
+section[id]:target { display: block }
 section[id]:not(:target) { display: none; }
+/* When nothing is targeted, show the first section */
+section[id]:first-of-type { display: block; }
+section[id]:first-of-type:has(~ section[id]:target) { display: none; }
+
+/* Highlight the nav link whose section is targeted */
+body:has(#what:target)    nav > ul > li > a[href="#what"],
+body:has(#how:target)     nav > ul > li > a[href="#how"],
+body:has(#install:target) nav > ul > li > a[href="#install"],
+body:has(#contact:target) nav > ul > li > a[href="#contact"] {
+	color: var(--highlighted-nav-link-color, red);
+}
+/* When no section is targeted, highlight the first nav link */
+body:not(:has(section[id]:target)) nav > ul > li:first-child > a {
+	color: var(--highlighted-nav-link-color, red);
+}
 
 /****************************** VISUAL STYLES ******************************/
 
@@ -67,16 +86,16 @@ nav > ul {
 	list-style: none;
 	text-align: right;
 }
-nav > ul > li > a.active {
-	font-weight: bold;
-	color: Gold;
-}
 
 nav > ul > li > a {
 	color: white;
 	font-weight: bold;
 	display: block;
 	padding: 0.5em;
+}
+
+:root {
+	--highlighted-nav-link-color: Gold;
 }
 
 a {
